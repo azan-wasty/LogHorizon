@@ -11,7 +11,10 @@ app.use(express.json());
 app.use("/api", require("./routes/auth.routes"));
 app.use("/api", require("./routes/me.routes"));
 
+// Preferences
 app.use("/api/preferences", require("./routes/preferences.routes"));
+
+// Other feature routes
 app.use("/api/tags", require("./routes/tags.routes"));
 app.use("/api/content", require("./routes/content.routes"));
 app.use("/api/admin", require("./routes/admin.routes"));

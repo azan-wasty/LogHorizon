@@ -1,9 +1,18 @@
 const express = require("express");
+const { requireAuth } = require("../middleware/auth.middleware");
+const {
+    getPreferenceOptions,
+    getMyPreferences,
+    setMyPreferences,
+    seedPreferenceOptions,
+} = require("../controllers/preferences.controller");
+
 const router = express.Router();
 
-// Placeholder endpoints (implement next)
-router.get("/", (req, res) => {
-    res.status(501).json({ ok: false, message: "Not implemented: list preferences" });
-});
+router.get("/options", getPreferenceOptions);
+router.get("/me", requireAuth, getMyPreferences);
+
+router.post("/", requireAuth, setMyPreferences);
+router.post("/seed", seedPreferenceOptions);
 
 module.exports = router;
