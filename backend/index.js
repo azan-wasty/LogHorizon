@@ -6,4 +6,4 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
-// Additional setup for authentication, routes, and database connections will go here
+// Additional setup for authentication, routes, and database connections will here
