@@ -46,18 +46,29 @@ model UserPreference {
 model Content {
   id          Int      @id @default(autoincrement())
   title       String
-  category    String
+  category    String   // "Anime" | "Manga" | "LightNovel" etc.
   description String
   discordLink String?
+
+  // External API fields
+  externalId  String?  // ID from the source API (e.g. MAL ID, AniList ID)
+  source      String?  // "MAL" | "AniList" | "Kitsu" | "Manual"
+  coverImage  String?  // Image URL from the external API
+  status      String?  // "Airing" | "Finished" | "Upcoming" | "Hiatus"
+  rating      Float?   // Score from the source (e.g. 8.7)
+  externalUrl String?  // Link back to the source page
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   tags        ContentTag[]
+
+  @@unique([source, externalId]) // Prevents duplicate imports
 }
 
 model Tag {
   id        Int      @id @default(autoincrement())
-  type      String   // "Genre" | "Mood"
+  type      String   // "Genre" | "Theme" | "Mood"
   name      String
   createdAt DateTime @default(now())
 
