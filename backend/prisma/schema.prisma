@@ -1,0 +1,46 @@
+// Prisma Schema
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  email    String   @unique
+  password String
+}
+
+model Content {
+  id          Int      @id @default(autoincrement())
+  title       String
+  body        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Tag {
+  id    Int      @id @default(autoincrement())
+  name  String   @unique
+}
+
+model ContentTag {
+  id        Int    @id @default(autoincrement())
+  contentId Int
+  tagId     Int
+}
+
+model PreferenceOption {
+  id    Int      @id @default(autoincrement())
+  name  String   @unique
+}
+
+model UserPreference {
+  id    Int      @id @default(autoincrement())
+  userId Int
+  optionId Int
+}
