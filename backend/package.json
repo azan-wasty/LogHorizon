@@ -12,7 +12,7 @@
     "dotenv": "latest",
     "express": "latest",
     "jsonwebtoken": "latest",
-    "prisma": "latest",
+    "prisma": "^6.12.0",
     "zod": "latest"
   }
 }
