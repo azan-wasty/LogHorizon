@@ -12,6 +12,9 @@ import {
   Layers, 
   ExternalLink, 
   RefreshCw,
+  UserCircle,
+  ShieldAlert,
+  ShieldCheck,
   MoreVertical,
   CheckCircle2,
   XCircle,
@@ -30,9 +33,10 @@ const EMPTY_FORM = {
 
 export default function ContentStudio() {
   const toast = useToast();
-  const [tab, setTab] = useState('content'); // 'content' | 'tags'
+  const [tab, setTab] = useState('content'); // 'content' | 'tags' | 'users'
   const [content, setContent] = useState([]);
   const [tags, setTags] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editId, setEditId] = useState(null);
@@ -51,13 +55,31 @@ export default function ContentStudio() {
   const refresh = async () => {
     setLoading(true);
     try {
-      const [cd, td] = await Promise.all([adminApi.listContent(), adminApi.listTags()]);
+      const [cd, td, ud] = await Promise.all([
+        adminApi.listContent(), 
+        adminApi.listTags(),
+        adminApi.listUsers()
+      ]);
       setContent(cd.content || []);
       setTags(td.tags || []);
+      setUsers(ud.users || []);
     } catch {
       toast('Failed to load data', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleRole = async (user) => {
+    const newRole = user.role === 'ADMIN' ? 'USER' : 'ADMIN';
+    if (!window.confirm(`Change ${user.username}'s role to ${newRole}?`)) return;
+    
+    try {
+      await adminApi.updateUserRole(user.id, newRole);
+      toast(`Updated ${user.username} to ${newRole}`, 'success');
+      refresh();
+    } catch (err) {
+      toast(err.message || 'Failed to update role', 'error');
     }
   };
 
@@ -243,7 +265,7 @@ export default function ContentStudio() {
       {/* Tabs / Management Section */}
       <section className="space-y-6">
         <div className="flex border-b border-white/5">
-          {['content', 'tags'].map(t => (
+          {['content', 'tags', 'users'].map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -350,7 +372,7 @@ export default function ContentStudio() {
               </div>
             )}
           </div>
-        ) : (
+        ) : tab === 'tags' ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
              {/* Create tag */}
             <div className="glass-panel p-6 h-fit space-y-6">
@@ -413,6 +435,70 @@ export default function ContentStudio() {
                 );
               })}
             </div>
+          </div>
+        ) : (
+          <div className="glass-panel overflow-hidden">
+             <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-white/5 bg-white/[0.02]">
+                  <th className="px-6 py-4 font-display text-[10px] uppercase tracking-widest text-gray-500">Member Identifier</th>
+                  <th className="px-6 py-4 font-display text-[10px] uppercase tracking-widest text-gray-500">Access Level</th>
+                  <th className="px-6 py-4 font-display text-[10px] uppercase tracking-widest text-gray-500">Linked Since</th>
+                  <th className="px-6 py-4 font-display text-[10px] uppercase tracking-widest text-gray-500 text-right">System Override</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {users.map(user => (
+                  <tr key={user.id} className="hover:bg-white/[0.02] transition-colors group">
+                    <td className="px-6 py-4">
+                       <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                             user.role === 'ADMIN' ? 'bg-electric-purple/20 text-electric-purple' : 'bg-white/5 text-gray-600'
+                          }`}>
+                             <UserCircle size={20} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-white">{user.username}</p>
+                            <p className="text-[10px] font-mono text-gray-500">{user.email}</p>
+                          </div>
+                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                       <div className="flex items-center gap-2">
+                         {user.role === 'ADMIN' ? (
+                           <span className="px-2 py-1 rounded bg-electric-purple/10 border border-electric-purple/20 text-[10px] font-mono font-bold text-electric-purple flex items-center gap-1.5">
+                             <ShieldCheck size={12} />
+                             MODERATOR
+                           </span>
+                         ) : (
+                           <span className="px-2 py-1 rounded bg-white/5 border border-white/10 text-[10px] font-mono text-gray-400 flex items-center gap-1.5">
+                             <UserCircle size={12} />
+                             STANDARD
+                           </span>
+                         )}
+                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                       <span className="text-[10px] font-mono text-gray-500 uppercase">
+                         {new Date(user.createdAt).toLocaleDateString()}
+                       </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                       <button
+                         onClick={() => handleToggleRole(user)}
+                         className={`px-4 py-1.5 rounded-lg font-display text-[10px] font-bold uppercase tracking-wider transition-all border ${
+                           user.role === 'ADMIN' 
+                             ? 'text-red-400 border-red-400/10 hover:bg-red-400/10' 
+                             : 'text-electric-purple border-electric-purple/10 hover:bg-electric-purple/10'
+                         }`}
+                       >
+                         {user.role === 'ADMIN' ? 'Revoke Access' : 'Grant Admin'}
+                       </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </section>

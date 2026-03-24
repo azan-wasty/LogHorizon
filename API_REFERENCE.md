@@ -325,6 +325,47 @@ Same body as create but all fields optional. If `tagIds` is provided, **replaces
 
 ---
 
+## User Management
+
+Manage system users and access levels.
+
+### List Users
+`GET /admin/users`
+
+**Responses**
+```json
+{
+  "ok": true,
+  "users": [
+    {
+      "id": 1,
+      "username": "azan_a",
+      "email": "azan90308@gmail.com",
+      "role": "ADMIN",
+      "createdAt": "2023-11-01T..."
+    },
+    ...
+  ]
+}
+```
+
+### Update User Role
+`PUT /admin/users/:id/role`
+
+**Request Body**
+```json
+{ "role": "ADMIN" } // or "USER"
+```
+
+**Responses**
+| Status | Meaning |
+|--------|---------|
+| 200 | Role updated successfully |
+| 400 | Invalid ID or role |
+| 404 | User not found |
+
+---
+
 ## Error Format
 
 All errors follow this shape:

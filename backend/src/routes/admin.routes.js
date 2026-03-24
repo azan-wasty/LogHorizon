@@ -13,6 +13,8 @@ const {
     createTag,
     updateTag,
     deleteTag,
+    listUsers,
+    updateUserRole,
 } = require("../controllers/admin.controller");
 
 const router = express.Router();
@@ -34,5 +36,9 @@ router.get("/tags/:id", getTag);
 router.post("/tags", createTag);
 router.put("/tags/:id", updateTag);
 router.delete("/tags/:id", deleteTag);
+
+// ── Users ────────────────────────────────
+router.get("/users", listUsers);
+router.put("/users/:id/role", updateUserRole);
 
 module.exports = router;

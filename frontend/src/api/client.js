@@ -74,6 +74,10 @@ export const admin = {
   createTag: (body) => request('/admin/tags', { method: 'POST', body: JSON.stringify(body) }),
   updateTag: (id, body) => request(`/admin/tags/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteTag: (id) => request(`/admin/tags/${id}`, { method: 'DELETE' }),
+
+  // Users
+  listUsers: () => request('/admin/users'),
+  updateUserRole: (id, role) => request(`/admin/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) }),
 };
 
 export default { auth, me, preferences, content, tags, admin };

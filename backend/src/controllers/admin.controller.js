@@ -352,6 +352,62 @@ async function deleteTag(req, res) {
 }
 
 // ─────────────────────────────────────────
+// USERS
+// ─────────────────────────────────────────
+
+/**
+ * GET /api/admin/users
+ */
+async function listUsers(req, res) {
+    try {
+        const users = await prisma.user.findMany({
+            orderBy: { createdAt: "desc" },
+            select: {
+                id: true,
+                username: true,
+                email: true,
+                role: true,
+                createdAt: true
+            }
+        });
+        return res.status(200).json({ ok: true, users });
+    } catch (err) {
+        console.error("listUsers error:", err);
+        return res.status(500).json({ ok: false, message: "internal server error" });
+    }
+}
+
+/**
+ * PUT /api/admin/users/:id/role
+ * Body: { role }
+ */
+async function updateUserRole(req, res) {
+    try {
+        const id = Number(req.params.id);
+        const { role } = req.body || {};
+
+        if (!Number.isInteger(id) || id <= 0) {
+            return res.status(400).json({ ok: false, message: "invalid id" });
+        }
+
+        if (role !== "ADMIN" && role !== "USER") {
+            return res.status(400).json({ ok: false, message: "invalid role. Use 'ADMIN' or 'USER'" });
+        }
+
+        const updated = await prisma.user.update({
+            where: { id },
+            data: { role },
+            select: { id: true, username: true, role: true }
+        });
+
+        return res.status(200).json({ ok: true, user: updated });
+    } catch (err) {
+        console.error("updateUserRole error:", err);
+        return res.status(500).json({ ok: false, message: "internal server error" });
+    }
+}
+
+// ─────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────
 
@@ -406,4 +462,6 @@ module.exports = {
     createTag,
     updateTag,
     deleteTag,
+    listUsers,
+    updateUserRole,
 };
