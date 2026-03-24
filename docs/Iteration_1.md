@@ -1,4 +1,4 @@
-# 🌌 Iteration 1: Foundation & Modernization
+#  Iteration 1: Foundation & Modernization
 **Project Name:** LogHorizon  
 **Iteration Date:** March 24, 2026  
 **Lead Architect:** Azan Wasty  
