@@ -62,7 +62,7 @@
 ## Current User
 
 ### Get My Profile
-`GET /me` 🔒
+`GET /me` 
 
 ```json
 { "ok": true, "user": { "id": 1, "username": "azan", "role": "User", ... } }
@@ -89,7 +89,7 @@
 ---
 
 ### Get My Preferences
-`GET /preferences/me` 🔒
+`GET /preferences/me` 
 
 ```json
 {
@@ -105,7 +105,7 @@
 ---
 
 ### Set My Preferences
-`POST /preferences` 🔒  
+`POST /preferences` 
 Replaces all current preferences. Send empty array to clear.
 
 **Body**
@@ -181,7 +181,7 @@ Replaces all current preferences. Send empty array to clear.
 
 ---
 
-## Admin — Content 🔒🛡️
+## Admin — Content 
 
 > All `/admin/*` routes require a valid JWT **and** `role: "Admin"`.  
 > Returns `403` if role is not Admin.
@@ -231,7 +231,7 @@ Replaces all current preferences. Send empty array to clear.
 ---
 
 ### Automated Ingestion
-`POST /admin/content/ingest` 🔒🛡️  
+`POST /admin/content/ingest`  
 Scans external APIs (Jikan/MAL, Google Books, TMDB) and automatically creates a new content record with mapped tags.
 
 **Body**
@@ -291,7 +291,7 @@ Same body as create but all fields optional. If `tagIds` is provided, **replaces
 
 ---
 
-## Admin — Tags 🔒🛡️
+## Admin — Tags 
 
 ### List Tags
 `GET /admin/tags`
