@@ -1,4 +1,5 @@
-// Prisma Schema (SQL Server - avoid Prisma enums)
+// Prisma Schema for Microsoft SQL Server (MSSQL)
+// LogHorizon - Project Infrastructure
 
 datasource db {
   provider = "sqlserver"
@@ -10,79 +11,64 @@ generator client {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  username     String   @unique
-  email        String   @unique
-  passwordHash String
-  role         String   @default("User") // "User" | "Admin"
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  preferences  UserPreference[]
-}
-
-model PreferenceOption {
   id        Int      @id @default(autoincrement())
-  type      String   // "Genre" | "Theme" | "Mood"
-  value     String
+  email     String   @unique
+  password  String   // Hashed
+  role      String   @default("USER") // "ADMIN", "USER"
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  users     UserPreference[]
-
-  @@unique([type, value])
-}
-
-model UserPreference {
-  userId             Int
-  preferenceOptionId Int
-  createdAt          DateTime @default(now())
-
-  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  option PreferenceOption @relation(fields: [preferenceOptionId], references: [id], onDelete: Cascade)
-
-  @@id([userId, preferenceOptionId])
+  preferences UserPreference[]
 }
 
 model Content {
   id          Int      @id @default(autoincrement())
   title       String
-  category    String   // "Anime" | "Manga" | "LightNovel" etc.
-  description String
+  category    String   // "Anime", "Manga", "Movie", "Book", "TV"
+  description String   @db.NVarChar(MAX)
   discordLink String?
-
-  // External API fields
-  externalId  String?  // ID from the source API (e.g. MAL ID, AniList ID)
-  source      String?  // "MAL" | "AniList" | "Kitsu" | "Manual"
-  coverImage  String?  // Image URL from the external API
-  status      String?  // "Airing" | "Finished" | "Upcoming" | "Hiatus"
-  rating      Float?   // Score from the source (e.g. 8.7)
-  externalUrl String?  // Link back to the source page
-
+  spotifyId   String?
+  
+  // Ingestion fields
+  externalId  String?  // ID from source API
+  source      String?  // "Jikan", "AniList", "TMDB", "GoogleBooks"
+  coverImage  String?  @db.NVarChar(MAX)
+  rating      Float?
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   tags        ContentTag[]
-
-  @@unique([source, externalId]) // Prevents duplicate imports
 }
 
 model Tag {
   id        Int      @id @default(autoincrement())
-  type      String   // "Genre" | "Theme" | "Mood"
   name      String
+  type      String   // "Mood", "Genre"
   createdAt DateTime @default(now())
 
-  contents  ContentTag[]
+  users    UserPreference[]
+  contents ContentTag[]
 
-  @@unique([type, name])
+  @@unique([name, type])
 }
 
 model ContentTag {
   contentId Int
   tagId     Int
 
-  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
-  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([contentId, tagId])
+}
+
+model UserPreference {
+  userId Int
+  tagId  Int
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([userId, tagId])
 }

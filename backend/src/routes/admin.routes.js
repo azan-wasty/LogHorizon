@@ -2,6 +2,7 @@ const express = require("express");
 const { requireAuth } = require("../middleware/auth.middleware");
 const { requireAdmin } = require("../middleware/admin.middleware");
 const {
+    ingestContent,
     listContent,
     getContent,
     createContent,
@@ -20,6 +21,7 @@ const router = express.Router();
 router.use(requireAuth, requireAdmin);
 
 // ── Content ──────────────────────────────
+router.post("/content/ingest", ingestContent);
 router.get("/content", listContent);
 router.get("/content/:id", getContent);
 router.post("/content", createContent);
