@@ -64,6 +64,13 @@ The application will be accessible at `http://localhost:3000` (or `3001/3002`).
 - **/docs**: Official submission reports and iteration records.
 - **API_REFERENCE.md**: Detailed endpoint technical documentation.
 
+##  Scrum Board
+- **Start** <img width="1496" height="934" alt="Screenshot 2026-03-24 at 9 41 55 PM" src="https://github.com/user-attachments/assets/2501b80d-0d20-472b-b057-e9de37ea155e" />
+- **During** <img width="1496" height="967" alt="Screenshot 2026-03-24 at 9 44 44 PM" src="https://github.com/user-attachments/assets/91d13b25-1778-444c-bb2c-0eb56103eac9" />
+
+- **End** <img width="1496" height="967" alt="Screenshot 2026-03-24 at 9 45 20 PM" src="https://github.com/user-attachments/assets/c9cdcec7-602f-4967-8d57-58b4f2f0f727" />
+
+
 ## 👥 Team
 - **Azan Wasty** (@azan_w) - Lead Architect 
 - **Mahareb Ammar**  - Frontend
