@@ -230,6 +230,47 @@ Replaces all current preferences. Send empty array to clear.
 
 ---
 
+### Automated Ingestion
+`POST /admin/content/ingest` 🔒🛡️  
+Scans external APIs (Jikan/MAL, Google Books, TMDB) and automatically creates a new content record with mapped tags.
+
+**Body**
+```json
+{
+  "title": "Neon Genesis Evangelion",
+  "category": "Anime"
+}
+```
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| title | ✅ | Exact title preferred |
+| category | ✅ | `"Anime"` / `"Manga"` / `"Movie"` / `"TV"` / `"Book"` |
+
+**Responses**
+| Status | Meaning |
+|--------|---------|
+| 201 | Successfully fetched and created |
+| 404 | Title not found in external index |
+| 500 | External API error or DB failure |
+
+```json
+{
+  "ok": true,
+  "content": {
+    "id": 42,
+    "title": "Neon Genesis Evangelion",
+    "category": "Anime",
+    "description": "...",
+    "externalId": "1",
+    "source": "Jikan",
+    "tags": [{ "tag": { "name": "Action", "type": "Genre" } }, ...]
+  }
+}
+```
+
+---
+
 ### Update Content
 `PUT /admin/content/:id`
 
@@ -323,4 +364,4 @@ All errors follow this shape:
 | `Admin` | Everything above + all `/admin/*` endpoints |
 
 Default admin credentials (dev only):  
-Email: `[EMAIL_ADDRESS]` / Password: `admin123`
+Email: `azan90308@gmail.com` / Password: `wasty987`
