@@ -1,26 +1,47 @@
-# Node
-node_modules/
-npm-debug.log
-yarn-error.log
+# ── Environment & Secrets ─────────────────────────
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env
 
-# IDEs
+# ── Node ──────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+package-lock.json
+pnpm-lock.yaml
+
+# ── Build Outputs ─────────────────────────────────
+dist/
+build/
+.next/
+out/
+frontend/dist/
+
+# ── Prisma ────────────────────────────────────────
+# Keep schema and migrations, ignore generated client
+backend/node_modules/.prisma/
+backend/src/generated/
+
+# ── IDEs ──────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
 *.swo
+*.suo
+.vs/
 
-# Environment
-.env
+# ── OS ────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
 
-# Build
-dist/
-build/
-.next/
+# ── Logs ──────────────────────────────────────────
+logs/
+*.log
 
-# Prisma
-/prisma/
-!/prisma/schema.prisma
-
-# Git
-.git/
+# ── Git ───────────────────────────────────────────
+*.orig
 index.lock
