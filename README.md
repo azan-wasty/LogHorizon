@@ -65,7 +65,9 @@ The application will be accessible at `http://localhost:3000` (or `3001/3002`).
 - **API_REFERENCE.md**: Detailed endpoint technical documentation.
 
 ## 👥 Team
-- **Azan Wasty** (@azan_w) - Lead Architect / Full-Stack Engineer
+- **Azan Wasty** (@azan_w) - Lead Architect 
+- **Mahareb Ammar**  - Frontend
+- **Ali Naveed**  - Tester
 
 ---
-*Developed for Software Engineering | Spring 2026 | FAST-NUCES*
+*Developed for  Fundamentals Of Software Engineering | Spring 2026 | FAST-NUCES*
