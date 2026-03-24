@@ -1,21 +1,21 @@
-# 🌌 LogHorizon: Modernized Full-Stack Content Indexing
+#  LogHorizon: Modernized Full-Stack Content Indexing
 
 Sprint 1 delivers a state-of-the-art content management foundation, transitioning the platform to a high-fidelity architecture with automated metadata ingestion and a premium dark-mode interface.
 
-## 🚀 Tech Stack
+##  Tech Stack
 - **Frontend**: React (Vite) + Tailwind CSS v4 + Lucide Icons + Framer Motion
 - **Backend**: Node.js (Express.js) - Layered Services/Controllers Architecture
 - **Database**: Microsoft SQL Server (MSSQL) managed via Prisma ORM
 - **Automation**: Ingestion Pipeline (Jikan, TMDB, Google Books API integration)
 
-## 📋 Sprint 1 Features
+##  Sprint 1 Features
 - **Void Codex UI**: A complete premium dark-mode redesign using the "Electric Purple" design system.
 - **Automated Ingestion**: Rapid metadata fetching for Anime, Manga, Movies, TV, and Books.
 - **Member Management**: Unified Admin Panel to promote users and manage content/tags.
 - **Neural Nodes**: Preference selection system (Mood/Theme/Genre) for future recommendation engines.
 - **Secure Auth**: JWT-based authentication with role-based access control (RBAC).
 
-## 🛠️ Setup Instructions
+##  Setup Instructions
 
 ### 1. Requirements
 - Node.js 18+
@@ -58,7 +58,7 @@ npm run dev
 
 The application will be accessible at `http://localhost:3000` (or `3001/3002`).
 
-## 📁 Project Structure
+##  Project Structure
 - **/backend**: Express API, Prisma Schema, Ingestion Services.
 - **/frontend**: React Application, Tailwind v4 Styles.
 - **/docs**: Official submission reports and iteration records.
