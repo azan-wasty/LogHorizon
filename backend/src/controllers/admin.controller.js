@@ -1,8 +1,42 @@
 const prisma = require("../prismaClient");
+const ingestionService = require("../services/IngestionService");
 
 // ─────────────────────────────────────────
 // CONTENT
 // ─────────────────────────────────────────
+
+/**
+ * POST /api/admin/content/ingest
+ * Body: { title, category }
+ */
+async function ingestContent(req, res) {
+    try {
+        const { title, category } = req.body || {};
+        if (!title || !category) {
+            return res.status(400).json({ ok: false, message: "title and category are required" });
+        }
+
+        let result;
+        if (category === "Anime" || category === "Manga") {
+            result = await ingestionService.ingestAnime(title);
+        } else if (category === "Movie" || category === "TV") {
+            result = await ingestionService.ingestMovie(title, category === "TV");
+        } else if (category === "Book") {
+            result = await ingestionService.ingestBook(title);
+        } else {
+            return res.status(400).json({ ok: false, message: `Category '${category}' ingestion not supported yet.` });
+        }
+
+        if (!result.ok) {
+            return res.status(500).json({ ok: false, message: result.message });
+        }
+
+        return res.status(201).json({ ok: true, content: result.content });
+    } catch (err) {
+        console.error("ingestContent error:", err);
+        return res.status(500).json({ ok: false, message: "internal server error" });
+    }
+}
 
 /**
  * GET /api/admin/content
@@ -58,7 +92,7 @@ async function getContent(req, res) {
 async function createContent(req, res) {
     try {
         const { title, category, description, discordLink, tagIds,
-            externalId, source, coverImage, status, rating, externalUrl } = req.body || {};
+            externalId, source, coverImage, rating } = req.body || {};
 
         const errors = validateContentBody({ title, category, description });
         if (errors) return res.status(400).json({ ok: false, message: errors });
@@ -77,9 +111,7 @@ async function createContent(req, res) {
                 externalId: externalId?.trim() || null,
                 source: source?.trim() || null,
                 coverImage: coverImage?.trim() || null,
-                status: status?.trim() || null,
                 rating: rating != null ? Number(rating) : null,
-                externalUrl: externalUrl?.trim() || null,
                 tags: {
                     create: resolvedTagIds.ids.map((tagId) => ({ tagId })),
                 },
@@ -110,7 +142,7 @@ async function updateContent(req, res) {
         if (!existing) return res.status(404).json({ ok: false, message: "content not found" });
 
         const { title, category, description, discordLink, tagIds,
-            externalId, source, coverImage, status, rating, externalUrl } = req.body || {};
+            externalId, source, coverImage, rating } = req.body || {};
 
         const dataUpdate = {};
         if (title !== undefined) {
@@ -132,8 +164,6 @@ async function updateContent(req, res) {
         if (externalId !== undefined) dataUpdate.externalId = externalId?.trim() || null;
         if (source !== undefined) dataUpdate.source = source?.trim() || null;
         if (coverImage !== undefined) dataUpdate.coverImage = coverImage?.trim() || null;
-        if (status !== undefined) dataUpdate.status = status?.trim() || null;
-        if (externalUrl !== undefined) dataUpdate.externalUrl = externalUrl?.trim() || null;
         if (rating !== undefined) dataUpdate.rating = rating != null ? Number(rating) : null;
 
         // Handle tags replacement in a transaction
@@ -322,6 +352,62 @@ async function deleteTag(req, res) {
 }
 
 // ─────────────────────────────────────────
+// USERS
+// ─────────────────────────────────────────
+
+/**
+ * GET /api/admin/users
+ */
+async function listUsers(req, res) {
+    try {
+        const users = await prisma.user.findMany({
+            orderBy: { createdAt: "desc" },
+            select: {
+                id: true,
+                username: true,
+                email: true,
+                role: true,
+                createdAt: true
+            }
+        });
+        return res.status(200).json({ ok: true, users });
+    } catch (err) {
+        console.error("listUsers error:", err);
+        return res.status(500).json({ ok: false, message: "internal server error" });
+    }
+}
+
+/**
+ * PUT /api/admin/users/:id/role
+ * Body: { role }
+ */
+async function updateUserRole(req, res) {
+    try {
+        const id = Number(req.params.id);
+        const { role } = req.body || {};
+
+        if (!Number.isInteger(id) || id <= 0) {
+            return res.status(400).json({ ok: false, message: "invalid id" });
+        }
+
+        if (role !== "ADMIN" && role !== "USER") {
+            return res.status(400).json({ ok: false, message: "invalid role. Use 'ADMIN' or 'USER'" });
+        }
+
+        const updated = await prisma.user.update({
+            where: { id },
+            data: { role },
+            select: { id: true, username: true, role: true }
+        });
+
+        return res.status(200).json({ ok: true, user: updated });
+    } catch (err) {
+        console.error("updateUserRole error:", err);
+        return res.status(500).json({ ok: false, message: "internal server error" });
+    }
+}
+
+// ─────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────
 
@@ -360,11 +446,12 @@ async function resolveTagIds(tagIds) {
 function formatContent(item) {
     return {
         ...item,
-        tags: item.tags.map((ct) => ct.tag),
+        tags: item.tags?.map((ct) => ct.tag) || [],
     };
 }
 
 module.exports = {
+    ingestContent,
     listContent,
     getContent,
     createContent,
@@ -375,4 +462,6 @@ module.exports = {
     createTag,
     updateTag,
     deleteTag,
+    listUsers,
+    updateUserRole,
 };

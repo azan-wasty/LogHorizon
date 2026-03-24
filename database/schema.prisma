@@ -1,0 +1,88 @@
+// Prisma Schema (SQL Server - avoid Prisma enums)
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  role         String   @default("User") // "User" | "Admin"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  preferences  UserPreference[]
+}
+
+model PreferenceOption {
+  id        Int      @id @default(autoincrement())
+  type      String   // "Genre" | "Theme" | "Mood"
+  value     String
+  createdAt DateTime @default(now())
+
+  users     UserPreference[]
+
+  @@unique([type, value])
+}
+
+model UserPreference {
+  userId             Int
+  preferenceOptionId Int
+  createdAt          DateTime @default(now())
+
+  user   User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  option PreferenceOption @relation(fields: [preferenceOptionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, preferenceOptionId])
+}
+
+model Content {
+  id          Int      @id @default(autoincrement())
+  title       String
+  category    String   // "Anime" | "Manga" | "LightNovel" etc.
+  description String
+  discordLink String?
+
+  // External API fields
+  externalId  String?  // ID from the source API (e.g. MAL ID, AniList ID)
+  source      String?  // "MAL" | "AniList" | "Kitsu" | "Manual"
+  coverImage  String?  // Image URL from the external API
+  status      String?  // "Airing" | "Finished" | "Upcoming" | "Hiatus"
+  rating      Float?   // Score from the source (e.g. 8.7)
+  externalUrl String?  // Link back to the source page
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tags        ContentTag[]
+
+  @@unique([source, externalId]) // Prevents duplicate imports
+}
+
+model Tag {
+  id        Int      @id @default(autoincrement())
+  type      String   // "Genre" | "Theme" | "Mood"
+  name      String
+  createdAt DateTime @default(now())
+
+  contents  ContentTag[]
+
+  @@unique([type, name])
+}
+
+model ContentTag {
+  contentId Int
+  tagId     Int
+
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([contentId, tagId])
+}
