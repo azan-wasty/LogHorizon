@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --void: #121212;
+    --charcoal: #1E1E1E;
+    --electric-purple: #7C3AED;
+    --spotify-green: #1DB954;
+    --discord-blue: #5865F2;
+    --accent-violet: #8B5CF6;
+  }
+
+  body {
+    @apply bg-dark text-[#e8eaf6] font-sans antialiased;
+    background-color: #121212;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight leading-tight;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-charcoal/60 border border-white/5 backdrop-blur-xl rounded-2xl;
+  }
+  
+  .btn-premium {
+    @apply inline-flex items-center gap-2 px-6 py-2.5 rounded-lg font-display text-sm font-semibold uppercase tracking-wider transition-all duration-300;
+  }
+  
+  .btn-primary {
+    @apply btn-premium bg-electric-purple text-white shadow-[0_0_20px_rgba(124,58,237,0.3)] hover:shadow-[0_0_35px_rgba(124,58,237,0.5)] hover:-translate-y-0.5 active:translate-y-0;
+  }
+  
+  .btn-ghost {
+    @apply btn-premium bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/10;
+  }
+
+  .nav-item {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl font-display text-sm font-semibold transition-all duration-200 border border-transparent;
+  }
+
+  .nav-item-active {
+    @apply bg-electric-purple/10 text-electric-purple border-electric-purple/20 shadow-[0_0_15px_rgba(124,58,237,0.1)];
+  }
+
+  .premium-card {
+    @apply glass-panel hover:border-white/20 hover:bg-white/5 transition-all duration-300 group;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #121212;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2D2D2D;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3D3D3D;
+}
+
+/* Animations */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
