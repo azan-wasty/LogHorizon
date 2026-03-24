@@ -45,3 +45,6 @@ logs/
 # ── Git ───────────────────────────────────────────
 *.orig
 index.lock
+
+
+API_REFERENCE.md
