@@ -14,6 +14,9 @@ app.use("/api", require("./routes/me.routes"));
 // Preferences
 app.use("/api/preferences", require("./routes/preferences.routes"));
 
+// Recommendations (Sprint 2)
+app.use("/api/recommendations", require("./routes/recommendations.routes"));
+
 // Other feature routes
 app.use("/api/tags", require("./routes/tags.routes"));
 app.use("/api/content", require("./routes/content.routes"));

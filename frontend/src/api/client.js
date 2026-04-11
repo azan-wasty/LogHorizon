@@ -45,6 +45,15 @@ export const preferences = {
   seed: () => request('/preferences/seed', { method: 'POST' }),
 };
 
+// ── Recommendations (Sprint 2) ────────────────────
+export const recommendations = {
+  get: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/recommendations${qs ? `?${qs}` : ''}`);
+  },
+  stats: () => request('/recommendations/stats'),
+};
+
 // ── Content (public) ─────────────────────────────
 export const content = {
   list: (params = {}) => {
@@ -80,4 +89,4 @@ export const admin = {
   updateUserRole: (id, role) => request(`/admin/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) }),
 };
 
-export default { auth, me, preferences, content, tags, admin };
+export default { auth, me, preferences, recommendations, content, tags, admin };
