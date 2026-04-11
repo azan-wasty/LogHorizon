@@ -43,6 +43,11 @@ export function LibraryProvider({ children }) {
         }
         return [...prev, res.entry];
       });
+      if (res.newUnlocks && res.newUnlocks.length > 0) {
+        res.newUnlocks.forEach(ach => {
+          toast(`Achievement Unlocked: ${ach.title}`, 'success');
+        });
+      }
       return { ok: true };
     } catch (err) {
       toast(err.message || 'Transmission failed', 'error');
@@ -64,13 +69,13 @@ export function LibraryProvider({ children }) {
   const isInLibrary = (contentId) => library.find(item => item.contentId === contentId);
 
   return (
-    <LibraryContext.Provider value={{ 
-      library, 
-      loading, 
-      refreshLibrary, 
-      updateItem, 
+    <LibraryContext.Provider value={{
+      library,
+      loading,
+      refreshLibrary,
+      updateItem,
       removeItem,
-      isInLibrary 
+      isInLibrary
     }}>
       {children}
     </LibraryContext.Provider>

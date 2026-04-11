@@ -6,6 +6,7 @@ import LibraryPage from './pages/LibraryPage';
 import CommunityPage from './pages/CommunityPage';
 import OnboardingPage from './pages/OnboardingPage';
 import AdminPage from './pages/AdminPage';
+import ContentPage from './pages/ContentPage';
 import Layout from './components/Layout';
 import { useAuth } from './hooks/useAuth';
 
@@ -47,6 +48,11 @@ function App() {
   }
 
   const renderPage = () => {
+    if (currentPage.startsWith('content/')) {
+      const id = parseInt(currentPage.split('/')[1]);
+      return <ContentPage id={id} />;
+    }
+
     switch (currentPage) {
       case 'landing':
         return <LandingPage onNavigate={setCurrentPage} />;
@@ -55,7 +61,7 @@ function App() {
       case 'dashboard':
         return <DashboardPage onNavigate={setCurrentPage} />;
       case 'discover':
-        return <DiscoverPage />;
+        return <DiscoverPage onNavigate={setCurrentPage} />;
       case 'library':
         return <LibraryPage onNavigate={setCurrentPage} />;
       case 'community':

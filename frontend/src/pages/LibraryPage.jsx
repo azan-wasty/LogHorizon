@@ -54,7 +54,7 @@ const STAT_COLORS = {
 };
 
 export default function LibraryPage({ onNavigate }) {
-  const { user } = useAuth();
+  const { user, achievements } = useAuth();
   const { library, loading: libLoading, removeItem, updateItem } = useLibrary();
   const toast = useToast();
   const [prefs, setPrefs] = useState({});
@@ -160,6 +160,32 @@ export default function LibraryPage({ onNavigate }) {
         )}
       </section>
 
+      {/* ── Achievements ── */}
+      {achievements && achievements.length > 0 && (
+        <section className="space-y-6 animate-fade-up" style={{ animationDelay: '100ms' }}>
+            <div className="flex items-center gap-3">
+                <Sparkles className="text-amber-400" size={22} fill="currentColor" />
+                <h2 className="text-2xl font-display font-bold text-white tracking-tight">Unlocked Badges</h2>
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-mono font-bold uppercase tracking-widest text-amber-400">
+                    {achievements.length} Earned
+                </span>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {achievements.map((ach) => (
+                    <div key={ach.title} className="premium-card p-4 flex gap-4 items-center group hover:border-amber-500/30 transition-all cursor-default">
+                        <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl group-hover:scale-110 transition-transform">
+                            <Star size={20} fill="currentColor" />
+                        </div>
+                        <div>
+                            <h4 className="font-display font-bold text-sm text-white group-hover:text-amber-400 transition-colors">{ach.title}</h4>
+                            <p className="text-[10px] text-gray-400 font-mono tracking-wide mt-0.5">{ach.description}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </section>
+      )}
+
       {/* Library Collection Section */}
       <section className="space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -208,7 +234,8 @@ export default function LibraryPage({ onNavigate }) {
               return (
                 <div 
                   key={entry.id} 
-                  className="premium-card p-6 flex gap-5 group animate-fade-up relative overflow-hidden"
+                  onClick={() => onNavigate(`content/${item.id}`)}
+                  className="premium-card p-6 flex gap-5 group animate-fade-up relative overflow-hidden cursor-pointer"
                   style={{ animationDelay: `${i * 50}ms` }}
                 >
                   <div className="w-20 h-28 bg-white/5 rounded-xl overflow-hidden flex-shrink-0 shadow-lg group-hover:shadow-electric-purple/10 transition-all border border-white/5">
@@ -226,7 +253,7 @@ export default function LibraryPage({ onNavigate }) {
                         {item.title}
                       </h3>
                       <button 
-                        onClick={() => removeItem(item.id)}
+                        onClick={(e) => { e.stopPropagation(); removeItem(item.id); }}
                         className="text-gray-600 hover:text-red-400 transition-colors p-1"
                       >
                         <Search size={14} className="rotate-45" />
@@ -252,6 +279,7 @@ export default function LibraryPage({ onNavigate }) {
                           href={item.discordLink} 
                           target="_blank" 
                           rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
                           className="inline-flex items-center gap-1.5 text-discord-blue hover:text-white transition-colors text-[9px] font-mono font-bold uppercase tracking-widest"
                         >
                           <ExternalLink size={10} />

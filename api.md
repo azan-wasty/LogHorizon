@@ -404,5 +404,4 @@ All errors follow this shape:
 | `User` | Public endpoints + own preferences + `/me` |
 | `Admin` | Everything above + all `/admin/*` endpoints |
 
-Default admin credentials (dev only):  
-Email: `azan90308@gmail.com` / Password: `wasty987`
+

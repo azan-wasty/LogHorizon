@@ -45,8 +45,8 @@ function useDebounce(value, delay) {
   return debounced;
 }
 
-// ── Content card ───────────────────────────────────
-function ContentCard({ item, index }) {
+// ── Single content card ────────────────────
+function ContentCard({ item, index, onNavigate }) {
   const { updateItem, removeItem, isInLibrary } = useLibrary();
   const entry = isInLibrary(item.id);
   const style = CAT_STYLES[item.category] || 'bg-white/5 text-gray-400 border-white/10';
@@ -62,10 +62,12 @@ function ContentCard({ item, index }) {
 
   return (
     <div
-      className="premium-card overflow-hidden group animate-fade-up flex flex-col h-full"
+      onClick={() => onNavigate(`content/${item.id}`)}
+      className="premium-card overflow-hidden flex flex-col group animate-fade-up relative cursor-pointer"
       style={{ animationDelay: `${index * 40}ms` }}
     >
-      <div className="relative aspect-[3/4] overflow-hidden">
+      {/* Cover image area */}
+      <div className="relative aspect-[3/4] overflow-hidden bg-white/5 flex-shrink-0">
         {item.isSuggested && (
           <div className="absolute top-3 left-3 z-20 px-2 py-1 rounded bg-amber-500 text-black text-[9px] font-display font-bold uppercase tracking-tighter shadow-lg flex items-center gap-1 animate-pulse">
             <Star size={10} fill="currentColor" /> Suggested
@@ -82,24 +84,24 @@ function ContentCard({ item, index }) {
             <Database className="text-gray-800" size={40} />
           </div>
         )}
-        
+
         {/* Hover Overlay Actions */}
         <div className="absolute inset-0 bg-dark/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-3 z-10">
-          <button 
+          <button
             onClick={(e) => handleAction(e, 'PLANNING')}
             className={`p-3 rounded-xl transition-all hover:scale-110 ${entry?.status === 'PLANNING' ? 'bg-electric-purple text-white shadow-lg shadow-electric-purple/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
             title="Add to Watchlist"
           >
             <Bookmark size={20} fill={entry?.status === 'PLANNING' ? 'currentColor' : 'none'} />
           </button>
-          <button 
+          <button
             onClick={(e) => handleAction(e, 'COMPLETED')}
             className={`p-3 rounded-xl transition-all hover:scale-110 ${entry?.status === 'COMPLETED' ? 'bg-spotify-green text-white shadow-lg shadow-spotify-green/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
             title="Mark as Completed"
           >
             <Check size={20} />
           </button>
-          <button 
+          <button
             onClick={(e) => handleAction(e, 'CURRENT')}
             className={`p-3 rounded-xl transition-all hover:scale-110 ${entry?.status === 'CURRENT' ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
             title="Currently Watching/Reading"
@@ -128,13 +130,12 @@ function ContentCard({ item, index }) {
         <h3 className="font-display font-bold text-sm text-white line-clamp-2 min-h-[40px] group-hover:text-electric-purple transition-colors">
           {item.title}
         </h3>
-        
+
         {entry && (
-          <div className={`text-[9px] font-mono font-bold uppercase tracking-widest mb-1 ${
-            entry.status === 'COMPLETED' ? 'text-spotify-green' : 
-            entry.status === 'PLANNING' ? 'text-electric-purple' : 'text-cyan-400'
-          }`}>
-             • {entry.status === 'PLANNING' ? 'Watchlist' : entry.status}
+          <div className={`text-[9px] font-mono font-bold uppercase tracking-widest mb-1 ${entry.status === 'COMPLETED' ? 'text-spotify-green' :
+              entry.status === 'PLANNING' ? 'text-electric-purple' : 'text-cyan-400'
+            }`}>
+            • {entry.status === 'PLANNING' ? 'Watchlist' : entry.status}
           </div>
         )}
 
@@ -161,7 +162,7 @@ function ContentCard({ item, index }) {
 }
 
 // ── Main Page ──────────────────────────────────────
-export default function DiscoverPage() {
+export default function DiscoverPage({ onNavigate }) {
   const toast = useToast();
 
   const [items, setItems] = useState([]);
@@ -300,8 +301,8 @@ export default function DiscoverPage() {
                 key={cat}
                 onClick={() => setCategory(cat)}
                 className={`px-4 py-2 rounded-lg font-display text-xs font-bold uppercase tracking-widest transition-all ${category === cat
-                    ? 'bg-electric-purple text-white shadow-lg'
-                    : 'text-gray-500 hover:text-white'
+                  ? 'bg-electric-purple text-white shadow-lg'
+                  : 'text-gray-500 hover:text-white'
                   }`}
               >
                 {cat}
@@ -331,8 +332,8 @@ export default function DiscoverPage() {
             <button
               onClick={() => setShowFilters(v => !v)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-display font-semibold uppercase tracking-widest border transition-all ${showFilters || selectedTags.length > 0
-                  ? 'bg-electric-purple/10 border-electric-purple/30 text-electric-purple'
-                  : 'bg-white/5 border-white/5 text-gray-500 hover:text-white'
+                ? 'bg-electric-purple/10 border-electric-purple/30 text-electric-purple'
+                : 'bg-white/5 border-white/5 text-gray-500 hover:text-white'
                 }`}
             >
               <SlidersHorizontal size={14} />
@@ -360,8 +361,8 @@ export default function DiscoverPage() {
                   key={tag.id}
                   onClick={() => toggleTag(tag.id)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-widest border transition-all ${selectedTags.includes(tag.id)
-                      ? 'bg-electric-purple border-electric-purple text-white shadow-[0_0_10px_rgba(124,58,237,0.3)]'
-                      : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300 hover:border-white/10'
+                    ? 'bg-electric-purple border-electric-purple text-white shadow-[0_0_10px_rgba(124,58,237,0.3)]'
+                    : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300 hover:border-white/10'
                     }`}
                 >
                   <Hash size={9} />
@@ -411,7 +412,7 @@ export default function DiscoverPage() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {items.map((item, i) => (
-              <ContentCard key={item.id} item={item} index={i} />
+              <ContentCard key={item.id} item={item} index={i} onNavigate={onNavigate} />
             ))}
           </div>
         )}

@@ -37,11 +37,12 @@ function scoreBadge(score) {
 }
 
 // ── Single recommendation card ────────────────────
-function RecCard({ item, index }) {
+function RecCard({ item, index, onNavigate }) {
     const style = CAT_STYLE[item.category] || fallbackStyle;
     return (
         <div
-            className="premium-card overflow-hidden group animate-fade-up"
+            onClick={() => onNavigate(`content/${item.id}`)}
+            className="premium-card overflow-hidden group animate-fade-up cursor-pointer"
             style={{ animationDelay: `${index * 40}ms` }}
         >
             {/* Cover */}
@@ -130,11 +131,12 @@ function RecCard({ item, index }) {
 }
 
 // ── Explore card (no match) ───────────────────────
-function ExploreCard({ item, index }) {
+function ExploreCard({ item, index, onNavigate }) {
     const style = CAT_STYLE[item.category] || fallbackStyle;
     return (
         <div
-            className="premium-card p-4 flex gap-4 group animate-fade-up"
+            onClick={() => onNavigate(`content/${item.id}`)}
+            className="premium-card p-4 flex gap-4 group animate-fade-up cursor-pointer"
             style={{ animationDelay: `${index * 50}ms` }}
         >
             <div className="relative w-14 h-20 bg-white/5 rounded-lg overflow-hidden flex-shrink-0">
@@ -188,7 +190,7 @@ function StatWidget({ label, value, sub, icon: Icon, accent }) {
 
 // ── Main Page ─────────────────────────────────────
 export default function DashboardPage({ onNavigate }) {
-    const { user } = useAuth();
+    const { user, achievements } = useAuth();
     const toast = useToast();
 
     const [recs, setRecs] = useState([]);
@@ -263,6 +265,53 @@ export default function DashboardPage({ onNavigate }) {
                 </button>
             </header>
 
+            {/* ── Library Stats ── */}
+            {stats?.libraryStats && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+                    <StatWidget
+                        label="Total Archive"
+                        value={stats.libraryStats.total}
+                        icon={Database}
+                        accent="bg-white/10 text-white"
+                    />
+                    <StatWidget
+                        label="Completed"
+                        value={stats.libraryStats.completed}
+                        icon={TrendingUp}
+                        accent="bg-spotify-green/10 text-spotify-green"
+                    />
+                    <StatWidget
+                        label="Currently Watching"
+                        value={stats.libraryStats.current}
+                        icon={Sparkles}
+                        accent="bg-cyan-400/10 text-cyan-400"
+                    />
+                </div>
+            )}
+
+            {/* ── Achievements ── */}
+            {achievements && achievements.length > 0 && (
+                <section className="space-y-6">
+                    <div className="flex items-center gap-3">
+                        <Sparkles className="text-amber-400" size={22} fill="currentColor" />
+                        <h2 className="text-xl font-display font-bold text-white tracking-tight">Unlocked Badges</h2>
+                    </div>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        {achievements.map((ach) => (
+                            <div key={ach.title} className="premium-card p-4 flex gap-4 items-center">
+                                <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl">
+                                    <Star size={20} fill="currentColor" />
+                                </div>
+                                <div>
+                                    <h4 className="font-display font-bold text-sm text-white">{ach.title}</h4>
+                                    <p className="text-[10px] text-gray-400 font-mono tracking-wide">{ach.description}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            )}
+
             {/* ── Stats Row ── */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatWidget
@@ -334,7 +383,7 @@ export default function DashboardPage({ onNavigate }) {
 
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                         {recs.map((item, i) => (
-                            <RecCard key={item.id} item={item} index={i} />
+                            <RecCard key={item.id} item={item} index={i} onNavigate={onNavigate} />
                         ))}
                     </div>
                 </section>
@@ -353,7 +402,7 @@ export default function DashboardPage({ onNavigate }) {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {explore.map((item, i) => (
-                            <ExploreCard key={item.id} item={item} index={i} />
+                            <ExploreCard key={item.id} item={item} index={i} onNavigate={onNavigate} />
                         ))}
                     </div>
                 </section>

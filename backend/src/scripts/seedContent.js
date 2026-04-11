@@ -94,7 +94,7 @@ async function main() {
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
     // ── 1. Seed preference options ──────────────────────────────────────────────
-    console.log("🌱  Seeding preference options...");
+    console.log("  Seeding preference options...");
     for (const opt of PREFERENCE_OPTIONS) {
         await prisma.preferenceOption.upsert({
             where: { type_value: { type: opt.type, value: opt.value } },
