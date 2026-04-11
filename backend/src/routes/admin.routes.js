@@ -3,6 +3,7 @@ const { requireAuth } = require("../middleware/auth.middleware");
 const { requireAdmin } = require("../middleware/admin.middleware");
 const {
     ingestContent,
+    discoverContent,
     listContent,
     getContent,
     createContent,
@@ -24,6 +25,7 @@ router.use(requireAuth, requireAdmin);
 
 // ── Content ──────────────────────────────
 router.post("/content/ingest", ingestContent);
+router.post("/content/discover", discoverContent);
 router.get("/content", listContent);
 router.get("/content/:id", getContent);
 router.post("/content", createContent);

@@ -75,6 +75,7 @@ export const admin = {
   getContent: (id) => request(`/admin/content/${id}`),
   createContent: (body) => request('/admin/content', { method: 'POST', body: JSON.stringify(body) }),
   ingestContent: (body) => request('/admin/content/ingest', { method: 'POST', body: JSON.stringify(body) }),
+  discoverContent: (body) => request('/admin/content/discover', { method: 'POST', body: JSON.stringify(body) }),
   updateContent: (id, body) => request(`/admin/content/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteContent: (id) => request(`/admin/content/${id}`, { method: 'DELETE' }),
 
@@ -89,4 +90,11 @@ export const admin = {
   updateUserRole: (id, role) => request(`/admin/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) }),
 };
 
-export default { auth, me, preferences, recommendations, content, tags, admin };
+// ── Library (New) ──────────────────────────────────
+export const library = {
+  get: () => request('/library'),
+  update: (body) => request('/library/update', { method: 'POST', body: JSON.stringify(body) }),
+  remove: (contentId) => request(`/library/${contentId}`, { method: 'DELETE' }),
+};
+
+export default { auth, me, preferences, recommendations, content, tags, admin, library };

@@ -1,74 +1,95 @@
-// Prisma Schema for Microsoft SQL Server (MSSQL)
-// LogHorizon - Project Infrastructure
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "sqlserver"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String   // Hashed
-  role      String   @default("USER") // "ADMIN", "USER"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  preferences UserPreference[]
+  id           Int              @id @default(autoincrement())
+  username     String           @unique
+  email        String           @unique
+  passwordHash String
+  role         String           @default("User")
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  preferences  UserPreference[]
+  library      UserLibrary[]
 }
 
 model Content {
-  id          Int      @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   title       String
-  category    String   // "Anime", "Manga", "Movie", "Book", "TV"
+  category    String   // "Anime", "Manga", "Movie", "Book", "TV", "Game"
   description String   @db.NVarChar(MAX)
   discordLink String?
-  spotifyId   String?
-  
-  // Ingestion fields
-  externalId  String?  // ID from source API
-  source      String?  // "Jikan", "AniList", "TMDB", "GoogleBooks"
-  coverImage  String?  @db.NVarChar(MAX)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  coverImage  String?      @db.NVarChar(MAX)
+  externalId  String?
+  externalUrl String?      @db.NVarChar(MAX)
   rating      Float?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  source      String?
+  status      String?
+  isSuggested Boolean      @default(false)
   tags        ContentTag[]
+  library     UserLibrary[]
+
+  @@unique([source, externalId])
 }
 
 model Tag {
-  id        Int      @id @default(autoincrement())
+  id        Int          @id @default(autoincrement())
+  type      String
   name      String
-  type      String   // "Mood", "Genre"
-  createdAt DateTime @default(now())
+  createdAt DateTime     @default(now())
+  contents  ContentTag[]
 
-  users    UserPreference[]
-  contents ContentTag[]
-
-  @@unique([name, type])
+  @@unique([type, name])
 }
 
 model ContentTag {
   contentId Int
   tagId     Int
-
-  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
-  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([contentId, tagId])
 }
 
 model UserPreference {
-  userId Int
-  tagId  Int
+  userId             Int
+  preferenceOptionId Int
+  createdAt          DateTime         @default(now())
+  PreferenceOption   PreferenceOption @relation(fields: [preferenceOptionId], references: [id], onDelete: Cascade)
+  user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  @@id([userId, preferenceOptionId])
+}
 
-  @@id([userId, tagId])
+model PreferenceOption {
+  id             Int              @id @default(autoincrement())
+  type           String
+  value          String
+  createdAt      DateTime         @default(now())
+  UserPreference UserPreference[]
+
+  @@unique([type, value])
+}
+
+model UserLibrary {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  contentId Int
+  status    String   // "PLANNING" (Watchlist), "COMPLETED", "CURRENT"
+  rating    Int?     // User's personal score (1-10)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId])
 }

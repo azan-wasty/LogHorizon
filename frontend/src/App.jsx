@@ -17,14 +17,16 @@ function App() {
   useEffect(() => {
     if (!loading) {
       if (user) {
-        if (currentPage === 'landing' || currentPage === 'onboarding') {
+        // If logged in and on landing, jump to dashboard. 
+        // But don't block other pages.
+        if (currentPage === 'landing') {
           setCurrentPage('dashboard');
         }
       } else {
         setCurrentPage('landing');
       }
     }
-  }, [user, loading]);
+  }, [user, loading, !!user]);
 
   if (loading) {
     return (

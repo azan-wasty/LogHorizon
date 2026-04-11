@@ -21,6 +21,7 @@ app.use("/api/recommendations", require("./routes/recommendations.routes"));
 app.use("/api/tags", require("./routes/tags.routes"));
 app.use("/api/content", require("./routes/content.routes"));
 app.use("/api/admin", require("./routes/admin.routes"));
+app.use("/api/library", require("./routes/library.routes"));
 
 app.get("/api/health", (req, res) => {
   res.json({ ok: true, message: "LogHorizon backend is up" });

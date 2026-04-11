@@ -102,7 +102,7 @@ async function main() {
             create: opt,
         });
     }
-    console.log(`✅  ${PREFERENCE_OPTIONS.length} preference options ready.\n`);
+    console.log(`  ${PREFERENCE_OPTIONS.length} preference options ready.\n`);
 
     // ── 2. Ingest content ───────────────────────────────────────────────────────
     console.log(`🚀  Ingesting ${SEED_LIST.length} titles...\n`);
@@ -131,10 +131,13 @@ async function main() {
             } else if (category === "Book") {
                 result = await ingestionService.ingestBook(title);
                 await sleep(300);
+            } else if (category === "Game") {
+                result = await ingestionService.ingestGame(title);
+                await sleep(300);
             }
 
             if (!result) {
-                console.log("⚠️  No result returned");
+                console.log("  No result returned");
                 results.failed.push({ title, category, reason: "no result" });
                 continue;
             }
@@ -146,7 +149,7 @@ async function main() {
             }
 
             if (!result.ok) {
-                console.log(`❌  ${result.message}`);
+                console.log(`  ${result.message}`);
                 results.failed.push({ title, category, reason: result.message });
                 continue;
             }
@@ -154,11 +157,11 @@ async function main() {
             // Show which tags were assigned
             const tagNames = result.content?.tags?.map((ct) => ct.tag?.name || ct.name).filter(Boolean) || [];
             const tagStr = tagNames.length ? tagNames.join(", ") : "no tags";
-            console.log(`✅  [${tagStr}]`);
+            console.log(`  [${tagStr}]`);
             results.success++;
 
         } catch (err) {
-            console.log(`💥  ${err.message}`);
+            console.log(`  ${err.message}`);
             results.failed.push({ title, category, reason: err.message });
             // Still wait to avoid hammering APIs on retry
             await sleep(1000);
@@ -169,9 +172,9 @@ async function main() {
     console.log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.log("   SEED COMPLETE");
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log(`   ✅  Ingested : ${results.success}`);
-    console.log(`   ⏭️  Skipped  : ${results.skipped}`);
-    console.log(`   ❌  Failed   : ${results.failed.length}`);
+    console.log(`    Ingested : ${results.success}`);
+    console.log(`    Skipped  : ${results.skipped}`);
+    console.log(`    Failed   : ${results.failed.length}`);
 
     if (results.failed.length > 0) {
         console.log("\n   Failed titles:");
@@ -187,7 +190,7 @@ async function main() {
 
 main()
     .catch((err) => {
-        console.error("\n💥  Fatal error:", err);
+        console.error("\n  Fatal error:", err);
         process.exit(1);
     })
     .finally(() => prisma.$disconnect());

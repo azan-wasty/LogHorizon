@@ -43,7 +43,7 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
-  const isAdmin = user?.role === 'Admin';
+  const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
   const isAuthenticated = !!user;
 
   return (

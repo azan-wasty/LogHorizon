@@ -12,9 +12,14 @@ import {
   SlidersHorizontal,
   X,
   ChevronDown,
+  Bookmark,
+  Check,
+  Play,
+  Trash2 as Trash
 } from 'lucide-react';
+import { useLibrary } from '../hooks/useLibrary';
 
-const CATEGORIES = ['All', 'Anime', 'Manga', 'Movie', 'TV', 'Book'];
+const CATEGORIES = ['Anime', 'Manga', 'Movie', 'TV', 'Book'];
 
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest First' },
@@ -42,25 +47,68 @@ function useDebounce(value, delay) {
 
 // ── Content card ───────────────────────────────────
 function ContentCard({ item, index }) {
+  const { updateItem, removeItem, isInLibrary } = useLibrary();
+  const entry = isInLibrary(item.id);
   const style = CAT_STYLES[item.category] || 'bg-white/5 text-gray-400 border-white/10';
+
+  const handleAction = async (e, status) => {
+    e.stopPropagation();
+    if (entry?.status === status) {
+      await removeItem(item.id);
+    } else {
+      await updateItem(item.id, status);
+    }
+  };
+
   return (
     <div
-      className="premium-card overflow-hidden group animate-fade-up"
+      className="premium-card overflow-hidden group animate-fade-up flex flex-col h-full"
       style={{ animationDelay: `${index * 40}ms` }}
     >
       <div className="relative aspect-[3/4] overflow-hidden">
+        {item.isSuggested && (
+          <div className="absolute top-3 left-3 z-20 px-2 py-1 rounded bg-amber-500 text-black text-[9px] font-display font-bold uppercase tracking-tighter shadow-lg flex items-center gap-1 animate-pulse">
+            <Star size={10} fill="currentColor" /> Suggested
+          </div>
+        )}
         {item.coverImage ? (
           <img
             src={item.coverImage}
             alt={item.title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
         ) : (
-          <div className="w-full h-full bg-white/5 flex items-center justify-center text-gray-700">
-            <Database size={40} />
+          <div className="w-full h-full bg-white/5 flex items-center justify-center">
+            <Database className="text-gray-800" size={40} />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-dark/90 via-dark/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+        
+        {/* Hover Overlay Actions */}
+        <div className="absolute inset-0 bg-dark/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-3 z-10">
+          <button 
+            onClick={(e) => handleAction(e, 'PLANNING')}
+            className={`p-3 rounded-xl transition-all hover:scale-110 ${entry?.status === 'PLANNING' ? 'bg-electric-purple text-white shadow-lg shadow-electric-purple/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
+            title="Add to Watchlist"
+          >
+            <Bookmark size={20} fill={entry?.status === 'PLANNING' ? 'currentColor' : 'none'} />
+          </button>
+          <button 
+            onClick={(e) => handleAction(e, 'COMPLETED')}
+            className={`p-3 rounded-xl transition-all hover:scale-110 ${entry?.status === 'COMPLETED' ? 'bg-spotify-green text-white shadow-lg shadow-spotify-green/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
+            title="Mark as Completed"
+          >
+            <Check size={20} />
+          </button>
+          <button 
+            onClick={(e) => handleAction(e, 'CURRENT')}
+            className={`p-3 rounded-xl transition-all hover:scale-110 ${entry?.status === 'CURRENT' ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
+            title="Currently Watching/Reading"
+          >
+            <Play size={20} fill="currentColor" />
+          </button>
+        </div>
+
+        <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-transparent to-transparent opacity-80 group-hover:opacity-40 transition-opacity" />
 
         <div className="absolute top-3 right-3">
           <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider border ${style}`}>
@@ -69,18 +117,28 @@ function ContentCard({ item, index }) {
         </div>
 
         {item.rating && (
-          <div className="absolute top-3 left-3 px-2 py-0.5 rounded-full bg-dark/80 backdrop-blur-md border border-white/10 flex items-center gap-1">
+          <div className="absolute bottom-3 left-3 px-2 py-0.5 rounded-full bg-dark/80 backdrop-blur-md border border-white/10 flex items-center gap-1 z-20">
             <Star size={10} className="text-amber-400 fill-amber-400" />
             <span className="text-[10px] font-mono font-bold text-amber-400">{item.rating.toFixed(1)}</span>
           </div>
         )}
       </div>
 
-      <div className="p-4 space-y-2">
+      <div className="p-4 space-y-2 flex-1 flex flex-col">
         <h3 className="font-display font-bold text-sm text-white line-clamp-2 min-h-[40px] group-hover:text-electric-purple transition-colors">
           {item.title}
         </h3>
-        <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest">
+        
+        {entry && (
+          <div className={`text-[9px] font-mono font-bold uppercase tracking-widest mb-1 ${
+            entry.status === 'COMPLETED' ? 'text-spotify-green' : 
+            entry.status === 'PLANNING' ? 'text-electric-purple' : 'text-cyan-400'
+          }`}>
+             • {entry.status === 'PLANNING' ? 'Watchlist' : entry.status}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest mt-auto">
           <div className="flex items-center gap-2 text-gray-500">
             <span className="w-1.5 h-1.5 rounded-full bg-electric-purple/40" />
             {item.tags?.[0]?.name || 'Untagged'}
