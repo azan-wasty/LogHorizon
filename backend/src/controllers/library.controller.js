@@ -1,4 +1,5 @@
 const prisma = require("../prismaClient");
+const achievementsService = require("../services/AchievementsService");
 
 /**
  * GET /api/library
@@ -41,7 +42,10 @@ async function updateLibrary(req, res) {
             include: { content: true }
         });
 
-        return res.json({ ok: true, entry: libraryEntry });
+        // Check and assign any newly unlocked achievements
+        const newUnlocks = await achievementsService.checkAchievements(userId);
+
+        return res.json({ ok: true, entry: libraryEntry, newUnlocks });
     } catch (err) {
         console.error("updateLibrary error:", err);
         return res.status(500).json({ ok: false, message: "internal server error" });

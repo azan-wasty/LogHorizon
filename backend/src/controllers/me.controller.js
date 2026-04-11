@@ -1,4 +1,5 @@
 const prisma = require("../prismaClient");
+const achievementsService = require("../services/AchievementsService");
 
 function safeUser(user) {
   if (!user) return null;
@@ -17,7 +18,9 @@ async function getMe(req, res) {
     const user = await prisma.user.findUnique({ where: { id: Number(userId) } });
     if (!user) return res.status(404).json({ ok: false, message: "user not found" });
 
-    return res.status(200).json({ ok: true, user: safeUser(user) });
+    const achievements = await achievementsService.getUserAchievements(Number(userId));
+
+    return res.status(200).json({ ok: true, user: safeUser(user), achievements });
   } catch (err) {
     console.error("getMe error:", err);
     return res.status(500).json({ ok: false, message: "internal server error" });
