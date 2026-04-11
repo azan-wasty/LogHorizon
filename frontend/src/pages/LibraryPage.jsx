@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { preferences as prefApi, content as contentApi } from '../api/client';
+import { preferences as prefApi } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
+import { useLibrary } from '../hooks/useLibrary';
 import { useToast } from '../hooks/useToast';
 import { 
   Swords, 
@@ -23,7 +24,10 @@ import {
   Loader2,
   Hexagon,
   Star,
-  ExternalLink
+  ExternalLink,
+  CheckCircle2,
+  PlayCircle,
+  LayoutGrid
 } from 'lucide-react';
 
 const ICONS = {
@@ -43,27 +47,35 @@ const ICONS = {
   Mystery: Search,
 };
 
+const STAT_COLORS = {
+  PLANNING: 'text-electric-purple',
+  COMPLETED: 'text-spotify-green',
+  CURRENT: 'text-cyan-400'
+};
+
 export default function LibraryPage({ onNavigate }) {
-  const { user } = useAuth();
+  const { user, achievements } = useAuth();
+  const { library, loading: libLoading, removeItem, updateItem } = useLibrary();
   const toast = useToast();
   const [prefs, setPrefs] = useState({});
-  const [content, setContent] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('ALL');
 
   useEffect(() => {
-    Promise.all([prefApi.getMine(), contentApi.list()])
-      .then(([pd, cd]) => {
-        setPrefs(pd.preferences || {});
-        setContent(cd.content || []);
-      })
+    prefApi.getMine()
+      .then((pd) => setPrefs(pd.preferences || {}))
       .catch(() => toast('Failed to load neural profile', 'error'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [toast]);
 
   const allPrefs = Object.values(prefs).flat();
   const hasPrefs = allPrefs.length > 0;
 
-  if (loading) {
+  const filteredLibrary = filter === 'ALL' 
+    ? library 
+    : library.filter(item => item.status === filter);
+
+  if (loading || libLoading) {
     return (
       <div className="flex items-center justify-center py-40">
         <Loader2 className="w-10 h-10 text-electric-purple animate-spin" />
@@ -78,7 +90,7 @@ export default function LibraryPage({ onNavigate }) {
         <div className="space-y-2">
           <h1 className="text-4xl font-display font-bold text-white tracking-tight">Personal Hub</h1>
           <p className="text-gray-500 font-body italic">
-            Synchronizing data for <span className="text-electric-purple font-semibold">@{user?.email?.split('@')[0]}</span>
+            Synchronizing data for <span className="text-electric-purple font-semibold">@{user?.username}</span>
           </p>
         </div>
       </header>
@@ -148,75 +160,137 @@ export default function LibraryPage({ onNavigate }) {
         )}
       </section>
 
-      {/* Synced Collection Section */}
+      {/* ── Achievements ── */}
+      {achievements && achievements.length > 0 && (
+        <section className="space-y-6 animate-fade-up" style={{ animationDelay: '100ms' }}>
+            <div className="flex items-center gap-3">
+                <Sparkles className="text-amber-400" size={22} fill="currentColor" />
+                <h2 className="text-2xl font-display font-bold text-white tracking-tight">Unlocked Badges</h2>
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-mono font-bold uppercase tracking-widest text-amber-400">
+                    {achievements.length} Earned
+                </span>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {achievements.map((ach) => (
+                    <div key={ach.title} className="premium-card p-4 flex gap-4 items-center group hover:border-amber-500/30 transition-all cursor-default">
+                        <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl group-hover:scale-110 transition-transform">
+                            <Star size={20} fill="currentColor" />
+                        </div>
+                        <div>
+                            <h4 className="font-display font-bold text-sm text-white group-hover:text-amber-400 transition-colors">{ach.title}</h4>
+                            <p className="text-[10px] text-gray-400 font-mono tracking-wide mt-0.5">{ach.description}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </section>
+      )}
+
+      {/* Library Collection Section */}
       <section className="space-y-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <Bookmark className="text-electric-purple" />
-            <h2 className="text-xl font-display font-bold text-white tracking-tight">Synced Records</h2>
+            <h2 className="text-xl font-display font-bold text-white tracking-tight">Neural Library</h2>
           </div>
-          <button 
-            onClick={() => onNavigate('discover')}
-            className="text-xs font-mono uppercase tracking-widest text-gray-500 hover:text-electric-purple transition-colors flex items-center gap-2"
-          >
-            Access Full Index <ChevronRight size={14} />
-          </button>
+          
+          <div className="flex gap-1 p-1 bg-white/5 rounded-xl border border-white/5 self-start">
+            {[
+              { id: 'ALL', label: 'All', icon: LayoutGrid },
+              { id: 'PLANNING', label: 'Watchlist', icon: Bookmark },
+              { id: 'CURRENT', label: 'In Progress', icon: PlayCircle },
+              { id: 'COMPLETED', label: 'Completed', icon: CheckCircle2 },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setFilter(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-display text-xs font-bold uppercase tracking-widest transition-all ${filter === tab.id 
+                  ? 'bg-electric-purple text-white shadow-lg' 
+                  : 'text-gray-500 hover:text-white'
+                }`}
+              >
+                <tab.icon size={14} />
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {content.length === 0 ? (
+        {filteredLibrary.length === 0 ? (
           <div className="py-24 text-center border border-dashed border-white/5 rounded-3xl">
             <Search className="w-12 h-12 text-gray-700 mx-auto mb-4" />
-            <p className="text-gray-500 font-mono text-xs uppercase tracking-widest">No matching records synchronized.</p>
+            <p className="text-gray-500 font-mono text-xs uppercase tracking-widest">Your {filter.toLowerCase()} archive is empty.</p>
+            <button 
+              onClick={() => onNavigate('discover')}
+              className="mt-6 text-electric-purple font-mono text-[10px] items-center gap-2 hover:underline uppercase tracking-widest"
+            >
+              Scan Index for Media <ChevronRight size={10} className="inline" />
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {content.slice(0, 6).map((item, i) => (
-              <div 
-                key={item.id} 
-                className="premium-card p-6 flex gap-5 group animate-fade-up"
-                style={{ animationDelay: `${i * 100}ms` }}
-              >
-                <div className="w-20 h-28 bg-white/5 rounded-xl overflow-hidden flex-shrink-0 shadow-lg group-hover:shadow-electric-purple/10 transition-all">
-                  {item.coverImage ? (
-                    <img src={item.coverImage} className="w-full h-full object-cover transition-transform group-hover:scale-110" alt="" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-700 px-4 text-center text-[10px] font-mono">
-                      NULL IMAGE
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0 space-y-2">
-                  <div className="flex justify-between items-start gap-2">
-                    <h3 className="font-display font-bold text-white text-sm truncate group-hover:text-electric-purple transition-colors">
-                      {item.title}
-                    </h3>
-                    {item.rating && (
-                      <div className="flex items-center gap-1 text-amber-500 font-mono text-xs font-bold">
-                        <Star size={10} fill="currentColor" />
-                        {item.rating.toFixed(1)}
+            {filteredLibrary.map((entry, i) => {
+              const item = entry.content;
+              return (
+                <div 
+                  key={entry.id} 
+                  onClick={() => onNavigate(`content/${item.id}`)}
+                  className="premium-card p-6 flex gap-5 group animate-fade-up relative overflow-hidden cursor-pointer"
+                  style={{ animationDelay: `${i * 50}ms` }}
+                >
+                  <div className="w-20 h-28 bg-white/5 rounded-xl overflow-hidden flex-shrink-0 shadow-lg group-hover:shadow-electric-purple/10 transition-all border border-white/5">
+                    {item.coverImage ? (
+                      <img src={item.coverImage} className="w-full h-full object-cover transition-transform group-hover:scale-110" alt="" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-700 px-4 text-center text-[10px] font-mono">
+                        NO IMAGE
                       </div>
                     )}
                   </div>
-                  <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">
-                    {item.category} / {item.externalId ? item.source : 'Manual'}
-                  </p>
-                  <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed">
-                    {item.description}
-                  </p>
-                  {item.discordLink && (
-                    <a 
-                      href={item.discordLink} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-discord-blue hover:text-white transition-colors text-[10px] font-mono font-bold pt-2 uppercase tracking-widest"
-                    >
-                      <ExternalLink size={12} />
-                      Join Portal
-                    </a>
-                  )}
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex justify-between items-start gap-2">
+                      <h3 className="font-display font-bold text-white text-sm truncate group-hover:text-electric-purple transition-colors">
+                        {item.title}
+                      </h3>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); removeItem(item.id); }}
+                        className="text-gray-600 hover:text-red-400 transition-colors p-1"
+                      >
+                        <Search size={14} className="rotate-45" />
+                      </button>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded bg-white/5 border border-white/5 text-[8px] font-mono font-bold text-gray-500 uppercase">
+                        {item.category}
+                      </span>
+                      <span className={`text-[8px] font-mono font-bold uppercase tracking-widest ${STAT_COLORS[entry.status]}`}>
+                        • {entry.status === 'PLANNING' ? 'Watchlist' : entry.status}
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                      {item.description}
+                    </p>
+
+                    <div className="pt-2 flex items-center gap-4">
+                      {item.discordLink && (
+                        <a 
+                          href={item.discordLink} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1.5 text-discord-blue hover:text-white transition-colors text-[9px] font-mono font-bold uppercase tracking-widest"
+                        >
+                          <ExternalLink size={10} />
+                          Portal
+                        </a>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>

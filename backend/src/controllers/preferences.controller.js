@@ -33,14 +33,14 @@ async function getMyPreferences(req, res) {
 
         const rows = await prisma.userPreference.findMany({
             where: { userId: Number(userId) },
-            include: { option: true },
+            include: { PreferenceOption: true },
             orderBy: { createdAt: "asc" },
         });
 
         const preferenceOptionIds = rows.map((r) => r.preferenceOptionId);
 
         const grouped = rows.reduce((acc, r) => {
-            const opt = r.option;
+            const opt = r.PreferenceOption;
             if (!opt) return acc;
             if (!acc[opt.type]) acc[opt.type] = [];
             acc[opt.type].push(opt);
@@ -125,38 +125,60 @@ async function setMyPreferences(req, res) {
 
 /**
  * POST /api/preferences/seed
+ * 
+ * Dynamic seeding: reads all Tags from the database and creates matching
+ * PreferenceOptions. Falls back to a default set if no tags exist yet.
+ * This means the onboarding screen always reflects the actual content library.
  */
 async function seedPreferenceOptions(req, res) {
     try {
-        const seed = [
-            // Genre
+        // Read all unique tags from the content library
+        const allTags = await prisma.tag.findMany({
+            distinct: ['type', 'name'],
+            select: { type: true, name: true },
+        });
+
+        // If we have tags in the DB, sync them all to PreferenceOptions
+        if (allTags.length > 0) {
+            for (const tag of allTags) {
+                await prisma.preferenceOption.upsert({
+                    where: {
+                        type_value: { type: tag.type, value: tag.name },
+                    },
+                    update: {},
+                    create: { type: tag.type, value: tag.name },
+                });
+            }
+            return res.status(201).json({
+                ok: true,
+                message: `Synced ${allTags.length} preference options from content tags`,
+                count: allTags.length,
+            });
+        }
+
+        // Fallback: no tags exist yet — seed a sensible default set
+        const defaults = [
             { type: "Genre", value: "Action" },
             { type: "Genre", value: "Adventure" },
             { type: "Genre", value: "Comedy" },
             { type: "Genre", value: "Drama" },
             { type: "Genre", value: "Fantasy" },
             { type: "Genre", value: "Sci-Fi" },
-
-            // Theme
+            { type: "Genre", value: "Mystery" },
             { type: "Theme", value: "Friendship" },
             { type: "Theme", value: "Coming of Age" },
             { type: "Theme", value: "Revenge" },
             { type: "Theme", value: "Mystery" },
-
-            // Mood
             { type: "Mood", value: "Chill" },
             { type: "Mood", value: "Hype" },
             { type: "Mood", value: "Dark" },
             { type: "Mood", value: "Emotional" },
         ];
 
-        for (const row of seed) {
+        for (const row of defaults) {
             await prisma.preferenceOption.upsert({
                 where: {
-                    type_value: {
-                        type: row.type,
-                        value: row.value,
-                    },
+                    type_value: { type: row.type, value: row.value },
                 },
                 update: {},
                 create: row,
@@ -165,7 +187,8 @@ async function seedPreferenceOptions(req, res) {
 
         return res.status(201).json({
             ok: true,
-            message: "seeded preference options (idempotent)",
+            message: "seeded default preference options (no tags found yet)",
+            count: defaults.length,
         });
     } catch (err) {
         console.error("seedPreferenceOptions error:", err);

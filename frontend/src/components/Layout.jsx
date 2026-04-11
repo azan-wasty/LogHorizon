@@ -1,18 +1,19 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { 
-  Compass, 
-  Library, 
-  Users, 
-  ShieldCheck, 
-  Settings, 
-  LogOut, 
-  Menu, 
-  X,
-  Hexagon
+import {
+  LayoutDashboard,
+  Compass,
+  Library,
+  Users,
+  ShieldCheck,
+  Settings,
+  LogOut,
+  Menu,
+  Hexagon,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'discover', label: 'Discover', icon: Compass },
   { id: 'library', label: 'My Library', icon: Library },
   { id: 'community', label: 'Community', icon: Users },
@@ -39,6 +40,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
 
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 w-64 bg-charcoal border-r border-white/5 flex flex-col z-[100] transition-transform duration-300 lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+
         {/* Logo */}
         <div className="p-6 border-b border-white/5">
           <div className="flex items-center gap-3">
@@ -51,7 +53,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
           </div>
         </div>
 
-        {/* User context info */}
+        {/* User pill */}
         <div className="p-4 mx-4 my-4 rounded-xl bg-white/5 border border-white/5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-electric-purple/20 to-accent-violet/20 flex items-center justify-center text-electric-purple font-display font-bold border border-electric-purple/30">
@@ -96,10 +98,10 @@ export default function Layout({ children, currentPage, onNavigate }) {
           )}
         </nav>
 
-        {/* Footer actions */}
+        {/* Footer */}
         <div className="p-4 border-t border-white/5 space-y-1">
           <button
-            onClick={() => { onNavigate('preferences'); setMobileOpen(false); }}
+            onClick={() => { onNavigate('onboarding'); setMobileOpen(false); }}
             className={`nav-item w-full ${currentPage === 'preferences' ? 'nav-item-active' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
           >
             <Settings size={18} />
@@ -115,17 +117,18 @@ export default function Layout({ children, currentPage, onNavigate }) {
         </div>
       </aside>
 
-      {/* Main Content Area */}
+      {/* Main content */}
       <div className="flex-1 flex flex-col lg:pl-64 min-w-0">
+        {/* Mobile header */}
         <header className="h-16 flex items-center px-6 border-b border-white/5 bg-dark/50 backdrop-blur-md sticky top-0 z-[50] lg:hidden">
-          <button 
+          <button
             onClick={() => setMobileOpen(true)}
             className="p-2 -ml-2 text-gray-400 hover:text-white"
           >
             <Menu size={24} />
           </button>
           <div className="flex-1 text-center">
-             <span className="font-display font-bold text-lg tracking-tight text-white">
+            <span className="font-display font-bold text-lg tracking-tight text-white">
               Log<span className="text-electric-purple">Horizon</span>
             </span>
           </div>

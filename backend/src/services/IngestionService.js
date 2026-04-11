@@ -1,57 +1,212 @@
 const prisma = require("../prismaClient");
 
+// ─────────────────────────────────────────────────────────────────────────────
+// TAG NORMALISATION MAPS
+// ─────────────────────────────────────────────────────────────────────────────
+
+const JIKAN_GENRE_MAP = {
+    "Action": { type: "Genre", name: "Action" },
+    "Adventure": { type: "Genre", name: "Adventure" },
+    "Comedy": { type: "Genre", name: "Comedy" },
+    "Drama": { type: "Genre", name: "Drama" },
+    "Fantasy": { type: "Genre", name: "Fantasy" },
+    "Sci-Fi": { type: "Genre", name: "Sci-Fi" },
+    "Science Fiction": { type: "Genre", name: "Sci-Fi" },
+    "Mystery": { type: "Genre", name: "Mystery" },
+    "Horror": { type: "Mood", name: "Dark" },
+    "Psychological": { type: "Mood", name: "Dark" },
+    "Thriller": { type: "Mood", name: "Dark" },
+    "Slice of Life": { type: "Mood", name: "Chill" },
+    "Romance": { type: "Mood", name: "Emotional" },
+    "Tragedy": { type: "Mood", name: "Emotional" },
+    "Sports": { type: "Mood", name: "Hype" },
+    "Shounen": { type: "Mood", name: "Hype" },
+    "Supernatural": { type: "Genre", name: "Fantasy" },
+    "Music": { type: "Mood", name: "Chill" },
+    "Ecchi": { type: "Mood", name: "Chill" },
+};
+
+const JIKAN_THEME_MAP = {
+    "School": { type: "Theme", name: "Coming of Age" },
+    "Coming of Age": { type: "Theme", name: "Coming of Age" },
+    "Revenge": { type: "Theme", name: "Revenge" },
+    "Friendship": { type: "Theme", name: "Friendship" },
+    "Mystery": { type: "Theme", name: "Mystery" },
+    "Military": { type: "Genre", name: "Action" },
+    "Survival": { type: "Mood", name: "Dark" },
+    "Psychological": { type: "Mood", name: "Dark" },
+    "Time Travel": { type: "Genre", name: "Sci-Fi" },
+    "Mecha": { type: "Genre", name: "Sci-Fi" },
+    "Isekai": { type: "Genre", name: "Fantasy" },
+    "Super Power": { type: "Mood", name: "Hype" },
+    "Samurai": { type: "Genre", name: "Action" },
+    "Historical": { type: "Genre", name: "Drama" },
+    "Workplace": { type: "Mood", name: "Chill" },
+    "Family": { type: "Theme", name: "Friendship" },
+    "Vampire": { type: "Mood", name: "Dark" },
+    "Demons": { type: "Genre", name: "Fantasy" },
+    "Magic": { type: "Genre", name: "Fantasy" },
+};
+
+const TMDB_GENRE_MAP = {
+    28: { type: "Genre", name: "Action" },
+    12: { type: "Genre", name: "Adventure" },
+    16: { type: "Genre", name: "Fantasy" },
+    35: { type: "Genre", name: "Comedy" },
+    80: { type: "Mood", name: "Dark" },
+    99: { type: "Genre", name: "Drama" },
+    18: { type: "Genre", name: "Drama" },
+    10751: { type: "Theme", name: "Friendship" },
+    14: { type: "Genre", name: "Fantasy" },
+    36: { type: "Genre", name: "Drama" },
+    27: { type: "Mood", name: "Dark" },
+    10402: { type: "Mood", name: "Chill" },
+    9648: { type: "Theme", name: "Mystery" },
+    10749: { type: "Mood", name: "Emotional" },
+    878: { type: "Genre", name: "Sci-Fi" },
+    10770: { type: "Genre", name: "Drama" },
+    53: { type: "Mood", name: "Dark" },
+    10752: { type: "Genre", name: "Action" },
+    37: { type: "Genre", name: "Adventure" },
+    10759: { type: "Genre", name: "Action" },
+    10762: { type: "Theme", name: "Coming of Age" },
+    10763: { type: "Genre", name: "Drama" },
+    10764: { type: "Mood", name: "Hype" },
+    10765: { type: "Genre", name: "Sci-Fi" },
+    10766: { type: "Genre", name: "Drama" },
+    10767: { type: "Mood", name: "Chill" },
+    10768: { type: "Genre", name: "Action" },
+};
+
+const BOOKS_CATEGORY_MAP = [
+    { match: /science.fiction|sci.fi/i, tag: { type: "Genre", name: "Sci-Fi" } },
+    { match: /fantasy/i, tag: { type: "Genre", name: "Fantasy" } },
+    { match: /adventure/i, tag: { type: "Genre", name: "Adventure" } },
+    { match: /action/i, tag: { type: "Genre", name: "Action" } },
+    { match: /comedy|humor|humour/i, tag: { type: "Genre", name: "Comedy" } },
+    { match: /drama/i, tag: { type: "Genre", name: "Drama" } },
+    { match: /mystery|detective|crime/i, tag: { type: "Theme", name: "Mystery" } },
+    { match: /horror|dark|dystop/i, tag: { type: "Mood", name: "Dark" } },
+    { match: /romance|love/i, tag: { type: "Mood", name: "Emotional" } },
+    { match: /juvenile|young adult|teen/i, tag: { type: "Theme", name: "Coming of Age" } },
+    { match: /friendship|family/i, tag: { type: "Theme", name: "Friendship" } },
+    { match: /thriller|suspense/i, tag: { type: "Mood", name: "Dark" } },
+    { match: /historical|history/i, tag: { type: "Genre", name: "Drama" } },
+    { match: /sport/i, tag: { type: "Mood", name: "Hype" } },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function upsertTags(tx, rawTags) {
+    const seen = new Set();
+    const unique = [];
+    for (const t of rawTags) {
+        const key = `${t.type}::${t.name}`;
+        if (!seen.has(key)) { seen.add(key); unique.push(t); }
+    }
+    const tagIds = [];
+    for (const t of unique) {
+        const tag = await tx.tag.upsert({
+            where: { type_name: { name: t.name, type: t.type } },
+            update: {},
+            create: { name: t.name, type: t.type },
+        });
+        tagIds.push(tag.id);
+    }
+    return tagIds;
+}
+
 /**
- * Service to fetch metadata from external APIs and save to database.
+ * After tags are upserted during ingestion, sync them to PreferenceOptions
+ * so the recommendation engine & onboarding can see new options dynamically.
  */
+async function syncTagsToPreferenceOptions(tx, rawTags) {
+    for (const t of rawTags) {
+        await tx.preferenceOption.upsert({
+            where: { type_value: { type: t.type, value: t.name } },
+            update: {},
+            create: { type: t.type, value: t.name },
+        });
+    }
+}
+
+function mapJikanTags(genres = [], themes = []) {
+    const tags = [];
+    for (const g of genres) {
+        const mapped = JIKAN_GENRE_MAP[g.name];
+        if (mapped) tags.push(mapped);
+    }
+    for (const t of themes) {
+        const mapped = JIKAN_THEME_MAP[t.name];
+        if (mapped) tags.push(mapped);
+    }
+    return tags;
+}
+
+function mapTmdbTags(genreIds = []) {
+    const tags = [];
+    for (const id of genreIds) {
+        const mapped = TMDB_GENRE_MAP[id];
+        if (mapped) tags.push(mapped);
+    }
+    return tags;
+}
+
+function mapBooksTags(categories = []) {
+    const tags = [];
+    const combined = categories.join(" / ").toLowerCase();
+    for (const { match, tag } of BOOKS_CATEGORY_MAP) {
+        if (match.test(combined)) tags.push(tag);
+    }
+    return tags;
+}
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INGESTION METHODS
+// ─────────────────────────────────────────────────────────────────────────────
+
 class IngestionService {
-    /**
-     * Fetch anime metadata from Jikan API (MyAnimeList)
-     * URL: https://api.jikan.moe/v4/anime?q=[title]&limit=1
-     */
-    async ingestAnime(title) {
+
+    // ── Anime / Manga via Jikan ──
+    async ingestAnime(title, category = "Anime") {
         try {
-            const resp = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(title)}&limit=1`);
+            const type = category === "Manga" ? "manga" : "anime";
+            const resp = await fetch(
+                `https://api.jikan.moe/v4/${type}?q=${encodeURIComponent(title)}&limit=1`
+            );
             const json = await resp.json();
             const data = json.data?.[0];
+            if (!data) return { ok: false, message: `No ${type} found: "${title}"` };
 
-            if (!data) return { ok: false, message: "No anime found with that title." };
+            const existing = await prisma.content.findFirst({
+                where: { externalId: String(data.mal_id), source: "Jikan" },
+            });
+            if (existing) return { ok: true, content: existing, skipped: true };
 
-            // Map Jikan genres/themes to our Tag model
-            const genres = data.genres?.map(g => ({ name: g.name, type: "Genre" })) || [];
-            const themes = data.themes?.map(t => ({ name: t.name, type: "Mood" })) || []; // Using Mood as a catch-all for themes for now
-            const allTags = [...genres, ...themes];
+            const rawTags = mapJikanTags(data.genres || [], data.themes || []);
 
-            // Use transaction to ensure data integrity
             const content = await prisma.$transaction(async (tx) => {
-                // Upsert tags
-                const tagIds = [];
-                for (const t of allTags) {
-                    const tag = await tx.tag.upsert({
-                        where: { name_type: { name: t.name, type: t.type } },
-                        update: {},
-                        create: { name: t.name, type: t.type },
-                    });
-                    tagIds.push(tag.id);
-                }
-
-                // Create content
+                const tagIds = await upsertTags(tx, rawTags);
+                await syncTagsToPreferenceOptions(tx, rawTags);
                 return tx.content.create({
                     data: {
-                        title: data.title,
-                        category: "Anime",
-                        description: data.synopsis || "No description available.",
-                        coverImage: data.images?.jpg?.large_image_url || data.images?.webp?.large_image_url,
+                        title: data.title_english || data.title,
+                        category,
+                        description: (data.synopsis || "No description available.").substring(0, 1000),
+                        coverImage: data.images?.jpg?.large_image_url?.substring(0, 1000) || data.images?.webp?.large_image_url?.substring(0, 1000) || null,
                         externalId: String(data.mal_id),
                         source: "Jikan",
-                        rating: data.score || 0,
-                        tags: {
-                            create: tagIds.map(tid => ({ tagId: tid }))
-                        }
+                        rating: data.score || null,
+                        status: data.status || null,
+                        tags: { create: tagIds.map(tid => ({ tagId: tid })) },
                     },
-                    include: { tags: { include: { tag: true } } }
+                    include: { tags: { include: { tag: true } } },
                 });
             });
-
             return { ok: true, content };
         } catch (err) {
             console.error("ingestAnime error:", err);
@@ -59,40 +214,79 @@ class IngestionService {
         }
     }
 
-    /**
-     * Fetch movie/TV metadata from TMDB API
-     * Requires process.env.TMDB_API_KEY
-     */
+    // ── Anime/Manga directly from Jikan data object (no second search) ──
+    async ingestJikanDirect(data, category = "Anime") {
+        try {
+            const existing = await prisma.content.findFirst({
+                where: { externalId: String(data.mal_id), source: "Jikan" },
+            });
+            if (existing) return { ok: true, content: existing, skipped: true };
+
+            const rawTags = mapJikanTags(data.genres || [], data.themes || []);
+
+            const content = await prisma.$transaction(async (tx) => {
+                const tagIds = await upsertTags(tx, rawTags);
+                await syncTagsToPreferenceOptions(tx, rawTags);
+                return tx.content.create({
+                    data: {
+                        title: data.title_english || data.title,
+                        category,
+                        description: (data.synopsis || "No description available.").substring(0, 1000),
+                        coverImage: data.images?.jpg?.large_image_url?.substring(0, 1000) || data.images?.webp?.large_image_url?.substring(0, 1000) || null,
+                        externalId: String(data.mal_id),
+                        source: "Jikan",
+                        rating: data.score || null,
+                        status: data.status || null,
+                        tags: { create: tagIds.map(tid => ({ tagId: tid })) },
+                    },
+                    include: { tags: { include: { tag: true } } },
+                });
+            });
+            return { ok: true, content };
+        } catch (err) {
+            console.error("ingestJikanDirect error:", err);
+            return { ok: false, message: err.message };
+        }
+    }
+
+    // ── Movies / TV via TMDB ──
     async ingestMovie(title, isTV = false) {
         const apiKey = process.env.TMDB_API_KEY;
-        if (!apiKey) {
-            return { ok: false, message: "TMDB_API_KEY is missing in your .env file. Please add it to start scanning movies/TV." };
-        }
+        if (!apiKey) return { ok: false, message: "TMDB_API_KEY missing from .env" };
 
         try {
-            const query = encodeURIComponent(title);
-            const type = isTV ? 'tv' : 'movie';
-            const resp = await fetch(`https://api.themoviedb.org/3/search/${type}?api_key=${apiKey}&query=${query}&language=en-US&page=1`);
+            const type = isTV ? "tv" : "movie";
+            const resp = await fetch(
+                `https://api.themoviedb.org/3/search/${type}?api_key=${apiKey}&query=${encodeURIComponent(title)}&language=en-US&page=1`
+            );
             const json = await resp.json();
             const data = json.results?.[0];
+            if (!data) return { ok: false, message: `No ${type} found: "${title}"` };
 
-            if (!data) return { ok: false, message: `No ${type} found with that title.` };
+            const externalId = String(data.id);
+            const source = "TMDB";
 
-            // Note: TMDB returns genre_ids, which requires a separate call to map to names.
-            // For now, we'll label generic genres or skip tag mapping until key is verified.
-            const content = await prisma.content.create({
-                data: {
-                    title: data.title || data.name,
-                    category: isTV ? "TV" : "Movie",
-                    description: data.overview || "No description available.",
-                    coverImage: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : null,
-                    externalId: String(data.id),
-                    source: "TMDB",
-                    rating: data.vote_average || 0,
-                },
-                include: { tags: { include: { tag: true } } }
+            const existing = await prisma.content.findFirst({ where: { externalId, source } });
+            if (existing) return { ok: true, content: existing, skipped: true };
+
+            const rawTags = mapTmdbTags(data.genre_ids || []);
+
+            const content = await prisma.$transaction(async (tx) => {
+                const tagIds = await upsertTags(tx, rawTags);
+                await syncTagsToPreferenceOptions(tx, rawTags);
+                return tx.content.create({
+                    data: {
+                        title: data.title || data.name,
+                        category: isTV ? "TV" : "Movie",
+                        description: (data.overview || "No description available.").substring(0, 1000),
+                        coverImage: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}`.substring(0, 1000) : null,
+                        externalId, source,
+                        rating: data.vote_average ? Math.round(data.vote_average * 10) / 10 : null,
+                        tags: { create: tagIds.map(tid => ({ tagId: tid })) },
+                    },
+                    include: { tags: { include: { tag: true } } },
+                });
             });
-
             return { ok: true, content };
         } catch (err) {
             console.error("ingestMovie error:", err);
@@ -100,54 +294,307 @@ class IngestionService {
         }
     }
 
-    /**
-     * Fetch book metadata from Google Books API
-     * URL: https://www.googleapis.com/books/v1/volumes?q=[title]&maxResults=1
-     */
+    // ── TMDB direct from data object (no second search) ──
+    async ingestTmdbDirect(data, isTV = false) {
+        try {
+            const externalId = String(data.id);
+            const source = "TMDB";
+            const existing = await prisma.content.findFirst({ where: { externalId, source } });
+            if (existing) return { ok: true, content: existing, skipped: true };
+
+            const rawTags = mapTmdbTags(data.genre_ids || []);
+
+            const content = await prisma.$transaction(async (tx) => {
+                const tagIds = await upsertTags(tx, rawTags);
+                await syncTagsToPreferenceOptions(tx, rawTags);
+                return tx.content.create({
+                    data: {
+                        title: data.title || data.name,
+                        category: isTV ? "TV" : "Movie",
+                        description: (data.overview || "No description available.").substring(0, 1000),
+                        coverImage: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}`.substring(0, 1000) : null,
+                        externalId, source,
+                        rating: data.vote_average ? Math.round(data.vote_average * 10) / 10 : null,
+                        tags: { create: tagIds.map(tid => ({ tagId: tid })) },
+                    },
+                    include: { tags: { include: { tag: true } } },
+                });
+            });
+            return { ok: true, content };
+        } catch (err) {
+            console.error("ingestTmdbDirect error:", err);
+            return { ok: false, message: err.message };
+        }
+    }
+
+    // ── Books via Google Books API ──
     async ingestBook(title) {
         try {
-            const resp = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(title)}&maxResults=1`);
+            const resp = await fetch(
+                `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(title)}&maxResults=1`
+            );
             const json = await resp.json();
-            const data = json.items?.[0]?.volumeInfo;
+            const item = json.items?.[0];
+            const data = item?.volumeInfo;
+            if (!data) return { ok: false, message: `No book found: "${title}"` };
 
-            if (!data) return { ok: false, message: "No book found with that title." };
+            const externalId = item.id;
+            const source = "GoogleBooks";
 
-            const category = "Book";
-            const genres = data.categories?.map(c => ({ name: c, type: "Genre" })) || [];
-            
+            const existing = await prisma.content.findFirst({ where: { externalId, source } });
+            if (existing) return { ok: true, content: existing, skipped: true };
+
+            const rawTags = mapBooksTags(data.categories || []);
+
             const content = await prisma.$transaction(async (tx) => {
-                const tagIds = [];
-                for (const t of genres) {
-                    const tag = await tx.tag.upsert({
-                        where: { name_type: { name: t.name, type: t.type } },
-                        update: {},
-                        create: { name: t.name, type: t.type },
-                    });
-                    tagIds.push(tag.id);
-                }
-
+                const tagIds = await upsertTags(tx, rawTags);
+                await syncTagsToPreferenceOptions(tx, rawTags);
                 return tx.content.create({
                     data: {
                         title: data.title,
-                        category,
-                        description: data.description || "No description available.",
-                        coverImage: data.imageLinks?.thumbnail?.replace('http:', 'https:'),
-                        externalId: json.items[0].id,
-                        source: "GoogleBooks",
-                        rating: data.averageRating || 0,
-                        tags: {
-                            create: tagIds.map(tid => ({ tagId: tid }))
-                        }
+                        category: "Book",
+                        description: (data.description || "No description available.").substring(0, 1000),
+                        coverImage: data.imageLinks?.thumbnail?.replace("http:", "https:")?.substring(0, 1000) || null,
+                        externalId, source,
+                        rating: data.averageRating || null,
+                        tags: { create: tagIds.map(tid => ({ tagId: tid })) },
                     },
-                    include: { tags: { include: { tag: true } } }
+                    include: { tags: { include: { tag: true } } },
                 });
             });
-
             return { ok: true, content };
         } catch (err) {
             console.error("ingestBook error:", err);
             return { ok: false, message: err.message };
         }
+    }
+
+    // ── Book direct from Google Books data object ──
+    async ingestBookDirect(item) {
+        try {
+            const data = item.volumeInfo;
+            if (!data || !data.title) return { ok: false, message: "Invalid book data" };
+
+            const externalId = item.id;
+            const source = "GoogleBooks";
+
+            const existing = await prisma.content.findFirst({ where: { externalId, source } });
+            if (existing) return { ok: true, content: existing, skipped: true };
+
+            const rawTags = mapBooksTags(data.categories || []);
+
+            const content = await prisma.$transaction(async (tx) => {
+                const tagIds = await upsertTags(tx, rawTags);
+                await syncTagsToPreferenceOptions(tx, rawTags);
+                return tx.content.create({
+                    data: {
+                        title: data.title,
+                        category: "Book",
+                        description: (data.description || "No description available.").substring(0, 1000),
+                        coverImage: data.imageLinks?.thumbnail?.replace("http:", "https:")?.substring(0, 1000) || null,
+                        externalId, source,
+                        rating: data.averageRating || null,
+                        tags: { create: tagIds.map(tid => ({ tagId: tid })) },
+                    },
+                    include: { tags: { include: { tag: true } } },
+                });
+            });
+            return { ok: true, content };
+        } catch (err) {
+            console.error("ingestBookDirect error:", err);
+            return { ok: false, message: err.message };
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // ADVANCED DISCOVERY
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Discover and ingest content for a category.
+     * 
+     * @param {string} category - "Anime", "Manga", "Movie", "TV", "Book"
+     * @param {object} options
+     * @param {string} options.mode - "popular" | "top_rated" | "trending" | "upcoming" | "search"
+     * @param {number} options.pages - number of pages to fetch (default 3 = ~60 items)
+     * @param {string} options.query - search query (only for mode "search")
+     */
+    async discoverAndIngest(category, options = {}) {
+        const { mode = "popular", pages = 3, query = "" } = options;
+        const stats = { total: 0, ingested: 0, skipped: 0, failed: 0 };
+
+        try {
+            if (category === "Anime" || category === "Manga") {
+                await this._discoverJikan(category, mode, pages, stats);
+            } else if (category === "Movie" || category === "TV") {
+                await this._discoverTmdb(category, mode, pages, query, stats);
+            } else if (category === "Book") {
+                await this._discoverBooks(mode, pages, query, stats);
+            } else {
+                return { ok: false, message: `Discovery not supported for "${category}"` };
+            }
+            return { ok: true, stats };
+        } catch (err) {
+            console.error("discoverAndIngest error:", err);
+            return { ok: false, message: err.message, stats };
+        }
+    }
+
+    // ── Jikan multi-page discovery ──
+    async _discoverJikan(category, mode, pages, stats) {
+        const type = category.toLowerCase(); // "anime" or "manga"
+
+        // Jikan endpoints: /top, /top?filter=bypopularity, /top?filter=upcoming, /seasons/now
+        let baseUrl;
+        if (mode === "top_rated") {
+            baseUrl = `https://api.jikan.moe/v4/top/${type}?filter=score`;
+        } else if (mode === "upcoming") {
+            baseUrl = `https://api.jikan.moe/v4/top/${type}?filter=upcoming`;
+        } else if (mode === "trending" && type === "anime") {
+            baseUrl = `https://api.jikan.moe/v4/seasons/now`;
+        } else {
+            baseUrl = `https://api.jikan.moe/v4/top/${type}?filter=bypopularity`;
+        }
+
+        for (let page = 1; page <= pages; page++) {
+            try {
+                const url = `${baseUrl}&page=${page}&limit=25`;
+                console.log(`[Jikan] Fetching ${category} ${mode} page ${page}: ${url}`);
+                const resp = await fetch(url);
+                const json = await resp.json();
+                const items = json.data || [];
+
+                if (items.length === 0) break;
+
+                for (const item of items) {
+                    stats.total++;
+                    try {
+                        const res = await this.ingestJikanDirect(item, category);
+                        if (res?.ok) {
+                            if (res.skipped) stats.skipped++;
+                            else stats.ingested++;
+                        } else {
+                            stats.failed++;
+                        }
+                    } catch { stats.failed++; }
+                    // Jikan rate limit: ~3 req/s, but we batch so be conservative
+                    await sleep(400);
+                }
+            } catch (err) {
+                console.error(`[Jikan] Page ${page} error:`, err.message);
+            }
+            // Wait between pages to stay within rate limits
+            await sleep(1500);
+        }
+    }
+
+    // ── TMDB multi-page discovery ──
+    async _discoverTmdb(category, mode, pages, query, stats) {
+        const apiKey = process.env.TMDB_API_KEY;
+        if (!apiKey) throw new Error("TMDB_API_KEY missing");
+        const isTV = category === "TV";
+        const type = isTV ? "tv" : "movie";
+
+        for (let page = 1; page <= pages; page++) {
+            try {
+                let url;
+                if (mode === "search" && query) {
+                    url = `https://api.themoviedb.org/3/search/${type}?api_key=${apiKey}&query=${encodeURIComponent(query)}&language=en-US&page=${page}`;
+                } else if (mode === "top_rated") {
+                    url = `https://api.themoviedb.org/3/${type}/top_rated?api_key=${apiKey}&language=en-US&page=${page}`;
+                } else if (mode === "trending") {
+                    url = `https://api.themoviedb.org/3/trending/${type}/week?api_key=${apiKey}&page=${page}`;
+                } else if (mode === "upcoming" && !isTV) {
+                    url = `https://api.themoviedb.org/3/movie/upcoming?api_key=${apiKey}&language=en-US&page=${page}`;
+                } else {
+                    url = `https://api.themoviedb.org/3/${type}/popular?api_key=${apiKey}&language=en-US&page=${page}`;
+                }
+
+                console.log(`[TMDB] Fetching ${category} ${mode} page ${page}: ${url}`);
+                const resp = await fetch(url);
+                const json = await resp.json();
+                const items = json.results || [];
+
+                if (items.length === 0) break;
+
+                for (const item of items) {
+                    stats.total++;
+                    try {
+                        const res = await this.ingestTmdbDirect(item, isTV);
+                        if (res?.ok) {
+                            if (res.skipped) stats.skipped++;
+                            else stats.ingested++;
+                        } else {
+                            stats.failed++;
+                        }
+                    } catch { stats.failed++; }
+                    await sleep(100);
+                }
+            } catch (err) {
+                console.error(`[TMDB] Page ${page} error:`, err.message);
+            }
+            await sleep(500);
+        }
+    }
+
+    // ── Google Books multi-page discovery ──
+    async _discoverBooks(mode, pages, query, stats) {
+        // Google Books: search with curated queries for popular fiction
+        const BOOK_QUERIES = [
+            "subject:fiction",
+            "subject:fantasy bestseller",
+            "subject:science fiction popular",
+            "subject:mystery thriller",
+            "subject:romance bestseller",
+            "subject:adventure fiction",
+            "subject:young adult",
+            "subject:horror suspense",
+            "subject:comedy humor fiction",
+            "subject:drama literary fiction",
+        ];
+
+        const queries = query ? [query] : BOOK_QUERIES.slice(0, Math.max(pages, 3));
+        const maxPerQuery = 40;
+
+        for (const q of queries) {
+            try {
+                const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=${maxPerQuery}&orderBy=relevance&langRestrict=en&printType=books`;
+                console.log(`[Books] Fetching: ${url}`);
+                const resp = await fetch(url);
+                const json = await resp.json();
+                const items = json.items || [];
+
+                if (items.length === 0) continue;
+
+                for (const item of items) {
+                    const vol = item.volumeInfo;
+                    // Skip items with no title or no description
+                    if (!vol?.title || !vol?.description) continue;
+                    // Skip very short descriptions (not useful)
+                    if (vol.description.length < 50) continue;
+
+                    stats.total++;
+                    try {
+                        const res = await this.ingestBookDirect(item);
+                        if (res?.ok) {
+                            if (res.skipped) stats.skipped++;
+                            else stats.ingested++;
+                        } else {
+                            stats.failed++;
+                        }
+                    } catch { stats.failed++; }
+                    await sleep(100);
+                }
+            } catch (err) {
+                console.error(`[Books] Query "${q}" error:`, err.message);
+            }
+            await sleep(800);
+        }
+    }
+
+    // ── Legacy method kept for backward compatibility ──
+    async discoverAndIngestTop(category) {
+        return this.discoverAndIngest(category, { mode: "popular", pages: 1 });
     }
 }
 

@@ -39,6 +39,39 @@ async function ingestContent(req, res) {
 }
 
 /**
+ * POST /api/admin/content/discover
+ * Body: { category, mode?, pages?, query? }
+ *   mode: "popular" | "top_rated" | "trending" | "upcoming" | "search"
+ *   pages: 1-5 (default 3, each page ~20-40 items)
+ *   query: search string (only for mode "search")
+ */
+async function discoverContent(req, res) {
+    try {
+        const { category, mode, pages, query } = req.body || {};
+        if (!category) {
+            return res.status(400).json({ ok: false, message: "category is required" });
+        }
+
+        const safePages = Math.min(Math.max(Number(pages) || 3, 1), 5);
+
+        const result = await ingestionService.discoverAndIngest(category, {
+            mode: mode || "popular",
+            pages: safePages,
+            query: query || "",
+        });
+
+        if (!result.ok) {
+            return res.status(500).json({ ok: false, message: result.message, stats: result.stats });
+        }
+
+        return res.status(200).json({ ok: true, stats: result.stats });
+    } catch (err) {
+        console.error("discoverContent error:", err);
+        return res.status(500).json({ ok: false, message: "internal server error" });
+    }
+}
+
+/**
  * GET /api/admin/content
  * List all content with their tags.
  */
@@ -92,7 +125,7 @@ async function getContent(req, res) {
 async function createContent(req, res) {
     try {
         const { title, category, description, discordLink, tagIds,
-            externalId, source, coverImage, rating } = req.body || {};
+            externalId, source, coverImage, rating, status, externalUrl, isSuggested } = req.body || {};
 
         const errors = validateContentBody({ title, category, description });
         if (errors) return res.status(400).json({ ok: false, message: errors });
@@ -112,6 +145,9 @@ async function createContent(req, res) {
                 source: source?.trim() || null,
                 coverImage: coverImage?.trim() || null,
                 rating: rating != null ? Number(rating) : null,
+                status: status?.trim() || null,
+                externalUrl: externalUrl?.trim() || null,
+                isSuggested: !!isSuggested,
                 tags: {
                     create: resolvedTagIds.ids.map((tagId) => ({ tagId })),
                 },
@@ -142,7 +178,7 @@ async function updateContent(req, res) {
         if (!existing) return res.status(404).json({ ok: false, message: "content not found" });
 
         const { title, category, description, discordLink, tagIds,
-            externalId, source, coverImage, rating } = req.body || {};
+            externalId, source, coverImage, rating, status, externalUrl, isSuggested } = req.body || {};
 
         const dataUpdate = {};
         if (title !== undefined) {
@@ -165,6 +201,9 @@ async function updateContent(req, res) {
         if (source !== undefined) dataUpdate.source = source?.trim() || null;
         if (coverImage !== undefined) dataUpdate.coverImage = coverImage?.trim() || null;
         if (rating !== undefined) dataUpdate.rating = rating != null ? Number(rating) : null;
+        if (status !== undefined) dataUpdate.status = status?.trim() || null;
+        if (externalUrl !== undefined) dataUpdate.externalUrl = externalUrl?.trim() || null;
+        if (isSuggested !== undefined) dataUpdate.isSuggested = !!isSuggested;
 
         // Handle tags replacement in a transaction
         let updated;
@@ -452,6 +491,7 @@ function formatContent(item) {
 
 module.exports = {
     ingestContent,
+    discoverContent,
     listContent,
     getContent,
     createContent,

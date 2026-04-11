@@ -20,7 +20,9 @@ import {
   XCircle,
   AlertCircle,
   Loader2,
-  Filter
+  Filter,
+  Compass,
+  ChevronRight
 } from 'lucide-react';
 
 const CATEGORIES = ['Anime', 'Manga', 'Movie', 'TV', 'Book'];
@@ -29,11 +31,12 @@ const EMPTY_FORM = {
   title: '', category: 'Anime', description: '', discordLink: '',
   externalId: '', source: '', coverImage: '', rating: '',
   tagIds: [],
+  isSuggested: false,
 };
 
 export default function ContentStudio() {
   const toast = useToast();
-  const [tab, setTab] = useState('content'); // 'content' | 'tags' | 'users'
+  const [tab, setTab] = useState('content'); // content | tags | users
   const [content, setContent] = useState([]);
   const [tags, setTags] = useState([]);
   const [users, setUsers] = useState([]);
@@ -47,6 +50,9 @@ export default function ContentStudio() {
   const [ingestTitle, setIngestTitle] = useState('');
   const [ingestCategory, setIngestCategory] = useState('Anime');
   const [ingesting, setIngesting] = useState(false);
+  const [discovering, setDiscovering] = useState(false);
+  const [discoverMode, setDiscoverMode] = useState('popular');
+  const [discoverPages, setDiscoverPages] = useState(2);
 
   // Tag creation
   const [tagForm, setTagForm] = useState({ type: 'Genre', name: '' });
@@ -136,6 +142,21 @@ export default function ContentStudio() {
       refresh();
     } catch {
       toast('Failed to delete', 'error');
+    }
+  };
+
+  const handleBulkDiscover = async (category) => {
+    setDiscovering(true);
+    toast(`Discovering ${category} (${discoverMode}, ${discoverPages} pages)...`, 'info');
+    try {
+      const res = await adminApi.discoverContent({ category, mode: discoverMode, pages: discoverPages });
+      const s = res.stats;
+      toast(`Done! ${s.ingested} new, ${s.skipped} existing, ${s.failed} failed (${s.total} scanned)`, 'success');
+      refresh();
+    } catch (err) {
+      toast(err.message || 'Neural discovery failed', 'error');
+    } finally {
+      setDiscovering(false);
     }
   };
 
@@ -240,26 +261,92 @@ export default function ContentStudio() {
               className="w-full bg-white/5 border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-sm font-body focus:bg-white/[0.08] focus:border-electric-purple/40 focus:ring-1 focus:ring-electric-purple/20 transition-all outline-none text-white"
               value={ingestTitle}
               onChange={(e) => setIngestTitle(e.target.value)}
-              disabled={ingesting}
+              disabled={ingesting || discovering}
             />
           </div>
           <select 
             className="bg-white/5 border border-white/5 rounded-xl px-6 py-3.5 text-sm font-display font-semibold outline-none focus:border-electric-purple/40 transition-all text-gray-400 cursor-pointer"
             value={ingestCategory}
             onChange={(e) => setIngestCategory(e.target.value)}
-            disabled={ingesting}
+            disabled={ingesting || discovering}
           >
             {CATEGORIES.map(c => <option key={c} value={c} className="bg-charcoal text-white">{c}</option>)}
           </select>
           <button 
             type="submit"
-            disabled={ingesting || !ingestTitle.trim()}
+            disabled={ingesting || discovering || !ingestTitle.trim()}
             className="bg-electric-purple hover:bg-accent-violet text-white px-8 py-3.5 rounded-xl font-display font-bold tracking-tight shadow-[0_0_20px_rgba(124,58,237,0.3)] flex items-center justify-center gap-2 min-w-[160px] transition-all disabled:opacity-50 disabled:translate-y-0 active:scale-95"
           >
             {ingesting ? <Loader2 className="animate-spin" size={18} /> : <Zap size={18} />}
             {ingesting ? 'Injecting...' : 'Start Ingest'}
           </button>
         </form>
+      </section>
+
+      {/* Nexus Auto-Discovery */}
+      <section className="glass-panel p-8 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-64 h-64 bg-cyan-500/5 blur-[80px] -ml-32 -mt-32 pointer-events-none" />
+        
+        <div className="flex items-start gap-4 mb-8">
+          <div className="p-3 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+            <Compass className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-xl font-display font-bold text-white">Nexus Auto-Discovery</h2>
+            <p className="text-sm text-gray-500 font-body">Bulk-ingest trending, popular, and top-rated media from all APIs.</p>
+          </div>
+        </div>
+
+        {/* Controls Row */}
+        <div className="flex flex-wrap gap-4 mb-8">
+          <div>
+            <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-500 mb-2">Discovery Mode</label>
+            <div className="flex gap-1 p-1 bg-white/5 rounded-xl border border-white/5">
+              {['popular', 'top_rated', 'trending'].map(m => (
+                <button
+                  key={m}
+                  onClick={() => setDiscoverMode(m)}
+                  className={`px-4 py-2 rounded-lg font-display text-xs font-bold uppercase tracking-widest transition-all ${
+                    discoverMode === m ? 'bg-electric-purple text-white shadow-lg' : 'text-gray-500 hover:text-white'
+                  }`}
+                >
+                  {m.replace('_', ' ')}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-500 mb-2">Pages ({discoverPages} × ~25 items)</label>
+            <input
+              type="range" min="1" max="5" value={discoverPages}
+              onChange={(e) => setDiscoverPages(Number(e.target.value))}
+              className="w-40 accent-electric-purple"
+            />
+          </div>
+        </div>
+
+        {/* Category Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat}
+              onClick={() => handleBulkDiscover(cat)}
+              disabled={ingesting || discovering}
+              className="premium-card p-5 flex flex-col items-center text-center gap-3 hover:border-electric-purple/30 group transition-all disabled:opacity-50"
+            >
+              <div className="p-3 rounded-2xl bg-white/5 text-gray-500 group-hover:text-electric-purple group-hover:bg-electric-purple/10 transition-all">
+                <Compass size={28} className={discovering ? 'animate-pulse' : ''} />
+              </div>
+              <div>
+                <h3 className="text-white font-display font-bold text-sm">{cat}</h3>
+                <p className="text-[9px] font-mono text-gray-600 uppercase tracking-widest mt-1">{discoverMode.replace('_', ' ')}</p>
+              </div>
+              <div className="w-full pt-1 flex items-center justify-center gap-1 text-[9px] font-mono font-bold text-electric-purple opacity-0 group-hover:opacity-100 transition-opacity">
+                DISCOVER <ChevronRight size={9} />
+              </div>
+            </button>
+          ))}
+        </div>
       </section>
 
       {/* Tabs / Management Section */}
@@ -286,6 +373,7 @@ export default function ContentStudio() {
                 <tr className="border-b border-white/5 bg-white/[0.02]">
                   <th className="px-6 py-4 font-display text-[10px] uppercase tracking-widest text-gray-500">Metadata Entry</th>
                   <th className="px-6 py-4 font-display text-[10px] uppercase tracking-widest text-gray-500">Classification</th>
+                  <th className="px-6 py-4 font-display text-[10px] uppercase tracking-widest text-gray-500">Highlight</th>
                   <th className="px-6 py-4 font-display text-[10px] uppercase tracking-widest text-gray-500">Sync Status</th>
                   <th className="px-6 py-4 font-display text-[10px] uppercase tracking-widest text-gray-500 text-right">Actions</th>
                 </tr>
@@ -314,6 +402,13 @@ export default function ContentStudio() {
                       <span className="px-2 py-1 rounded bg-white/5 border border-white/10 text-[10px] font-mono text-gray-400">
                         {item.category}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {item.isSuggested && (
+                        <span className="px-2 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-[8px] font-mono font-bold text-amber-500 flex items-center gap-1 w-fit">
+                          <Plus size={8} /> SUGGESTED
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
@@ -345,6 +440,7 @@ export default function ContentStudio() {
                               coverImage: item.coverImage || '',
                               rating: item.rating != null ? String(item.rating) : '',
                               tagIds: item.tags?.map(t => t.id) || [],
+                              isSuggested: item.isSuggested || false,
                             });
                             setEditId(item.id);
                             setShowForm(true);
@@ -576,6 +672,19 @@ export default function ContentStudio() {
                     onChange={(e) => setForm(f => ({ ...f, discordLink: e.target.value }))}
                    />
                 </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/5">
+                <input 
+                  type="checkbox"
+                  id="isSuggested"
+                  className="w-5 h-5 rounded border-white/10 bg-white/5 text-electric-purple focus:ring-electric-purple"
+                  checked={form.isSuggested}
+                  onChange={(e) => setForm(f => ({ ...f, isSuggested: e.target.checked }))}
+                />
+                <label htmlFor="isSuggested" className="text-sm font-display font-medium text-white cursor-pointer select-none">
+                  Mark as Admin Suggested (Highlight in UI)
+                </label>
               </div>
             </div>
 

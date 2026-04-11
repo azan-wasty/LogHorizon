@@ -5,6 +5,7 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchMe = useCallback(async () => {
@@ -13,6 +14,7 @@ export function AuthProvider({ children }) {
     try {
       const data = await meApi.get();
       setUser(data.user);
+      setAchievements(data.achievements || []);
     } catch {
       localStorage.removeItem('lh_token');
     } finally {
@@ -43,11 +45,11 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
-  const isAdmin = user?.role === 'Admin';
+  const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
   const isAuthenticated = !!user;
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAuthenticated, isAdmin, login, register, logout, refetch: fetchMe }}>
+    <AuthContext.Provider value={{ user, achievements, loading, isAuthenticated, isAdmin, login, register, logout, refetch: fetchMe }}>
       {children}
     </AuthContext.Provider>
   );
