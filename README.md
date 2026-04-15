@@ -56,6 +56,8 @@ npm install
 npm run dev
 ```
 
+npx prisma studio --browser none
+
 The application will be accessible at `http://localhost:3000` (or `3001/3002`).
 
 ## 📁 Project Structure

@@ -50,7 +50,7 @@ function App() {
   const renderPage = () => {
     if (currentPage.startsWith('content/')) {
       const id = parseInt(currentPage.split('/')[1]);
-      return <ContentPage id={id} />;
+      return <ContentPage id={id} onNavigate={setCurrentPage} />;
     }
 
     switch (currentPage) {

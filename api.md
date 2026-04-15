@@ -65,7 +65,13 @@
 `GET /me` 
 
 ```json
-{ "ok": true, "user": { "id": 1, "username": "azan", "role": "User", ... } }
+{ 
+  "ok": true, 
+  "user": { "id": 1, "username": "azan", "role": "User", "..." },
+  "achievements": [
+    { "id": "FIRST_COMPLETE", "title": "First Blood", "description": "Complete your first entry", "icon": "Swords", "unlockedAt": "..." }
+  ]
+}
 ```
 
 ---
@@ -115,6 +121,158 @@ Replaces all current preferences. Send empty array to clear.
 
 ```json
 { "ok": true, "message": "preferences saved", "preferenceOptionIds": [1, 3, 11] }
+```
+
+---
+
+## User Library
+
+### Get My Library
+`GET /library`
+
+Returns the user's saved items.
+
+```json
+{
+  "ok": true,
+  "library": [
+    {
+      "id": 1,
+      "userId": 1,
+      "contentId": 42,
+      "status": "COMPLETED",
+      "rating": 9,
+      "createdAt": "...",
+      "updatedAt": "...",
+      "content": {
+        "id": 42,
+        "title": "Neon Genesis Evangelion",
+        "category": "Anime",
+        "...": "..."
+      }
+    }
+  ]
+}
+```
+
+---
+
+### Update Library Item
+`POST /library/update`
+
+Add or update a library entry.
+
+**Body**
+```json
+{
+  "contentId": 42,
+  "status": "COMPLETED",
+  "rating": 9
+}
+```
+`status` can be `"PLANNING"`, `"COMPLETED"`, `"CURRENT"`, `"DROPPED"`.
+`rating` is optional (integer).
+
+```json
+{
+  "ok": true,
+  "entry": {
+    "id": 1,
+    "userId": 1,
+    "contentId": 42,
+    "status": "COMPLETED",
+    "rating": 9,
+    "...": "..."
+  },
+  "newUnlocks": [
+    { "id": "FIRST_COMPLETE", "title": "First Blood", "description": "Complete your first entry", "icon": "Swords" }
+  ]
+}
+```
+*Note: `newUnlocks` will contain any freshly earned achievements triggered by this update.*
+
+---
+
+### Remove from Library
+`DELETE /library/:contentId`
+
+Removes an item from the library.
+
+```json
+{ "ok": true, "message": "Removed from library" }
+```
+
+---
+
+## Recommendations
+
+### Get Recommendations
+`GET /recommendations`
+
+Returns content ranked by weighted tag overlap and library-aware scoring.
+
+**Query params (all optional)**
+| Param | Type | Description |
+|-------|------|-------------|
+| `limit` | number | Max items to return (default 20, max 50) |
+| `offset` | number | Pagination offset (default 0) |
+| `category` | string | Filter by category |
+
+```json
+{
+  "ok": true,
+  "recommendations": [
+    {
+      "id": 15,
+      "title": "Steins;Gate",
+      "category": "Anime",
+      "...": "...",
+      "_score": 6.5,
+      "_matchedTags": [{ "id": 4, "type": "Genre", "name": "Sci-Fi", "weight": 3 }],
+      "_inLibrary": false
+    }
+  ],
+  "explore": [
+    {
+      "id": 20,
+      "title": "A Silent Voice",
+      "category": "Anime",
+      "...": "...",
+      "_score": 0,
+      "_matchedTags": [],
+      "_inLibrary": false
+    }
+  ],
+  "total": 12,
+  "hasPreferences": true,
+  "preferenceCount": 3
+}
+```
+
+---
+
+### Get Recommendation Stats
+`GET /recommendations/stats`
+
+Returns statistics on recommendations matching the user's preferences, combined with library stats.
+
+```json
+{
+  "ok": true,
+  "stats": {
+    "Anime": 15,
+    "Manga": 3
+  },
+  "topGenres": ["Action", "Sci-Fi"],
+  "matchRate": 45,
+  "hasPreferences": true,
+  "libraryStats": {
+    "total": 10,
+    "completed": 5,
+    "planning": 3,
+    "current": 2
+  }
+}
 ```
 
 ---
