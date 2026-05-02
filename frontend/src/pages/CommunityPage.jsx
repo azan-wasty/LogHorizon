@@ -105,15 +105,21 @@ function EventsSection({ currentUser, isAdmin }) {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    if (!form.title.trim() || !form.startDate) return;
+    console.log("Submitting event form:", form);
+    if (!form.title.trim() || !form.startDate) {
+      toast('Title and Start Date are required', 'error');
+      return;
+    }
     setCreating(true);
     try {
-      await eventsApi.create(form);
+      const res = await eventsApi.create(form);
+      console.log("Event created res:", res);
       toast('Event created!', 'success');
       setShowCreate(false);
       setForm({ title: '', description: '', type: 'WATCH_PARTY', startDate: '' });
       fetchEvents();
     } catch (err) {
+      console.error("Event creation error:", err);
       toast(err.message || 'Failed to create event', 'error');
     } finally {
       setCreating(false);
