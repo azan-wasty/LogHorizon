@@ -24,7 +24,7 @@ const CAT_STYLES = {
   TV: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.15)]',
 };
 
-export default function ContentPage({ id, onNavigate }) {
+export default function ContentPage({ id, goBack }) {
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showDiscordForm, setShowDiscordForm] = useState(false);
@@ -93,22 +93,22 @@ export default function ContentPage({ id, onNavigate }) {
               backgroundImage: `url(${item.coverImage})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
-              filter: 'blur(60px) brightness(0.2) saturate(150%)',
-              opacity: 0.8
+              filter: 'blur(100px) brightness(0.15) saturate(180%)',
+              opacity: 0.9
             }}
           />
-          <div className="absolute inset-0 z-[-1] bg-black/70 pointer-events-none" />
+          <div className="absolute inset-0 z-[-1] bg-black/60 backdrop-blur-[20px] pointer-events-none" />
         </>
       )}
 
       <div className="max-w-[90rem] mx-auto flex flex-col pt-10">
 
         <button
-          onClick={() => onNavigate ? onNavigate('dashboard') : window.history.back()}
-          className="group flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-10 w-max px-4 py-2 bg-white/5 rounded-xl border border-white/5 backdrop-blur-md hover:bg-white/10"
+          onClick={goBack}
+          className="group flex items-center gap-2 text-gray-500 hover:text-white transition-colors mb-10 w-max px-5 py-2.5 bg-white/[0.03] rounded-2xl border border-white/5 backdrop-blur-xl hover:bg-white/10 hover:border-white/10"
         >
-          <ArrowLeft size={18} className="transition-transform group-hover:-translate-x-1" />
-          <span className="font-mono text-sm tracking-widest uppercase">Go Back</span>
+          <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+          <span className="font-display font-bold text-xs tracking-widest uppercase">Go Back</span>
         </button>
 
         <div className="flex flex-col md:flex-row" style={{ gap: '4rem' }}>
@@ -252,18 +252,20 @@ export default function ContentPage({ id, onNavigate }) {
             </div>
 
             {/* Synopsis */}
-            <div className="relative mb-12">
-              <div className="absolute top-0 left-0 w-16 h-1.5 bg-gradient-to-r from-electric-purple to-transparent rounded-full mb-6" />
-              <p className="text-white font-body leading-[1.8] max-w-4xl text-[1.15rem] pt-8 drop-shadow-md">
+            <div className="relative mb-14">
+              <div className="absolute top-0 left-0 w-24 h-1 bg-gradient-to-r from-electric-purple via-accent-violet to-transparent rounded-full mb-8" />
+              <p className="text-gray-300 font-body leading-[2] max-w-4xl text-[1.2rem] pt-10 drop-shadow-md italic">
                 {item.description}
               </p>
             </div>
 
             {/* Personal Actions */}
-            <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-[2rem] p-8 md:p-10 backdrop-blur-xl shadow-2xl mt-auto">
-              <h3 className="text-lg font-display font-medium text-white mb-8 flex items-center gap-3">
-                <Activity size={20} className="text-electric-purple" />
-                Library Management
+            <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-10 md:p-12 backdrop-blur-3xl shadow-3xl mt-auto relative overflow-hidden group/lib">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-electric-purple/5 blur-[100px] -mr-32 -mt-32 pointer-events-none group-hover/lib:bg-electric-purple/10 transition-all duration-1000" />
+              
+              <h3 className="text-xl font-display font-black text-white mb-10 flex items-center gap-4 uppercase tracking-tighter italic">
+                <Activity size={24} className="text-electric-purple animate-pulse" />
+                Library Protocol
               </h3>
 
               <div className="flex flex-col xl:flex-row gap-10 items-start xl:items-center justify-between">

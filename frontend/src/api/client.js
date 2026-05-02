@@ -9,10 +9,16 @@ function getToken() {
 async function request(path, options = {}) {
   const token = getToken();
   const headers = {
-    'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
+
+  // Only set JSON content type if it's not a FormData and not explicitly overriden
+  if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  } else if (headers['Content-Type'] === undefined) {
+    delete headers['Content-Type'];
+  }
 
   const res = await fetch(`${BASE}${path}`, { ...options, headers });
   const data = await res.json().catch(() => ({}));
@@ -36,6 +42,15 @@ export const auth = {
 export const me = {
   get: () => request('/me'),
   update: (body) => request('/me', { method: 'PUT', body: JSON.stringify(body) }),
+  uploadAvatar: (file) => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    return request('/upload-avatar', { 
+      method: 'POST', 
+      body: formData,
+      headers: { 'Content-Type': undefined } // Let browser set it
+    });
+  },
 };
 
 // ── Preferences ──────────────────────────────────

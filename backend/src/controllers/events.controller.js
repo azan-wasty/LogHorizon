@@ -48,15 +48,17 @@ async function listEvents(req, res) {
 async function createEvent(req, res) {
     try {
         const userId = req.user?.id;
+        console.log("Creating event for user:", userId);
         if (!userId) return res.status(401).json({ ok: false, message: "unauthorized" });
 
         const { title, description, type, startDate, endDate } = req.body || {};
+        console.log("Event data:", { title, description, type, startDate, endDate });
 
         if (!title || typeof title !== "string" || title.trim().length === 0) {
             return res.status(400).json({ ok: false, message: "title is required" });
         }
-        if (!description || typeof description !== "string" || description.trim().length === 0) {
-            return res.status(400).json({ ok: false, message: "description is required" });
+        if (title && typeof title === "string") {
+            // title is required, but description is now optional
         }
         if (!type || !VALID_TYPES.includes(type)) {
             return res.status(400).json({ ok: false, message: `type must be one of: ${VALID_TYPES.join(", ")}` });
@@ -68,7 +70,7 @@ async function createEvent(req, res) {
         const event = await prisma.event.create({
             data: {
                 title: title.trim(),
-                description: description.trim(),
+                description: description?.trim() || "",
                 type,
                 startDate: new Date(startDate),
                 endDate: endDate ? new Date(endDate) : null,
@@ -82,10 +84,11 @@ async function createEvent(req, res) {
             },
         });
 
+        console.log("Event created successfully:", event.id);
         return res.status(201).json({ ok: true, event });
     } catch (err) {
-        console.error("createEvent error:", err);
-        return res.status(500).json({ ok: false, message: "internal server error" });
+        console.error("createEvent error details:", err);
+        return res.status(500).json({ ok: false, message: err.message || "internal server error" });
     }
 }
 

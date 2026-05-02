@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import {
   LayoutDashboard,
@@ -9,135 +9,469 @@ import {
   Settings,
   LogOut,
   Menu,
+  X,
   Hexagon,
+  ChevronRight,
+  Activity,
+  Zap,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'discover', label: 'Discover', icon: Compass },
-  { id: 'profile', label: 'My Profile', icon: User },
-  { id: 'community', label: 'Community', icon: Users },
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, desc: 'Your feed' },
+  { id: 'discover', label: 'Discover', icon: Compass, desc: 'Browse index' },
+  { id: 'profile', label: 'My Profile', icon: User, desc: 'Library & stats' },
+  { id: 'community', label: 'Community', icon: Users, desc: 'Events & members' },
 ];
+
+function NavItem({ item, active, onClick }) {
+  const [hovered, setHovered] = useState(false);
+  const Icon = item.icon;
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '11px 14px',
+        borderRadius: 12,
+        border: active ? '1px solid rgba(124,58,237,0.25)' : '1px solid transparent',
+        background: active
+          ? 'rgba(124,58,237,0.12)'
+          : hovered
+            ? 'rgba(255,255,255,0.04)'
+            : 'transparent',
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+        textAlign: 'left',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Active glow */}
+      {active && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(90deg, rgba(124,58,237,0.08) 0%, transparent 100%)',
+          pointerEvents: 'none',
+        }} />
+      )}
+
+      {/* Icon container */}
+      <div style={{
+        width: 34,
+        height: 34,
+        borderRadius: 9,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        background: active
+          ? 'rgba(124,58,237,0.2)'
+          : hovered
+            ? 'rgba(255,255,255,0.06)'
+            : 'rgba(255,255,255,0.04)',
+        border: active ? '1px solid rgba(124,58,237,0.3)' : '1px solid rgba(255,255,255,0.06)',
+        transition: 'all 0.2s',
+        boxShadow: active ? '0 0 12px rgba(124,58,237,0.3)' : 'none',
+      }}>
+        <Icon
+          size={16}
+          color={active ? '#7C3AED' : hovered ? '#d1d5db' : '#6b7280'}
+          style={{ transition: 'color 0.2s' }}
+        />
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{
+          fontFamily: 'var(--font-display)',
+          fontWeight: 700,
+          fontSize: '0.82rem',
+          color: active ? '#fff' : hovered ? '#e5e7eb' : '#9ca3af',
+          transition: 'color 0.2s',
+          lineHeight: 1,
+          marginBottom: 2,
+        }}>
+          {item.label}
+        </p>
+        <p style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '0.58rem',
+          color: active ? 'rgba(124,58,237,0.8)' : '#4b5563',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+          transition: 'color 0.2s',
+        }}>
+          {item.desc}
+        </p>
+      </div>
+
+      {active && (
+        <ChevronRight size={13} color="rgba(124,58,237,0.6)" style={{ flexShrink: 0 }} />
+      )}
+    </button>
+  );
+}
 
 export default function Layout({ children, currentPage, onNavigate }) {
   const { user, logout, isAdmin } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const t = setInterval(() => setTime(new Date()), 60000);
+    return () => clearInterval(t);
+  }, []);
 
   const handleLogout = () => {
     logout();
     onNavigate('landing');
   };
 
+  const handle = user?.email?.split('@')[0] || 'user';
+  const initial = handle[0]?.toUpperCase() || 'U';
+
+  const timeStr = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const dateStr = time.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+
+  const Sidebar = () => (
+    <aside style={{
+      width: 240,
+      height: '100vh',
+      background: 'rgba(14,14,22,0.98)',
+      borderRight: '1px solid rgba(255,255,255,0.05)',
+      display: 'flex',
+      flexDirection: 'column',
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      zIndex: 100,
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+    }}>
+      {/* Top gradient accent */}
+      <div style={{ height: 2, background: 'linear-gradient(90deg, #7C3AED, #22d3ee, #f472b6)', flexShrink: 0 }} />
+
+      {/* Logo */}
+      <div style={{
+        padding: '20px 20px 16px',
+        borderBottom: '1px solid rgba(255,255,255,0.04)',
+        flexShrink: 0,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          <div style={{
+            width: 34,
+            height: 34,
+            borderRadius: 10,
+            background: 'linear-gradient(135deg, #7C3AED, #8B5CF6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 0 20px rgba(124,58,237,0.5)',
+            flexShrink: 0,
+          }}>
+            <Hexagon size={18} color="#fff" fill="white" />
+          </div>
+          <div>
+            <span style={{
+              fontFamily: 'var(--font-display)',
+              fontWeight: 800,
+              fontSize: '1.05rem',
+              letterSpacing: '-0.03em',
+              color: '#fff',
+            }}>
+              Log<span style={{ color: '#7C3AED' }}>Horizon</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Live clock */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '8px 12px',
+          background: 'rgba(255,255,255,0.03)',
+          border: '1px solid rgba(255,255,255,0.05)',
+          borderRadius: 8,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#34d399', boxShadow: '0 0 6px #34d399', animation: 'pulse 2s infinite' }} />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#34d399', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Online</span>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', color: '#9ca3af', lineHeight: 1.2 }}>{timeStr}</p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: '#4b5563', lineHeight: 1.2 }}>{dateStr}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* User card */}
+      <div style={{
+        padding: '14px 16px',
+        borderBottom: '1px solid rgba(255,255,255,0.04)',
+        flexShrink: 0,
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '10px 12px',
+          background: 'rgba(124,58,237,0.06)',
+          border: '1px solid rgba(124,58,237,0.12)',
+          borderRadius: 12,
+          cursor: 'pointer',
+          transition: 'all 0.2s',
+        }}
+          onClick={() => { onNavigate('profile'); setMobileOpen(false); }}
+        >
+          {user?.avatarUrl ? (
+            <img src={user.avatarUrl} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid rgba(124,58,237,0.4)' }} />
+          ) : (
+            <div style={{
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, rgba(124,58,237,0.4), rgba(139,92,246,0.3))',
+              border: '2px solid rgba(124,58,237,0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontFamily: 'var(--font-display)',
+              fontWeight: 900,
+              fontSize: '0.9rem',
+              color: '#8B5CF6',
+              flexShrink: 0,
+              boxShadow: '0 0 12px rgba(124,58,237,0.3)',
+            }}>
+              {initial}
+            </div>
+          )}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{
+              fontFamily: 'var(--font-display)',
+              fontWeight: 700,
+              fontSize: '0.82rem',
+              color: '#fff',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              marginBottom: 2,
+            }}>
+              @{handle}
+            </p>
+            <p style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.55rem',
+              color: '#7C3AED',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+            }}>
+              {isAdmin ? 'Administrator' : 'Member'}
+            </p>
+          </div>
+          <ChevronRight size={12} color="rgba(124,58,237,0.5)" />
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav style={{ flex: 1, padding: '14px 12px', overflowY: 'auto' }}>
+        <p style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: '0.55rem',
+          textTransform: 'uppercase',
+          letterSpacing: '0.2em',
+          color: '#374151',
+          marginBottom: 8,
+          paddingLeft: 4,
+        }}>
+          Navigation
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          {NAV_ITEMS.map(item => (
+            <NavItem
+              key={item.id}
+              item={item}
+              active={currentPage === item.id}
+              onClick={() => { onNavigate(item.id); setMobileOpen(false); }}
+            />
+          ))}
+        </div>
+
+        {isAdmin && (
+          <div style={{ marginTop: 20 }}>
+            <p style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.55rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.2em',
+              color: '#374151',
+              marginBottom: 8,
+              paddingLeft: 4,
+            }}>
+              Systems
+            </p>
+            <NavItem
+              item={{ id: 'admin', label: 'Content Studio', icon: ShieldCheck, desc: 'Admin panel' }}
+              active={currentPage === 'admin'}
+              onClick={() => { onNavigate('admin'); setMobileOpen(false); }}
+            />
+          </div>
+        )}
+      </nav>
+
+      {/* Footer actions */}
+      <div style={{
+        padding: '12px 12px 16px',
+        borderTop: '1px solid rgba(255,255,255,0.04)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 3,
+        flexShrink: 0,
+      }}>
+        <button
+          onClick={() => { onNavigate('onboarding'); setMobileOpen(false); }}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '9px 14px',
+            borderRadius: 10,
+            border: '1px solid transparent',
+            background: 'transparent',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            color: '#6b7280',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#9ca3af'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6b7280'; }}
+        >
+          <Settings size={15} color="currentColor" />
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.8rem' }}>Preferences</span>
+        </button>
+
+        <button
+          onClick={handleLogout}
+          style={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '9px 14px',
+            borderRadius: 10,
+            border: '1px solid transparent',
+            background: 'transparent',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            color: 'rgba(248,113,113,0.6)',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.08)'; e.currentTarget.style.color = '#f87171'; e.currentTarget.style.borderColor = 'rgba(248,113,113,0.15)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(248,113,113,0.6)'; e.currentTarget.style.borderColor = 'transparent'; }}
+        >
+          <LogOut size={15} color="currentColor" />
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.8rem' }}>Sign Out</span>
+        </button>
+
+        {/* Version tag */}
+        <div style={{ paddingTop: 10, paddingLeft: 4 }}>
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.52rem', color: '#2d2d3d', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+            LogHorizon v2.0 · Spring '26
+          </p>
+        </div>
+      </div>
+    </aside>
+  );
+
   return (
-    <div className="flex min-h-screen bg-dark overflow-hidden font-body">
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'transparent', overflow: 'hidden', fontFamily: 'var(--font-body)' }}>
+      <style>{`
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+      `}</style>
+
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
-          className="fixed inset-0 bg-black/60 z-[99] backdrop-blur-sm transition-opacity"
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+            zIndex: 98, backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+          }}
         />
       )}
 
-      {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 w-64 bg-charcoal border-r border-white/5 flex flex-col z-[100] transition-transform duration-300 lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-
-        {/* Logo */}
-        <div className="p-6 border-b border-white/5">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-electric-purple to-accent-violet flex items-center justify-center shadow-[0_0_15px_rgba(124,58,237,0.4)]">
-              <Hexagon className="w-5 h-5 text-white" fill="white" />
-            </div>
-            <span className="font-display font-bold text-lg tracking-tight text-white">
-              Log<span className="text-electric-purple">Horizon</span>
-            </span>
-          </div>
+      {/* Sidebar — desktop always visible */}
+      <div style={{ display: 'none' }} className="lg-sidebar-placeholder" />
+      <div style={{
+        position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 100,
+        transform: mobileOpen ? 'translateX(0)' : undefined,
+      }}>
+        <div style={{
+          display: 'block',
+          animation: mobileOpen ? 'slideIn 0.25s ease' : undefined,
+        }}>
+          <Sidebar />
         </div>
-
-        {/* User pill */}
-        <div className="p-4 mx-4 my-4 rounded-xl bg-white/5 border border-white/5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-electric-purple/20 to-accent-violet/20 flex items-center justify-center text-electric-purple font-display font-bold border border-electric-purple/30">
-              {user?.email?.[0]?.toUpperCase() || 'U'}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-white truncate">
-                {user?.email?.split('@')[0]}
-              </p>
-              <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500">
-                {user?.role || 'User'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 px-3 space-y-1">
-          <p className="px-4 py-2 text-[10px] font-mono uppercase tracking-widest text-gray-500">Platform</p>
-          {NAV_ITEMS.map(item => (
-            <button
-              key={item.id}
-              onClick={() => { onNavigate(item.id); setMobileOpen(false); }}
-              className={`nav-item w-full ${currentPage === item.id ? 'nav-item-active' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
-            >
-              <item.icon size={18} />
-              {item.label}
-            </button>
-          ))}
-
-          {isAdmin && (
-            <div className="pt-4">
-              <p className="px-4 py-2 text-[10px] font-mono uppercase tracking-widest text-gray-500">Systems</p>
-              <button
-                onClick={() => { onNavigate('admin'); setMobileOpen(false); }}
-                className={`nav-item w-full ${currentPage === 'admin' ? 'nav-item-active' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
-              >
-                <ShieldCheck size={18} />
-                Content Studio
-              </button>
-            </div>
-          )}
-        </nav>
-
-        {/* Footer */}
-        <div className="p-4 border-t border-white/5 space-y-1">
-          <button
-            onClick={() => { onNavigate('onboarding'); setMobileOpen(false); }}
-            className={`nav-item w-full ${currentPage === 'preferences' ? 'nav-item-active' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
-          >
-            <Settings size={18} />
-            Preferences
-          </button>
-          <button
-            onClick={handleLogout}
-            className="nav-item w-full text-red-400/80 hover:text-red-400 hover:bg-red-400/10"
-          >
-            <LogOut size={18} />
-            Sign Out
-          </button>
-        </div>
-      </aside>
+      </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col lg:pl-64 min-w-0">
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', paddingLeft: 240 }} className="main-content-area">
+
         {/* Mobile header */}
-        <header className="h-16 flex items-center px-6 border-b border-white/5 bg-dark/50 backdrop-blur-md sticky top-0 z-[50] lg:hidden">
+        <header style={{
+          height: 58,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 20px',
+          borderBottom: '1px solid rgba(255,255,255,0.05)',
+          background: 'rgba(14,14,22,0.85)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 50,
+        }} className="mobile-header">
           <button
             onClick={() => setMobileOpen(true)}
-            className="p-2 -ml-2 text-gray-400 hover:text-white"
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 8, cursor: 'pointer', display: 'none' }}
+            className="mobile-menu-btn"
           >
-            <Menu size={24} />
+            <Menu size={20} color="#9ca3af" />
           </button>
-          <div className="flex-1 text-center">
-            <span className="font-display font-bold text-lg tracking-tight text-white">
-              Log<span className="text-electric-purple">Horizon</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Hexagon size={20} color="#7C3AED" fill="#7C3AED" />
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1rem', color: '#fff' }}>
+              Log<span style={{ color: '#7C3AED' }}>Horizon</span>
             </span>
           </div>
+          <div style={{ width: 36 }} />
         </header>
 
-        <main className="flex-1 p-6 lg:p-10 max-w-7xl mx-auto w-full">
-          <div className="animate-fade-up">
-            {children}
-          </div>
+        <main style={{
+          flex: 1,
+          padding: '36px 40px',
+          maxWidth: 1440,
+          width: '100%',
+          margin: '0 auto',
+          animation: 'fadeUp 0.5s ease',
+        }}>
+          <style>{`
+            @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+            @media (max-width: 1024px) {
+              .main-content-area { padding-left: 0 !important; }
+              .mobile-header { display: flex !important; }
+              .mobile-menu-btn { display: flex !important; }
+            }
+            @media (min-width: 1024px) {
+              .mobile-header { border-bottom: none; background: transparent !important; height: 0 !important; overflow: hidden; }
+            }
+          `}</style>
+          {children}
         </main>
       </div>
     </div>
