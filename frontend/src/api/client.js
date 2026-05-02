@@ -88,6 +88,13 @@ export const admin = {
   // Users
   listUsers: () => request('/admin/users'),
   updateUserRole: (id, role) => request(`/admin/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) }),
+
+  // Discord Recommendations
+  listDiscordRecommendations: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/admin/discord-recommendations${qs ? `?${qs}` : ''}`);
+  },
+  updateDiscordRecommendation: (id, status) => request(`/admin/discord-recommendations/${id}`, { method: 'PUT', body: JSON.stringify({ status }) }),
 };
 
 // ── Library (New) ──────────────────────────────────
@@ -97,4 +104,9 @@ export const library = {
   remove: (contentId) => request(`/library/${contentId}`, { method: 'DELETE' }),
 };
 
-export default { auth, me, preferences, recommendations, content, tags, admin, library };
+// ── Discord Recommendations (New) ──────────────────
+export const discord = {
+  recommend: (body) => request('/discord-recommendations', { method: 'POST', body: JSON.stringify(body) }),
+};
+
+export default { auth, me, preferences, recommendations, content, tags, admin, library, discord };

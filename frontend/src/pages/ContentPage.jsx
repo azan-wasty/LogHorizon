@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-import { content as contentApi } from '../api/client';
+import { content as contentApi, discord as discordApi } from '../api/client';
 import { useLibrary } from '../hooks/useLibrary';
 import { useToast } from '../hooks/useToast';
 import {
@@ -28,6 +28,9 @@ const CAT_STYLES = {
 export default function ContentPage({ id, onNavigate }) {
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showDiscordForm, setShowDiscordForm] = useState(false);
+  const [discordInvite, setDiscordInvite] = useState('');
+  const [isSubmittingDiscord, setIsSubmittingDiscord] = useState(false);
   const { updateItem, removeItem, isInLibrary } = useLibrary();
   const toast = useToast();
 
@@ -64,12 +67,28 @@ export default function ContentPage({ id, onNavigate }) {
     await updateItem(item.id, status, newRating);
   };
 
+  const handleDiscordSubmit = async (e) => {
+    e.preventDefault();
+    if (!discordInvite) return;
+    try {
+      setIsSubmittingDiscord(true);
+      await discordApi.recommend({ contentId: item.id, inviteLink: discordInvite });
+      toast('Recommendation sent for approval!', 'success');
+      setShowDiscordForm(false);
+      setDiscordInvite('');
+    } catch (err) {
+      toast(err.message || 'Failed to submit recommendation', 'error');
+    } finally {
+      setIsSubmittingDiscord(false);
+    }
+  };
+
   return (
     <div className="animate-fade-up relative w-full pt-16 pb-24 px-4 sm:px-6">
       {/* Immersive Background */}
       {item.coverImage && (
         <>
-          <div 
+          <div
             className="absolute inset-0 z-[-2] pointer-events-none"
             style={{
               backgroundImage: `url(${item.coverImage})`,
@@ -84,9 +103,9 @@ export default function ContentPage({ id, onNavigate }) {
       )}
 
       <div className="max-w-[90rem] mx-auto flex flex-col pt-10">
-        
-        <button 
-          onClick={() => onNavigate ? onNavigate('dashboard') : window.history.back()} 
+
+        <button
+          onClick={() => onNavigate ? onNavigate('dashboard') : window.history.back()}
           className="group flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-10 w-max px-4 py-2 bg-white/5 rounded-xl border border-white/5 backdrop-blur-md hover:bg-white/10"
         >
           <ArrowLeft size={18} className="transition-transform group-hover:-translate-x-1" />
@@ -94,7 +113,7 @@ export default function ContentPage({ id, onNavigate }) {
         </button>
 
         <div className="flex flex-col md:flex-row" style={{ gap: '4rem' }}>
-          
+
           {/* Left Panel: Art & Meta */}
           <div className="flex-shrink-0 flex flex-col items-center md:items-start mx-auto md:mx-0" style={{ width: '280px', maxWidth: '100%' }}>
             <div className="w-full aspect-[2/3] rounded-[2rem] overflow-hidden bg-dark border border-white/10 shadow-2xl relative group">
@@ -119,7 +138,7 @@ export default function ContentPage({ id, onNavigate }) {
                 <span className={`px-4 py-1.5 rounded-full text-xs font-mono font-bold uppercase tracking-widest backdrop-blur-md border ${style}`}>
                   {item.category}
                 </span>
-                
+
                 {item.status && (
                   <span className="px-4 py-1.5 rounded-full bg-dark/80 text-gray-300 border border-white/10 text-xs font-mono font-bold uppercase tracking-widest backdrop-blur-md w-max shadow-lg">
                     {item.status}
@@ -127,22 +146,61 @@ export default function ContentPage({ id, onNavigate }) {
                 )}
               </div>
             </div>
-            
-            {item.discordLink && (
+
+            {item.discordLink ? (
               <a
                 href={item.discordLink}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-6 w-full flex items-center justify-center gap-3 text-discord-blue font-mono text-sm uppercase tracking-widest bg-discord-blue/10 hover:bg-discord-blue/20 hover:text-white px-6 py-4 rounded-xl transition-all border border-discord-blue/20"
+                className="mt-6 w-full flex items-center justify-center gap-3 text-white font-mono text-sm uppercase tracking-widest bg-discord-blue/10 hover:bg-discord-blue/20 hover:text-white px-6 py-4 rounded-xl transition-all border border-discord-blue/20"
               >
                 <ExternalLink size={18} /> Join Discussion
               </a>
+            ) : (
+              <div className="mt-6 w-full flex flex-col gap-3">
+                {!showDiscordForm ? (
+                  <button
+                    onClick={() => setShowDiscordForm(true)}
+                    className="w-full flex items-center justify-center gap-3 text-white font-mono text-sm uppercase tracking-widest bg-discord-blue/5 hover:bg-discord-blue/10 hover:text-white/90 px-6 py-4 rounded-xl transition-all border border-discord-blue/20 border-dashed"
+                  >
+                    Recommend Discord Server
+                  </button>
+                ) : (
+                  <form onSubmit={handleDiscordSubmit} className="flex flex-col gap-3 p-4 bg-white/5 border border-white/10 rounded-xl backdrop-blur-md">
+                    <span className="text-xs font-mono text-gray-400 uppercase tracking-widest">Submit Invite Link</span>
+                    <input
+                      type="url"
+                      placeholder="https://discord.gg/..."
+                      value={discordInvite}
+                      onChange={(e) => setDiscordInvite(e.target.value)}
+                      className="w-full bg-dark/50 border border-white/10 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-discord-blue transition-colors"
+                      required
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowDiscordForm(false)}
+                        className="flex-1 py-2 text-xs font-mono uppercase tracking-widest text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSubmittingDiscord}
+                        className="flex-1 py-2 text-xs font-mono uppercase tracking-widest text-white bg-discord-blue hover:bg-discord-blue/90 rounded-lg transition-colors disabled:opacity-50 flex justify-center items-center"
+                      >
+                        {isSubmittingDiscord ? <Loader2 size={14} className="animate-spin" /> : 'Submit'}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
             )}
           </div>
 
           {/* Right Panel: Content Info */}
           <div className="flex-1 flex flex-col pt-2" style={{ minWidth: '0' }}>
-            
+
             <h1 className="text-4xl md:text-5xl lg:text-7xl font-display font-extrabold text-white tracking-tight leading-tight lg:leading-[1.1] mb-6 drop-shadow-xl">
               {item.title}
             </h1>
@@ -165,17 +223,17 @@ export default function ContentPage({ id, onNavigate }) {
                       const isFull = r >= val - 0.5;
                       const isHalf = !isFull && r >= val - 1.5;
                       return (
-                        <Star 
-                          key={idx} 
-                          size={18} 
-                          className={isFull ? "text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]" : isHalf ? "text-amber-400 fill-amber-400/50" : "text-amber-400/20"} 
+                        <Star
+                          key={idx}
+                          size={18}
+                          className={isFull ? "text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]" : isHalf ? "text-amber-400 fill-amber-400/50" : "text-amber-400/20"}
                         />
                       );
                     })}
                   </div>
                 </div>
               )}
-              
+
               {item.source && (
                 <div className="flex items-center gap-2 text-white text-sm font-mono bg-white/10 border border-white/20 px-5 py-3 rounded-xl backdrop-blur-md shadow-lg">
                   <Layers size={18} className="text-electric-purple drop-shadow-[0_0_8px_rgba(124,58,237,0.8)]" />
@@ -210,7 +268,7 @@ export default function ContentPage({ id, onNavigate }) {
               </h3>
 
               <div className="flex flex-col xl:flex-row gap-10 items-start xl:items-center justify-between">
-                
+
                 {/* Status Toggle */}
                 <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
                   <button
@@ -251,9 +309,9 @@ export default function ContentPage({ id, onNavigate }) {
                           className="group focus:outline-none transition-transform hover:scale-[1.15]"
                           title={`Rate ${ratingVal}/10`}
                         >
-                          <Star 
-                            size={28} 
-                            className={`transition-colors duration-300 ${isFilled ? 'text-amber-400 fill-amber-400 drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]' : 'text-gray-600 group-hover:text-amber-400/60'}`} 
+                          <Star
+                            size={28}
+                            className={`transition-colors duration-300 ${isFilled ? 'text-amber-400 fill-amber-400 drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]' : 'text-gray-600 group-hover:text-amber-400/60'}`}
                           />
                         </button>
                       );
@@ -263,7 +321,7 @@ export default function ContentPage({ id, onNavigate }) {
 
               </div>
             </div>
-            
+
           </div>
         </div>
       </div>
