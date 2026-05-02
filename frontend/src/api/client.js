@@ -1,6 +1,8 @@
-// API client for LogHorizon backend (port 6767)
+// API client for LogHorizon backend
 
-const BASE = '/api';
+const BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : '/api';
 
 function getToken() {
   return localStorage.getItem('lh_token');
@@ -13,7 +15,6 @@ async function request(path, options = {}) {
     ...options.headers,
   };
 
-  // Only set JSON content type if it's not a FormData and not explicitly overriden
   if (!(options.body instanceof FormData) && !headers['Content-Type']) {
     headers['Content-Type'] = 'application/json';
   } else if (headers['Content-Type'] === undefined) {
@@ -45,10 +46,10 @@ export const me = {
   uploadAvatar: (file) => {
     const formData = new FormData();
     formData.append('avatar', file);
-    return request('/upload-avatar', { 
-      method: 'POST', 
+    return request('/upload-avatar', {
+      method: 'POST',
       body: formData,
-      headers: { 'Content-Type': undefined } // Let browser set it
+      headers: { 'Content-Type': undefined },
     });
   },
 };
@@ -61,7 +62,7 @@ export const preferences = {
   seed: () => request('/preferences/seed', { method: 'POST' }),
 };
 
-// ── Recommendations (Sprint 2) ────────────────────
+// ── Recommendations ────────────────────────────────
 export const recommendations = {
   get: (params = {}) => {
     const qs = new URLSearchParams(params).toString();
@@ -86,7 +87,6 @@ export const tags = {
 
 // ── Admin ─────────────────────────────────────────
 export const admin = {
-  // Content
   listContent: () => request('/admin/content'),
   getContent: (id) => request(`/admin/content/${id}`),
   createContent: (body) => request('/admin/content', { method: 'POST', body: JSON.stringify(body) }),
@@ -94,18 +94,12 @@ export const admin = {
   discoverContent: (body) => request('/admin/content/discover', { method: 'POST', body: JSON.stringify(body) }),
   updateContent: (id, body) => request(`/admin/content/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteContent: (id) => request(`/admin/content/${id}`, { method: 'DELETE' }),
-
-  // Tags
   listTags: () => request('/admin/tags'),
   createTag: (body) => request('/admin/tags', { method: 'POST', body: JSON.stringify(body) }),
   updateTag: (id, body) => request(`/admin/tags/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteTag: (id) => request(`/admin/tags/${id}`, { method: 'DELETE' }),
-
-  // Users
   listUsers: () => request('/admin/users'),
   updateUserRole: (id, role) => request(`/admin/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) }),
-
-  // Discord Recommendations
   listDiscordRecommendations: (params = {}) => {
     const qs = new URLSearchParams(params).toString();
     return request(`/admin/discord-recommendations${qs ? `?${qs}` : ''}`);
@@ -113,14 +107,14 @@ export const admin = {
   updateDiscordRecommendation: (id, status) => request(`/admin/discord-recommendations/${id}`, { method: 'PUT', body: JSON.stringify({ status }) }),
 };
 
-// ── Library ───────────────────────────────────────
+// ── Library ──────────────────────────────────────
 export const library = {
   get: () => request('/library'),
   update: (body) => request('/library/update', { method: 'POST', body: JSON.stringify(body) }),
   remove: (contentId) => request(`/library/${contentId}`, { method: 'DELETE' }),
 };
 
-// ── Discord Recommendations ───────────────────────
+// ── Discord ──────────────────────────────────────
 export const discord = {
   recommend: (body) => request('/discord-recommendations', { method: 'POST', body: JSON.stringify(body) }),
 };

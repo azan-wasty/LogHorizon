@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlserver"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -13,8 +13,8 @@ model User {
   email                  String                  @unique
   passwordHash           String
   role                   String                  @default("User")
-  bio                    String?                 @db.NVarChar(MAX)
-  avatarUrl              String?                 @db.NVarChar(MAX)
+  bio                    String?
+  avatarUrl              String?
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
   preferences            UserPreference[]
@@ -27,14 +27,14 @@ model User {
 model Content {
   id                     Int                     @id @default(autoincrement())
   title                  String
-  category               String // "Anime", "Manga", "Movie", "TV", "Game"
-  description            String                  @db.NVarChar(MAX)
+  category               String
+  description            String
   discordLink            String?
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
-  coverImage             String?                 @db.NVarChar(MAX)
+  coverImage             String?
   externalId             String?
-  externalUrl            String?                 @db.NVarChar(MAX)
+  externalUrl            String?
   rating                 Float?
   source                 String?
   status                 String?
@@ -89,8 +89,8 @@ model UserLibrary {
   id        Int      @id @default(autoincrement())
   userId    Int
   contentId Int
-  status    String // "PLANNING" (Watchlist), "COMPLETED", "CURRENT"
-  rating    Int? // User's personal score (1-10)
+  status    String
+  rating    Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -103,7 +103,7 @@ model UserLibrary {
 model UserAchievement {
   id         Int      @id @default(autoincrement())
   userId     Int
-  key        String // e.g. "FIRST_COMPLETE", "ANIME_FAN_10"
+  key        String
   unlockedAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -116,7 +116,7 @@ model DiscordRecommendation {
   userId     Int
   contentId  Int
   inviteLink String
-  status     String   @default("PENDING") // "PENDING", "APPROVED", "REJECTED"
+  status     String   @default("PENDING")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -129,12 +129,12 @@ model DiscordRecommendation {
 model Event {
   id          Int       @id @default(autoincrement())
   title       String
-  description String    @db.NVarChar(MAX)
-  type        String    // "WATCH_PARTY", "DISCUSSION", "TOURNAMENT", "COMMUNITY"
+  description String
+  type        String
   startDate   DateTime
   endDate     DateTime?
   createdBy   Int
-  status      String    @default("UPCOMING") // "UPCOMING", "LIVE", "ENDED"
+  status      String    @default("UPCOMING")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
