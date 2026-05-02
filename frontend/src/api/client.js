@@ -98,16 +98,36 @@ export const admin = {
   updateDiscordRecommendation: (id, status) => request(`/admin/discord-recommendations/${id}`, { method: 'PUT', body: JSON.stringify({ status }) }),
 };
 
-// ── Library (New) ──────────────────────────────────
+// ── Library ───────────────────────────────────────
 export const library = {
   get: () => request('/library'),
   update: (body) => request('/library/update', { method: 'POST', body: JSON.stringify(body) }),
   remove: (contentId) => request(`/library/${contentId}`, { method: 'DELETE' }),
 };
 
-// ── Discord Recommendations (New) ──────────────────
+// ── Discord Recommendations ───────────────────────
 export const discord = {
   recommend: (body) => request('/discord-recommendations', { method: 'POST', body: JSON.stringify(body) }),
 };
 
-export default { auth, me, preferences, recommendations, content, tags, admin, library, discord };
+// ── Users (Community) ─────────────────────────────
+export const users = {
+  search: (q) => {
+    const qs = q ? `?q=${encodeURIComponent(q)}` : '';
+    return request(`/users/search${qs}`);
+  },
+  profile: (id) => request(`/users/${id}/profile`),
+};
+
+// ── Events (Community) ────────────────────────────
+export const events = {
+  list: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/events${qs ? `?${qs}` : ''}`);
+  },
+  create: (body) => request('/events', { method: 'POST', body: JSON.stringify(body) }),
+  update: (id, body) => request(`/events/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  delete: (id) => request(`/events/${id}`, { method: 'DELETE' }),
+};
+
+export default { auth, me, preferences, recommendations, content, tags, admin, library, discord, users, events };

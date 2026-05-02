@@ -21,6 +21,7 @@ model User {
   library                UserLibrary[]
   achievements           UserAchievement[]
   discordRecommendations DiscordRecommendation[]
+  events                 Event[]
 }
 
 model Content {
@@ -123,4 +124,19 @@ model DiscordRecommendation {
   content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 
   @@unique([userId, contentId])
+}
+
+model Event {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String    @db.NVarChar(MAX)
+  type        String    // "WATCH_PARTY", "DISCUSSION", "TOURNAMENT", "COMMUNITY"
+  startDate   DateTime
+  endDate     DateTime?
+  createdBy   Int
+  status      String    @default("UPCOMING") // "UPCOMING", "LIVE", "ENDED"
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  host User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
 }
