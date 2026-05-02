@@ -21,8 +21,6 @@ async function ingestContent(req, res) {
             result = await ingestionService.ingestAnime(title);
         } else if (category === "Movie" || category === "TV") {
             result = await ingestionService.ingestMovie(title, category === "TV");
-        } else if (category === "Book") {
-            result = await ingestionService.ingestBook(title);
         } else {
             return res.status(400).json({ ok: false, message: `Category '${category}' ingestion not supported yet.` });
         }

@@ -25,7 +25,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-const CATEGORIES = ['Anime', 'Manga', 'Movie', 'TV', 'Book'];
+const CATEGORIES = ['Anime', 'Manga', 'Movie', 'TV'];
 
 const EMPTY_FORM = {
   title: '', category: 'Anime', description: '', discordLink: '',
@@ -40,6 +40,7 @@ export default function ContentStudio() {
   const [content, setContent] = useState([]);
   const [tags, setTags] = useState([]);
   const [users, setUsers] = useState([]);
+  const [discordApprovals, setDiscordApprovals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editId, setEditId] = useState(null);
@@ -61,14 +62,16 @@ export default function ContentStudio() {
   const refresh = async () => {
     setLoading(true);
     try {
-      const [cd, td, ud] = await Promise.all([
+      const [cd, td, ud, dd] = await Promise.all([
         adminApi.listContent(), 
         adminApi.listTags(),
-        adminApi.listUsers()
+        adminApi.listUsers(),
+        adminApi.listDiscordRecommendations({ status: 'PENDING' })
       ]);
       setContent(cd.content || []);
       setTags(td.tags || []);
       setUsers(ud.users || []);
+      setDiscordApprovals(dd.recommendations || []);
     } catch {
       toast('Failed to load data', 'error');
     } finally {
@@ -86,6 +89,16 @@ export default function ContentStudio() {
       refresh();
     } catch (err) {
       toast(err.message || 'Failed to update role', 'error');
+    }
+  };
+
+  const handleDiscordApproval = async (id, status) => {
+    try {
+      await adminApi.updateDiscordRecommendation(id, status);
+      toast(`Discord recommendation ${status.toLowerCase()}`, 'success');
+      refresh();
+    } catch (err) {
+      toast(err.message || 'Failed to update recommendation', 'error');
     }
   };
 
@@ -248,7 +261,7 @@ export default function ContentStudio() {
           </div>
           <div>
             <h2 className="text-xl font-display font-bold text-white">Rapid Ingestion Pipeline</h2>
-            <p className="text-sm text-gray-500 font-body">Automated metadata mapping via Jikan, TMDB, and Google Books APIs.</p>
+            <p className="text-sm text-gray-500 font-body">Automated metadata mapping via Jikan and TMDB APIs.</p>
           </div>
         </div>
 
@@ -351,16 +364,16 @@ export default function ContentStudio() {
 
       {/* Tabs / Management Section */}
       <section className="space-y-6">
-        <div className="flex border-b border-white/5">
-          {['content', 'tags', 'users'].map(t => (
+        <div className="flex border-b border-white/5 overflow-x-auto">
+          {['content', 'tags', 'users', 'discord'].map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-8 py-4 font-display text-sm font-bold uppercase tracking-widest transition-all relative ${
+              className={`px-8 py-4 font-display text-sm font-bold uppercase tracking-widest transition-all relative whitespace-nowrap ${
                 tab === t ? 'text-electric-purple' : 'text-gray-500 hover:text-gray-300'
               }`}
             >
-              {t}
+              {t === 'discord' ? 'Discord Links' : t}
               {tab === t && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-electric-purple shadow-[0_0_10px_rgba(124,58,237,0.5)]" />}
             </button>
           ))}
@@ -532,7 +545,7 @@ export default function ContentStudio() {
               })}
             </div>
           </div>
-        ) : (
+        ) : tab === 'users' ? (
           <div className="glass-panel overflow-hidden">
              <table className="w-full text-left">
               <thead>
@@ -596,7 +609,66 @@ export default function ContentStudio() {
               </tbody>
             </table>
           </div>
-        )}
+        ) : tab === 'discord' ? (
+          <div className="glass-panel overflow-hidden">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-white/5 bg-white/[0.02]">
+                  <th className="px-6 py-4 font-display text-[10px] uppercase tracking-widest text-gray-500">User</th>
+                  <th className="px-6 py-4 font-display text-[10px] uppercase tracking-widest text-gray-500">Content</th>
+                  <th className="px-6 py-4 font-display text-[10px] uppercase tracking-widest text-gray-500">Invite Link</th>
+                  <th className="px-6 py-4 font-display text-[10px] uppercase tracking-widest text-gray-500">Date Submitted</th>
+                  <th className="px-6 py-4 font-display text-[10px] uppercase tracking-widest text-gray-500 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {discordApprovals.map(req => (
+                  <tr key={req.id} className="hover:bg-white/[0.02] transition-colors group">
+                    <td className="px-6 py-4">
+                      <p className="text-sm font-semibold text-white">{req.user.username}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-gray-300">{req.content.title}</p>
+                      <p className="text-[10px] font-mono text-gray-500">{req.content.category}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <a href={req.inviteLink} target="_blank" rel="noreferrer" className="text-sm font-mono text-discord-blue hover:underline">
+                        {req.inviteLink}
+                      </a>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-[10px] font-mono text-gray-500 uppercase">
+                        {new Date(req.createdAt).toLocaleDateString()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => handleDiscordApproval(req.id, 'APPROVED')}
+                          className="px-3 py-1.5 rounded-lg font-display text-[10px] font-bold uppercase tracking-wider transition-all border text-spotify-green border-spotify-green/10 hover:bg-spotify-green/10"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleDiscordApproval(req.id, 'REJECTED')}
+                          className="px-3 py-1.5 rounded-lg font-display text-[10px] font-bold uppercase tracking-wider transition-all border text-red-400 border-red-400/10 hover:bg-red-400/10"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {discordApprovals.length === 0 && (
+              <div className="py-20 text-center">
+                <CheckCircle2 className="w-12 h-12 text-gray-700 mx-auto mb-4" />
+                <p className="text-gray-500 font-mono text-xs uppercase tracking-widest">No pending recommendations.</p>
+              </div>
+            )}
+          </div>
+        ) : null}
       </section>
 
       {/* Manual Entry Form Modal (Keep condensed) */}
@@ -710,3 +782,4 @@ export default function ContentStudio() {
     </div>
   );
 }
+

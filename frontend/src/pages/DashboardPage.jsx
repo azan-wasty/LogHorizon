@@ -24,7 +24,6 @@ const CAT_STYLE = {
     Manga: { pill: 'bg-blue-500/10 text-blue-400 border-blue-500/20', dot: 'bg-blue-400' },
     Movie: { pill: 'bg-amber-500/10 text-amber-400 border-amber-500/20', dot: 'bg-amber-400' },
     TV: { pill: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20', dot: 'bg-cyan-400' },
-    Book: { pill: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', dot: 'bg-emerald-400' },
 };
 const fallbackStyle = { pill: 'bg-white/5 text-gray-400 border-white/10', dot: 'bg-gray-500' };
 

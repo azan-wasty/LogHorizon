@@ -29,7 +29,7 @@ Iteration 1 focuses on the core modernization of the LogHorizon platform. We hav
 ### 3.1 Automated Ingestion Pipeline
 - **Jikan API Integration**: Real-time fetching of Anime and Manga metadata.
 - **TMDB Integration**: Movie and TV series metadata mapping.
-- **Google Books Integration**: Library metadata fetching.
+
 - **One-Click Indexing**: Admins can ingest a full database entry (Cover image, description, rating, external IDs) simply by title.
 
 ### 3.2 System Management (Admin Panel)

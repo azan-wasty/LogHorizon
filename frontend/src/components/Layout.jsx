@@ -3,7 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import {
   LayoutDashboard,
   Compass,
-  Library,
+  User,
   Users,
   ShieldCheck,
   Settings,
@@ -15,7 +15,7 @@ import {
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'discover', label: 'Discover', icon: Compass },
-  { id: 'library', label: 'My Library', icon: Library },
+  { id: 'profile', label: 'My Profile', icon: User },
   { id: 'community', label: 'Community', icon: Users },
 ];
 

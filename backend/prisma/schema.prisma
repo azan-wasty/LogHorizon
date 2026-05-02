@@ -8,35 +8,40 @@ datasource db {
 }
 
 model User {
-  id           Int              @id @default(autoincrement())
-  username     String           @unique
-  email        String           @unique
-  passwordHash String
-  role         String           @default("User")
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-  preferences  UserPreference[]
-  library      UserLibrary[]
-  achievements UserAchievement[]
+  id                     Int                     @id @default(autoincrement())
+  username               String                  @unique
+  email                  String                  @unique
+  passwordHash           String
+  role                   String                  @default("User")
+  bio                    String?
+  avatarUrl              String?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  preferences            UserPreference[]
+  library                UserLibrary[]
+  achievements           UserAchievement[]
+  discordRecommendations DiscordRecommendation[]
+  events                 Event[]
 }
 
 model Content {
-  id          Int          @id @default(autoincrement())
-  title       String
-  category    String   // "Anime", "Manga", "Movie", "Book", "TV", "Game"
-  description String   @db.NVarChar(MAX)
-  discordLink String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  coverImage  String?      @db.NVarChar(MAX)
-  externalId  String?
-  externalUrl String?      @db.NVarChar(MAX)
-  rating      Float?
-  source      String?
-  status      String?
-  isSuggested Boolean      @default(false)
-  tags        ContentTag[]
-  library     UserLibrary[]
+  id                     Int                     @id @default(autoincrement())
+  title                  String
+  category               String // "Anime", "Manga", "Movie", "TV", "Game"
+  description            String                  @db.NVarChar(MAX)
+  discordLink            String?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  coverImage             String?                 @db.NVarChar(MAX)
+  externalId             String?
+  externalUrl            String?                 @db.NVarChar(MAX)
+  rating                 Float?
+  source                 String?
+  status                 String?
+  isSuggested            Boolean                 @default(false)
+  tags                   ContentTag[]
+  library                UserLibrary[]
+  discordRecommendations DiscordRecommendation[]
 
   @@unique([source, externalId])
 }
@@ -84,8 +89,8 @@ model UserLibrary {
   id        Int      @id @default(autoincrement())
   userId    Int
   contentId Int
-  status    String   // "PLANNING" (Watchlist), "COMPLETED", "CURRENT"
-  rating    Int?     // User's personal score (1-10)
+  status    String // "PLANNING" (Watchlist), "COMPLETED", "CURRENT"
+  rating    Int? // User's personal score (1-10)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -98,10 +103,40 @@ model UserLibrary {
 model UserAchievement {
   id         Int      @id @default(autoincrement())
   userId     Int
-  key        String   // e.g. "FIRST_COMPLETE", "ANIME_FAN_10"
+  key        String // e.g. "FIRST_COMPLETE", "ANIME_FAN_10"
   unlockedAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, key])
+}
+
+model DiscordRecommendation {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  contentId  Int
+  inviteLink String
+  status     String   @default("PENDING") // "PENDING", "APPROVED", "REJECTED"
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId])
+}
+
+model Event {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String    @db.NVarChar(MAX)
+  type        String    // "WATCH_PARTY", "DISCUSSION", "TOURNAMENT", "COMMUNITY"
+  startDate   DateTime
+  endDate     DateTime?
+  createdBy   Int
+  status      String    @default("UPCOMING") // "UPCOMING", "LIVE", "ENDED"
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  host User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
 }

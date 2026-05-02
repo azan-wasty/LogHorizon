@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useLibrary } from '../hooks/useLibrary';
 
-const CATEGORIES = ['Anime', 'Manga', 'Movie', 'TV', 'Book'];
+const CATEGORIES = ['Anime', 'Manga', 'Movie', 'TV'];
 
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest First' },
@@ -32,7 +32,6 @@ const CAT_STYLES = {
   Manga: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
   Movie: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
   TV: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-  Book: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
 };
 
 // ── debounce hook ──────────────────────────────────

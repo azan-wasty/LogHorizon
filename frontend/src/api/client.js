@@ -35,6 +35,7 @@ export const auth = {
 // ── Me ───────────────────────────────────────────
 export const me = {
   get: () => request('/me'),
+  update: (body) => request('/me', { method: 'PUT', body: JSON.stringify(body) }),
 };
 
 // ── Preferences ──────────────────────────────────
@@ -88,13 +89,45 @@ export const admin = {
   // Users
   listUsers: () => request('/admin/users'),
   updateUserRole: (id, role) => request(`/admin/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) }),
+
+  // Discord Recommendations
+  listDiscordRecommendations: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/admin/discord-recommendations${qs ? `?${qs}` : ''}`);
+  },
+  updateDiscordRecommendation: (id, status) => request(`/admin/discord-recommendations/${id}`, { method: 'PUT', body: JSON.stringify({ status }) }),
 };
 
-// ── Library (New) ──────────────────────────────────
+// ── Library ───────────────────────────────────────
 export const library = {
   get: () => request('/library'),
   update: (body) => request('/library/update', { method: 'POST', body: JSON.stringify(body) }),
   remove: (contentId) => request(`/library/${contentId}`, { method: 'DELETE' }),
 };
 
-export default { auth, me, preferences, recommendations, content, tags, admin, library };
+// ── Discord Recommendations ───────────────────────
+export const discord = {
+  recommend: (body) => request('/discord-recommendations', { method: 'POST', body: JSON.stringify(body) }),
+};
+
+// ── Users (Community) ─────────────────────────────
+export const users = {
+  search: (q) => {
+    const qs = q ? `?q=${encodeURIComponent(q)}` : '';
+    return request(`/users/search${qs}`);
+  },
+  profile: (id) => request(`/users/${id}/profile`),
+};
+
+// ── Events (Community) ────────────────────────────
+export const events = {
+  list: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/events${qs ? `?${qs}` : ''}`);
+  },
+  create: (body) => request('/events', { method: 'POST', body: JSON.stringify(body) }),
+  update: (id, body) => request(`/events/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  delete: (id) => request(`/events/${id}`, { method: 'DELETE' }),
+};
+
+export default { auth, me, preferences, recommendations, content, tags, admin, library, discord, users, events };

@@ -56,12 +56,7 @@ const SEED_LIST = [
     { title: "Severance", category: "TV" },
     { title: "The Last of Us", category: "TV" },
 
-    // Books — Sci-Fi, Fantasy, Adventure, Mystery, Dark
-    { title: "Dune", category: "Book" },
-    { title: "1984", category: "Book" },
-    { title: "The Hitchhiker's Guide to the Galaxy", category: "Book" },
-    { title: "Ender's Game", category: "Book" },
-    { title: "Neuromancer", category: "Book" },
+
 ];
 
 // ── Preference options to seed ────────────────────────────────────────────────
@@ -128,9 +123,7 @@ async function main() {
             } else if (category === "TV") {
                 result = await ingestionService.ingestMovie(title, true);
                 await sleep(300);
-            } else if (category === "Book") {
-                result = await ingestionService.ingestBook(title);
-                await sleep(300);
+
             } else if (category === "Game") {
                 result = await ingestionService.ingestGame(title);
                 await sleep(300);

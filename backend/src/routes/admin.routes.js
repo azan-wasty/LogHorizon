@@ -17,6 +17,10 @@ const {
     listUsers,
     updateUserRole,
 } = require("../controllers/admin.controller");
+const {
+    listDiscordRecommendations,
+    updateDiscordRecommendationStatus,
+} = require("../controllers/discord.controller");
 
 const router = express.Router();
 
@@ -42,5 +46,9 @@ router.delete("/tags/:id", deleteTag);
 // ── Users ────────────────────────────────
 router.get("/users", listUsers);
 router.put("/users/:id/role", updateUserRole);
+
+// ── Discord Recommendations ──────────────
+router.get("/discord-recommendations", listDiscordRecommendations);
+router.put("/discord-recommendations/:id", updateDiscordRecommendationStatus);
 
 module.exports = router;
