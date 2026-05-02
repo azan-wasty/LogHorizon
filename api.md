@@ -390,7 +390,7 @@ Returns statistics on recommendations matching the user's preferences, combined 
 
 ### Automated Ingestion
 `POST /admin/content/ingest`  
-Scans external APIs (Jikan/MAL, Google Books, TMDB) and automatically creates a new content record with mapped tags.
+Scans external APIs (Jikan/MAL, TMDB) and automatically creates a new content record with mapped tags.
 
 **Body**
 ```json
@@ -403,7 +403,7 @@ Scans external APIs (Jikan/MAL, Google Books, TMDB) and automatically creates a 
 | Field | Required | Notes |
 |-------|----------|-------|
 | title | ✅ | Exact title preferred |
-| category | ✅ | `"Anime"` / `"Manga"` / `"Movie"` / `"TV"` / `"Book"` |
+| category | ✅ | `"Anime"` / `"Manga"` / `"Movie"` / `"TV"` |
 
 **Responses**
 | Status | Meaning |

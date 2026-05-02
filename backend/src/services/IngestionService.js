@@ -78,22 +78,7 @@ const TMDB_GENRE_MAP = {
     10768: { type: "Genre", name: "Action" },
 };
 
-const BOOKS_CATEGORY_MAP = [
-    { match: /science.fiction|sci.fi/i, tag: { type: "Genre", name: "Sci-Fi" } },
-    { match: /fantasy/i, tag: { type: "Genre", name: "Fantasy" } },
-    { match: /adventure/i, tag: { type: "Genre", name: "Adventure" } },
-    { match: /action/i, tag: { type: "Genre", name: "Action" } },
-    { match: /comedy|humor|humour/i, tag: { type: "Genre", name: "Comedy" } },
-    { match: /drama/i, tag: { type: "Genre", name: "Drama" } },
-    { match: /mystery|detective|crime/i, tag: { type: "Theme", name: "Mystery" } },
-    { match: /horror|dark|dystop/i, tag: { type: "Mood", name: "Dark" } },
-    { match: /romance|love/i, tag: { type: "Mood", name: "Emotional" } },
-    { match: /juvenile|young adult|teen/i, tag: { type: "Theme", name: "Coming of Age" } },
-    { match: /friendship|family/i, tag: { type: "Theme", name: "Friendship" } },
-    { match: /thriller|suspense/i, tag: { type: "Mood", name: "Dark" } },
-    { match: /historical|history/i, tag: { type: "Genre", name: "Drama" } },
-    { match: /sport/i, tag: { type: "Mood", name: "Hype" } },
-];
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
@@ -154,14 +139,7 @@ function mapTmdbTags(genreIds = []) {
     return tags;
 }
 
-function mapBooksTags(categories = []) {
-    const tags = [];
-    const combined = categories.join(" / ").toLowerCase();
-    for (const { match, tag } of BOOKS_CATEGORY_MAP) {
-        if (match.test(combined)) tags.push(tag);
-    }
-    return tags;
-}
+
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
@@ -327,84 +305,7 @@ class IngestionService {
         }
     }
 
-    // ── Books via Google Books API ──
-    async ingestBook(title) {
-        try {
-            const resp = await fetch(
-                `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(title)}&maxResults=1`
-            );
-            const json = await resp.json();
-            const item = json.items?.[0];
-            const data = item?.volumeInfo;
-            if (!data) return { ok: false, message: `No book found: "${title}"` };
 
-            const externalId = item.id;
-            const source = "GoogleBooks";
-
-            const existing = await prisma.content.findFirst({ where: { externalId, source } });
-            if (existing) return { ok: true, content: existing, skipped: true };
-
-            const rawTags = mapBooksTags(data.categories || []);
-
-            const content = await prisma.$transaction(async (tx) => {
-                const tagIds = await upsertTags(tx, rawTags);
-                await syncTagsToPreferenceOptions(tx, rawTags);
-                return tx.content.create({
-                    data: {
-                        title: data.title,
-                        category: "Book",
-                        description: (data.description || "No description available.").substring(0, 1000),
-                        coverImage: data.imageLinks?.thumbnail?.replace("http:", "https:")?.substring(0, 1000) || null,
-                        externalId, source,
-                        rating: data.averageRating || null,
-                        tags: { create: tagIds.map(tid => ({ tagId: tid })) },
-                    },
-                    include: { tags: { include: { tag: true } } },
-                });
-            });
-            return { ok: true, content };
-        } catch (err) {
-            console.error("ingestBook error:", err);
-            return { ok: false, message: err.message };
-        }
-    }
-
-    // ── Book direct from Google Books data object ──
-    async ingestBookDirect(item) {
-        try {
-            const data = item.volumeInfo;
-            if (!data || !data.title) return { ok: false, message: "Invalid book data" };
-
-            const externalId = item.id;
-            const source = "GoogleBooks";
-
-            const existing = await prisma.content.findFirst({ where: { externalId, source } });
-            if (existing) return { ok: true, content: existing, skipped: true };
-
-            const rawTags = mapBooksTags(data.categories || []);
-
-            const content = await prisma.$transaction(async (tx) => {
-                const tagIds = await upsertTags(tx, rawTags);
-                await syncTagsToPreferenceOptions(tx, rawTags);
-                return tx.content.create({
-                    data: {
-                        title: data.title,
-                        category: "Book",
-                        description: (data.description || "No description available.").substring(0, 1000),
-                        coverImage: data.imageLinks?.thumbnail?.replace("http:", "https:")?.substring(0, 1000) || null,
-                        externalId, source,
-                        rating: data.averageRating || null,
-                        tags: { create: tagIds.map(tid => ({ tagId: tid })) },
-                    },
-                    include: { tags: { include: { tag: true } } },
-                });
-            });
-            return { ok: true, content };
-        } catch (err) {
-            console.error("ingestBookDirect error:", err);
-            return { ok: false, message: err.message };
-        }
-    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // ADVANCED DISCOVERY
@@ -413,7 +314,7 @@ class IngestionService {
     /**
      * Discover and ingest content for a category.
      * 
-     * @param {string} category - "Anime", "Manga", "Movie", "TV", "Book"
+     * @param {string} category - "Anime", "Manga", "Movie", "TV"
      * @param {object} options
      * @param {string} options.mode - "popular" | "top_rated" | "trending" | "upcoming" | "search"
      * @param {number} options.pages - number of pages to fetch (default 3 = ~60 items)
@@ -428,8 +329,6 @@ class IngestionService {
                 await this._discoverJikan(category, mode, pages, stats);
             } else if (category === "Movie" || category === "TV") {
                 await this._discoverTmdb(category, mode, pages, query, stats);
-            } else if (category === "Book") {
-                await this._discoverBooks(mode, pages, query, stats);
             } else {
                 return { ok: false, message: `Discovery not supported for "${category}"` };
             }
@@ -537,60 +436,7 @@ class IngestionService {
         }
     }
 
-    // ── Google Books multi-page discovery ──
-    async _discoverBooks(mode, pages, query, stats) {
-        // Google Books: search with curated queries for popular fiction
-        const BOOK_QUERIES = [
-            "subject:fiction",
-            "subject:fantasy bestseller",
-            "subject:science fiction popular",
-            "subject:mystery thriller",
-            "subject:romance bestseller",
-            "subject:adventure fiction",
-            "subject:young adult",
-            "subject:horror suspense",
-            "subject:comedy humor fiction",
-            "subject:drama literary fiction",
-        ];
 
-        const queries = query ? [query] : BOOK_QUERIES.slice(0, Math.max(pages, 3));
-        const maxPerQuery = 40;
-
-        for (const q of queries) {
-            try {
-                const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=${maxPerQuery}&orderBy=relevance&langRestrict=en&printType=books`;
-                console.log(`[Books] Fetching: ${url}`);
-                const resp = await fetch(url);
-                const json = await resp.json();
-                const items = json.items || [];
-
-                if (items.length === 0) continue;
-
-                for (const item of items) {
-                    const vol = item.volumeInfo;
-                    // Skip items with no title or no description
-                    if (!vol?.title || !vol?.description) continue;
-                    // Skip very short descriptions (not useful)
-                    if (vol.description.length < 50) continue;
-
-                    stats.total++;
-                    try {
-                        const res = await this.ingestBookDirect(item);
-                        if (res?.ok) {
-                            if (res.skipped) stats.skipped++;
-                            else stats.ingested++;
-                        } else {
-                            stats.failed++;
-                        }
-                    } catch { stats.failed++; }
-                    await sleep(100);
-                }
-            } catch (err) {
-                console.error(`[Books] Query "${q}" error:`, err.message);
-            }
-            await sleep(800);
-        }
-    }
 
     // ── Legacy method kept for backward compatibility ──
     async discoverAndIngestTop(category) {

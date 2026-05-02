@@ -11,8 +11,7 @@ import {
   Hexagon,
   Sparkles,
   Flame,
-  Gamepad2,
-  BookOpen
+  Gamepad2
 } from 'lucide-react';
 
 // Animated star field for that "WOW" factor
@@ -67,7 +66,6 @@ export default function LandingPage({ onNavigate }) {
     { icon: Flame, label: 'Anime', color: 'text-orange-400' },
     { icon: Sparkles, label: 'Fantasy', color: 'text-purple-400' },
     { icon: Gamepad2, label: 'Manga', color: 'text-blue-400' },
-    { icon: BookOpen, label: 'Light Novels', color: 'text-emerald-400' },
   ];
 
   const handleSearch = (e) => {

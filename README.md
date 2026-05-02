@@ -6,11 +6,11 @@ Sprint 1 delivers a state-of-the-art content management foundation, transitionin
 - **Frontend**: React (Vite) + Tailwind CSS v4 + Lucide Icons + Framer Motion
 - **Backend**: Node.js (Express.js) - Layered Services/Controllers Architecture
 - **Database**: Microsoft SQL Server (MSSQL) managed via Prisma ORM
-- **Automation**: Ingestion Pipeline (Jikan, TMDB, Google Books API integration)
+- **Automation**: Ingestion Pipeline (Jikan, TMDB integration)
 
 ## 📋 Sprint 1 Features
 - **Void Codex UI**: A complete premium dark-mode redesign using the "Electric Purple" design system.
-- **Automated Ingestion**: Rapid metadata fetching for Anime, Manga, Movies, TV, and Books.
+- **Automated Ingestion**: Rapid metadata fetching for Anime, Manga, Movies, and TV.
 - **Member Management**: Unified Admin Panel to promote users and manage content/tags.
 - **Neural Nodes**: Preference selection system (Mood/Theme/Genre) for future recommendation engines.
 - **Secure Auth**: JWT-based authentication with role-based access control (RBAC).

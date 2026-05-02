@@ -5,8 +5,7 @@ const ACHIEVEMENTS = {
     LIBRARIAN: { id: "LIBRARIAN", title: "Librarian", description: "Add 10 items to your library", icon: "Database" },
     CRITIC: { id: "CRITIC", title: "Harsh Critic", description: "Rate 5 different items", icon: "Star" },
     OTAKU: { id: "OTAKU", title: "Otaku", description: "Complete 5 Anime or Manga", icon: "Zap" },
-    CINEPHILE: { id: "CINEPHILE", title: "Cinephile", description: "Complete 5 Movies", icon: "Rocket" },
-    BOOKWORM: { id: "BOOKWORM", title: "Bookworm", description: "Complete 5 Books", icon: "Compass" }
+    CINEPHILE: { id: "CINEPHILE", title: "Cinephile", description: "Complete 5 Movies", icon: "Rocket" }
 };
 
 class AchievementsService {
@@ -42,10 +41,6 @@ class AchievementsService {
             // CINEPHILE
             const moviesCompleted = completed.filter(c => c.content.category === "Movie").length;
             if (moviesCompleted >= 5 && !unlocked.has("CINEPHILE")) toUnlock.push("CINEPHILE");
-
-            // BOOKWORM
-            const booksCompleted = completed.filter(c => c.content.category === "Book").length;
-            if (booksCompleted >= 5 && !unlocked.has("BOOKWORM")) toUnlock.push("BOOKWORM");
 
             if (toUnlock.length > 0) {
                 await prisma.userAchievement.createMany({

@@ -25,7 +25,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-const CATEGORIES = ['Anime', 'Manga', 'Movie', 'TV', 'Book'];
+const CATEGORIES = ['Anime', 'Manga', 'Movie', 'TV'];
 
 const EMPTY_FORM = {
   title: '', category: 'Anime', description: '', discordLink: '',
@@ -261,7 +261,7 @@ export default function ContentStudio() {
           </div>
           <div>
             <h2 className="text-xl font-display font-bold text-white">Rapid Ingestion Pipeline</h2>
-            <p className="text-sm text-gray-500 font-body">Automated metadata mapping via Jikan, TMDB, and Google Books APIs.</p>
+            <p className="text-sm text-gray-500 font-body">Automated metadata mapping via Jikan and TMDB APIs.</p>
           </div>
         </div>
 

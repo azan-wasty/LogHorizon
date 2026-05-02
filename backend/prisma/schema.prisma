@@ -24,7 +24,7 @@ model User {
 model Content {
   id          Int          @id @default(autoincrement())
   title       String
-  category    String   // "Anime", "Manga", "Movie", "Book", "TV", "Game"
+  category    String   // "Anime", "Manga", "Movie", "TV", "Game"
   description String   @db.NVarChar(MAX)
   discordLink String?
   createdAt   DateTime     @default(now())
