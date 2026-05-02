@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import LandingPage from './pages/LandingPage';
 import DashboardPage from './pages/DashboardPage';
 import DiscoverPage from './pages/DiscoverPage';
-import LibraryPage from './pages/LibraryPage';
+import ProfilePage from './pages/ProfilePage';
 import CommunityPage from './pages/CommunityPage';
 import OnboardingPage from './pages/OnboardingPage';
 import AdminPage from './pages/AdminPage';
@@ -62,8 +62,8 @@ function App() {
         return <DashboardPage onNavigate={setCurrentPage} />;
       case 'discover':
         return <DiscoverPage onNavigate={setCurrentPage} />;
-      case 'library':
-        return <LibraryPage onNavigate={setCurrentPage} />;
+      case 'profile':
+        return <ProfilePage onNavigate={setCurrentPage} />;
       case 'community':
         return <CommunityPage />;
       case 'admin':

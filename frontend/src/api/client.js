@@ -35,6 +35,7 @@ export const auth = {
 // ── Me ───────────────────────────────────────────
 export const me = {
   get: () => request('/me'),
+  update: (body) => request('/me', { method: 'PUT', body: JSON.stringify(body) }),
 };
 
 // ── Preferences ──────────────────────────────────
