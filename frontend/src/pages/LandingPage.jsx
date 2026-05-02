@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { GridScan } from '../components/GridScan';
 import AuthModal from '../components/AuthModal';
 import {
   Search,
@@ -14,7 +15,6 @@ import {
   Gamepad2
 } from 'lucide-react';
 
-// Animated star field for that "WOW" factor
 function StarField() {
   const canvasRef = useRef(null);
 
@@ -59,7 +59,7 @@ function StarField() {
 }
 
 export default function LandingPage({ onNavigate }) {
-  const [authModal, setAuthModal] = useState(null); // 'login' | 'register'
+  const [authModal, setAuthModal] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
   const categories = [
@@ -82,8 +82,24 @@ export default function LandingPage({ onNavigate }) {
     <div className="min-h-screen bg-dark text-white selection:bg-electric-purple selection:text-white relative flex flex-col overflow-hidden font-body">
       <StarField />
 
+      {/* Grid Scan */}
+      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 1 }}>
+        <GridScan
+          sensitivity={0.55}
+          lineThickness={1}
+          linesColor="#7f67ac"
+          gridScale={0.1}
+          scanColor="#bc7cfc"
+          scanOpacity={0.4}
+          enablePost
+          bloomIntensity={0.6}
+          chromaticAberration={0.002}
+          noiseIntensity={0.01}
+        />
+      </div>
+
       {/* Dynamic Background Blobs */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 2 }}>
         <div className="absolute top-[10%] left-[5%] w-[600px] h-[600px] bg-electric-purple/10 blur-[120px] rounded-full animate-pulse" />
         <div className="absolute bottom-[20%] right-[10%] w-[500px] h-[500px] bg-accent-violet/5 blur-[100px] rounded-full" />
       </div>
@@ -116,7 +132,7 @@ export default function LandingPage({ onNavigate }) {
       </nav>
 
       {/* Hero Section */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-24 text-center">
+      <main className="relative flex-1 flex flex-col items-center justify-center px-6 py-24 text-center" style={{ zIndex: 10 }}>
         <div className="animate-fade-up">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-electric-purple/10 border border-electric-purple/20 text-[10px] font-mono font-bold uppercase tracking-widest text-electric-purple mb-10 shadow-[0_0_15px_rgba(124,58,237,0.1)]">
             <ShieldCheck size={14} />
@@ -205,7 +221,6 @@ export default function LandingPage({ onNavigate }) {
         </p>
       </footer>
 
-      {/* Authentication */}
       {authModal && (
         <AuthModal
           mode={authModal}
