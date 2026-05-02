@@ -2,14 +2,20 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
+const path = require("path");
+
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+// Serve uploads folder
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+
 // ---- Routes ----
 app.use("/api", require("./routes/auth.routes"));
 app.use("/api", require("./routes/me.routes"));
+app.use("/api", require("./routes/upload.routes"));
 
 // Preferences
 app.use("/api/preferences", require("./routes/preferences.routes"));

@@ -12,14 +12,31 @@ import { useAuth } from './hooks/useAuth';
 
 function App() {
   const { user, loading, isAdmin } = useAuth();
+
   const [currentPage, setCurrentPage] = useState('landing');
+  const [historyStack, setHistoryStack] = useState([]);
+
+  // ✅ Custom navigate (push to history)
+  const navigate = (page) => {
+    setHistoryStack(prev => [...prev, currentPage]);
+    setCurrentPage(page);
+  };
+
+  // ✅ Custom back
+  const goBack = () => {
+    setHistoryStack(prev => {
+      if (prev.length === 0) return prev;
+
+      const lastPage = prev[prev.length - 1];
+      setCurrentPage(lastPage);
+      return prev.slice(0, -1);
+    });
+  };
 
   // Handle initial page based on auth state
   useEffect(() => {
     if (!loading) {
       if (user) {
-        // If logged in and on landing, jump to dashboard. 
-        // But don't block other pages.
         if (currentPage === 'landing') {
           setCurrentPage('dashboard');
         }
@@ -27,7 +44,7 @@ function App() {
         setCurrentPage('landing');
       }
     }
-  }, [user, loading, !!user]);
+  }, [user, loading]);
 
   if (loading) {
     return (
@@ -50,26 +67,26 @@ function App() {
   const renderPage = () => {
     if (currentPage.startsWith('content/')) {
       const id = parseInt(currentPage.split('/')[1]);
-      return <ContentPage id={id} onNavigate={setCurrentPage} />;
+      return <ContentPage id={id} goBack={goBack} />;
     }
 
     switch (currentPage) {
       case 'landing':
-        return <LandingPage onNavigate={setCurrentPage} />;
+        return <LandingPage onNavigate={navigate} />;
       case 'onboarding':
-        return <OnboardingPage onComplete={() => setCurrentPage('dashboard')} />;
+        return <OnboardingPage onComplete={() => navigate('dashboard')} />;
       case 'dashboard':
-        return <DashboardPage onNavigate={setCurrentPage} />;
+        return <DashboardPage onNavigate={navigate} />;
       case 'discover':
-        return <DiscoverPage onNavigate={setCurrentPage} />;
+        return <DiscoverPage onNavigate={navigate} />;
       case 'profile':
-        return <ProfilePage onNavigate={setCurrentPage} />;
+        return <ProfilePage onNavigate={navigate} />;
       case 'community':
         return <CommunityPage />;
       case 'admin':
-        return isAdmin ? <AdminPage /> : <DashboardPage onNavigate={setCurrentPage} />;
+        return isAdmin ? <AdminPage /> : <DashboardPage onNavigate={navigate} />;
       default:
-        return <LandingPage onNavigate={setCurrentPage} />;
+        return <LandingPage onNavigate={navigate} />;
     }
   };
 
@@ -80,7 +97,7 @@ function App() {
   }
 
   return (
-    <Layout currentPage={currentPage} onNavigate={setCurrentPage}>
+    <Layout currentPage={currentPage} onNavigate={navigate}>
       {renderPage()}
     </Layout>
   );

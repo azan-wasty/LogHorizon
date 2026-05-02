@@ -1,0 +1,51 @@
+const express = require("express");
+const router = express.Router();
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+const { requireAuth } = require("../middleware/auth.middleware");
+
+// Ensure directory exists
+const uploadDir = path.join(__dirname, "../../uploads/avatars");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, "avatar-" + uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|webp/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+    if (extname && mimetype) {
+      return cb(null, true);
+    }
+    cb(new Error("Only images are allowed (jpg, jpeg, png, webp)"));
+  },
+});
+
+router.post("/upload-avatar", requireAuth, upload.single("avatar"), (req, res) => {
+  console.log("Avatar upload request received");
+  if (!req.file) {
+    console.log("No file in request");
+    return res.status(400).json({ ok: false, message: "No file uploaded" });
+  }
+
+  console.log("File uploaded:", req.file.filename);
+  // Return the relative path for the frontend
+  const filePath = `/uploads/avatars/${req.file.filename}`;
+  res.json({ ok: true, url: filePath });
+});
+
+module.exports = router;

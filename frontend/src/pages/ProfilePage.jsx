@@ -283,7 +283,32 @@ function EditModal({ user, onSave, onClose }) {
   const [bio, setBio] = useState(user.bio || '');
   const [avatar, setAvatar] = useState(user.avatarUrl || '');
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
   const toast = useToast();
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast('File is too large (max 5MB)', 'error');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const res = await meApi.uploadAvatar(file);
+      if (res.ok) {
+        setAvatar(res.url);
+        toast('Image uploaded successfully', 'success');
+      }
+    } catch (err) {
+      toast(err.message || 'Upload failed', 'error');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const save = async () => {
     setSaving(true);
@@ -293,30 +318,82 @@ function EditModal({ user, onSave, onClose }) {
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+      className="fixed inset-0 z-[1000] bg-black/80 backdrop-blur-md flex items-center justify-center p-6"
       onClick={e => e.target === e.currentTarget && onClose()}
     >
-      <div style={{ width: '100%', maxWidth: 440, background: '#1a1a2a', border: '1px solid rgba(124,58,237,0.2)', borderRadius: 20, overflow: 'hidden', boxShadow: '0 30px 80px rgba(0,0,0,0.6)', animation: 'fadeUp 0.3s ease' }}>
-        <div style={{ height: 3, background: 'linear-gradient(90deg, #7C3AED, #22d3ee)' }} />
-        <div style={{ padding: 28 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem', color: 'var(--text-primary)' }}>Edit Profile</h3>
-            <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '6px 8px', cursor: 'pointer' }}>
-              <X size={16} color="#9ca3af" />
+      <div className="w-full max-w-md bg-midnight border border-white/10 rounded-[2rem] overflow-hidden shadow-3xl animate-fade-up" style={{ backgroundColor: 'var(--midnight)' }}>
+        <div className="h-1.5 bg-gradient-to-r from-electric-purple via-accent-violet to-cyan-400" style={{ background: 'linear-gradient(90deg, var(--electric-purple), var(--accent-violet), var(--cyan))' }} />
+        <div className="p-8">
+          <div className="flex justify-between items-center mb-8">
+            <h3 className="font-display font-black text-xl text-white uppercase tracking-tighter italic">Update Profile</h3>
+            <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-xl transition-colors">
+              <X size={20} className="text-gray-500" />
             </button>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div>
-              <label className="label">Avatar URL</label>
-              <input className="input" value={avatar} onChange={e => setAvatar(e.target.value)} placeholder="https://..." />
+
+          <div className="flex flex-col gap-8">
+            {/* Avatar Upload Area */}
+            <div className="flex flex-col items-center gap-4">
+              <div 
+                className="relative group cursor-pointer"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <div className="w-24 h-24 rounded-full p-1 shadow-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, var(--electric-purple), var(--accent-violet))' }}>
+                  <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--dark)' }}>
+                    {uploading ? (
+                      <Loader2 className="w-8 h-8 text-electric-purple animate-spin" style={{ color: 'var(--electric-purple)' }} />
+                    ) : avatar ? (
+                      <img src={avatar} className="w-full h-full object-cover" alt="preview" />
+                    ) : (
+                      <Camera className="w-8 h-8 text-gray-600" />
+                    )}
+                  </div>
+                </div>
+                <div className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                  <Camera size={20} className="text-white" />
+                </div>
+              </div>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                className="hidden" 
+                accept="image/*"
+              />
+              <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-500">Click to upload from device</span>
             </div>
-            <div>
-              <label className="label">Bio</label>
-              <textarea className="input" value={bio} onChange={e => setBio(e.target.value)} placeholder="What defines your taste?" rows={3} style={{ resize: 'none' }} />
+
+            <div className="space-y-6">
+              <div>
+                <label className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-500 mb-2 block">Avatar Source (URL)</label>
+                <input 
+                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-electric-purple/50 transition-colors" 
+                  style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)' }}
+                  value={avatar} 
+                  onChange={e => setAvatar(e.target.value)} 
+                  placeholder="https://..." 
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-500 mb-2 block">Personal Transmission (Bio)</label>
+                <textarea 
+                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-electric-purple/50 transition-colors resize-none" 
+                  style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)' }}
+                  value={bio} 
+                  onChange={e => setBio(e.target.value)} 
+                  placeholder="What defines your taste?" 
+                  rows={3} 
+                />
+              </div>
             </div>
-            <button onClick={save} disabled={saving} className="btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: 4 }}>
+
+            <button 
+              onClick={save} 
+              disabled={saving || uploading} 
+              className="w-full py-4 bg-white text-black rounded-2xl font-display font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+            >
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? 'Synchronizing...' : 'Save Changes'}
             </button>
           </div>
         </div>

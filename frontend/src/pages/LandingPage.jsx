@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import AuthModal from '../components/AuthModal';
-import { 
-  Search, 
-  Zap, 
-  Target, 
-  Trophy, 
-  Link as LinkIcon, 
-  ChevronRight, 
+import {
+  Search,
+  Zap,
+  Target,
+  Trophy,
+  Link as LinkIcon,
+  ChevronRight,
   ShieldCheck,
   Hexagon,
   Sparkles,
@@ -98,15 +98,15 @@ export default function LandingPage({ onNavigate }) {
             Log<span className="text-electric-purple">Horizon</span>
           </span>
         </div>
-        
+
         <div className="flex items-center gap-4 lg:gap-8">
-          <button 
+          <button
             onClick={() => setAuthModal('login')}
             className="text-sm font-display font-semibold text-gray-400 hover:text-white transition-colors"
           >
             Sign In
           </button>
-          <button 
+          <button
             onClick={() => setAuthModal('register')}
             className="bg-white text-black px-6 py-2.5 rounded-full font-display font-bold text-sm hover:bg-gray-200 transition-all hover:scale-105 active:scale-95 shadow-xl shadow-white/10"
           >
@@ -125,7 +125,7 @@ export default function LandingPage({ onNavigate }) {
         </div>
 
         <h1 className="text-5xl lg:text-8xl font-display font-bold mb-8 tracking-tighter leading-[0.9] animate-fade-up" style={{ animationDelay: '100ms' }}>
-          Discover the <br /> 
+          Discover the <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-electric-purple via-accent-violet to-cyan-400">Void Codex.</span>
         </h1>
 
@@ -134,7 +134,7 @@ export default function LandingPage({ onNavigate }) {
         </p>
 
         {/* Global Search Bar */}
-        <form 
+        <form
           onSubmit={handleSearch}
           className="w-full max-w-2xl relative mb-16 animate-fade-up"
           style={{ animationDelay: '300ms' }}
@@ -142,14 +142,14 @@ export default function LandingPage({ onNavigate }) {
           <div className="absolute inset-0 bg-electric-purple/10 blur-[40px] -z-10" />
           <div className="relative group">
             <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-electric-purple transition-colors" size={20} />
-            <input 
+            <input
               type="text"
               placeholder="Search the index..."
               className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-6 text-lg font-body focus:bg-white/[0.08] focus:border-electric-purple/40 outline-none transition-all shadow-2xl backdrop-blur-md"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <button 
+            <button
               type="submit"
               className="absolute right-3 top-1/2 -translate-y-1/2 p-3 bg-electric-purple rounded-xl text-white hover:bg-accent-violet transition-all shadow-lg active:scale-90"
             >
@@ -161,7 +161,7 @@ export default function LandingPage({ onNavigate }) {
         {/* Categories */}
         <div className="flex flex-wrap justify-center gap-3 mb-24 animate-fade-up" style={{ animationDelay: '400ms' }}>
           {categories.map((cat, i) => (
-            <button 
+            <button
               key={i}
               onClick={() => setAuthModal('register')}
               className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/5 border border-white/5 hover:border-white/20 hover:bg-white/10 transition-all font-display text-sm font-semibold tracking-wide group"
@@ -193,7 +193,7 @@ export default function LandingPage({ onNavigate }) {
       {/* Footer */}
       <footer className="relative z-10 py-12 px-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 bg-dark/40 backdrop-blur-xl">
         <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-gray-600">
-           LOGHORIZON PROTOCOL // v2.0-STABLE
+          LOGHORIZON PROTOCOL // v2.0-STABLE
         </p>
         <div className="flex gap-8 text-[10px] font-mono uppercase tracking-widest text-gray-700">
           <button className="hover:text-white transition-colors">Documentation</button>

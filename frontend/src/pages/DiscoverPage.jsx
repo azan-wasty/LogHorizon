@@ -2,156 +2,190 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { content as contentApi, tags as tagsApi } from '../api/client';
 import { useToast } from '../hooks/useToast';
 import {
-  Search,
-  Star,
-  ExternalLink,
-  Database,
-  Hash,
-  Loader2,
-  Rocket,
-  SlidersHorizontal,
-  X,
-  ChevronDown,
-  Bookmark,
-  Check,
-  Play,
-  Trash2 as Trash
+  Search, Star, ExternalLink, Database, Hash,
+  Loader2, SlidersHorizontal, X, Bookmark,
+  Check, Play, ChevronDown, Rocket, Filter,
 } from 'lucide-react';
 import { useLibrary } from '../hooks/useLibrary';
 
-const CATEGORIES = ['Anime', 'Manga', 'Movie', 'TV'];
-
+const CATEGORIES = ['All', 'Anime', 'Manga', 'Movie', 'TV'];
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest First' },
   { value: 'rating', label: 'Top Rated' },
   { value: 'title', label: 'A → Z' },
 ];
-
-const CAT_STYLES = {
-  Anime: 'bg-pink-500/10 text-pink-400 border-pink-500/20',
-  Manga: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  Movie: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  TV: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+const CAT = {
+  Anime: { color: '#f472b6', dim: 'rgba(244,114,182,0.1)', border: 'rgba(244,114,182,0.2)' },
+  Manga: { color: '#60a5fa', dim: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.2)' },
+  Movie: { color: '#fbbf24', dim: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.2)' },
+  TV: { color: '#34d399', dim: 'rgba(52,211,153,0.1)', border: 'rgba(52,211,153,0.2)' },
 };
+const fallbackCat = { color: '#7C3AED', dim: 'rgba(124,58,237,0.1)', border: 'rgba(124,58,237,0.2)' };
 
-// ── debounce hook ──────────────────────────────────
 function useDebounce(value, delay) {
-  const [debounced, setDebounced] = useState(value);
+  const [d, setD] = useState(value);
   useEffect(() => {
-    const t = setTimeout(() => setDebounced(value), delay);
+    const t = setTimeout(() => setD(value), delay);
     return () => clearTimeout(t);
   }, [value, delay]);
-  return debounced;
+  return d;
 }
 
-// ── Single content card ────────────────────
+// ── Content Card ───────────────────────────────────
 function ContentCard({ item, index, onNavigate }) {
   const { updateItem, removeItem, isInLibrary } = useLibrary();
+  const [hovered, setHovered] = useState(false);
   const entry = isInLibrary(item.id);
-  const style = CAT_STYLES[item.category] || 'bg-white/5 text-gray-400 border-white/10';
+  const cat = CAT[item.category] || fallbackCat;
 
   const handleAction = async (e, status) => {
     e.stopPropagation();
-    if (entry?.status === status) {
-      await removeItem(item.id);
-    } else {
-      await updateItem(item.id, status);
-    }
+    if (entry?.status === status) await removeItem(item.id);
+    else await updateItem(item.id, status);
   };
 
   return (
     <div
       onClick={() => onNavigate(`content/${item.id}`)}
-      className="premium-card overflow-hidden flex flex-col group animate-fade-up relative cursor-pointer"
-      style={{ animationDelay: `${index * 40}ms` }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        borderRadius: 16, overflow: 'hidden', cursor: 'pointer',
+        background: 'rgba(255,255,255,0.025)',
+        border: hovered ? `1px solid ${cat.color}30` : '1px solid rgba(255,255,255,0.06)',
+        transition: 'all 0.3s',
+        transform: hovered ? 'translateY(-5px)' : 'none',
+        boxShadow: hovered ? `0 16px 40px rgba(0,0,0,0.4), 0 0 0 1px ${cat.color}15` : 'none',
+        animation: `fadeUp 0.4s ${index * 30}ms ease both`,
+        display: 'flex', flexDirection: 'column',
+        position: 'relative',
+      }}
     >
-      {/* Cover image area */}
-      <div className="relative aspect-[3/4] overflow-hidden bg-white/5 flex-shrink-0">
+      {/* Cover */}
+      <div style={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden', flexShrink: 0 }}>
         {item.isSuggested && (
-          <div className="absolute top-3 left-3 z-20 px-2 py-1 rounded bg-amber-500 text-black text-[9px] font-display font-bold uppercase tracking-tighter shadow-lg flex items-center gap-1 animate-pulse">
-            <Star size={10} fill="currentColor" /> Suggested
+          <div style={{
+            position: 'absolute', top: 8, left: 8, zIndex: 20,
+            padding: '3px 8px', borderRadius: 6,
+            background: '#f59e0b', color: '#000',
+            fontFamily: 'var(--font-display)', fontSize: '0.58rem', fontWeight: 800,
+            textTransform: 'uppercase', letterSpacing: '0.05em',
+            display: 'flex', alignItems: 'center', gap: 4, animation: 'pulse 2s infinite',
+          }}>
+            <Star size={8} fill="currentColor" /> Suggested
           </div>
         )}
+
         {item.coverImage ? (
           <img
-            src={item.coverImage}
-            alt={item.title}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            src={item.coverImage} alt={item.title}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s', transform: hovered ? 'scale(1.08)' : 'scale(1)' }}
           />
         ) : (
-          <div className="w-full h-full bg-white/5 flex items-center justify-center">
-            <Database className="text-gray-800" size={40} />
+          <div style={{ width: '100%', height: '100%', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Database size={36} color="#374151" />
           </div>
         )}
 
-        {/* Hover Overlay Actions */}
-        <div className="absolute inset-0 bg-dark/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-3 z-10">
-          <button
-            onClick={(e) => handleAction(e, 'PLANNING')}
-            className={`p-3 rounded-xl transition-all hover:scale-110 ${entry?.status === 'PLANNING' ? 'bg-electric-purple text-white shadow-lg shadow-electric-purple/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
-            title="Add to Watchlist"
-          >
-            <Bookmark size={20} fill={entry?.status === 'PLANNING' ? 'currentColor' : 'none'} />
-          </button>
-          <button
-            onClick={(e) => handleAction(e, 'COMPLETED')}
-            className={`p-3 rounded-xl transition-all hover:scale-110 ${entry?.status === 'COMPLETED' ? 'bg-spotify-green text-white shadow-lg shadow-spotify-green/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
-            title="Mark as Completed"
-          >
-            <Check size={20} />
-          </button>
-          <button
-            onClick={(e) => handleAction(e, 'CURRENT')}
-            className={`p-3 rounded-xl transition-all hover:scale-110 ${entry?.status === 'CURRENT' ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/20' : 'bg-white/10 text-white hover:bg-white/20'}`}
-            title="Currently Watching/Reading"
-          >
-            <Play size={20} fill="currentColor" />
-          </button>
+        {/* Hover action overlay */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 10,
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(3px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+          opacity: hovered ? 1 : 0, transition: 'opacity 0.25s',
+        }}>
+          {[
+            { status: 'PLANNING', icon: Bookmark, activeColor: '#7C3AED', label: 'Watchlist' },
+            { status: 'CURRENT', icon: Play, activeColor: '#22d3ee', label: 'Watching' },
+            { status: 'COMPLETED', icon: Check, activeColor: '#34d399', label: 'Done' },
+          ].map(({ status, icon: Icon, activeColor, label }) => (
+            <button
+              key={status}
+              onClick={e => handleAction(e, status)}
+              title={label}
+              style={{
+                width: 42, height: 42, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: entry?.status === status ? activeColor : 'rgba(255,255,255,0.12)',
+                border: entry?.status === status ? 'none' : '1px solid rgba(255,255,255,0.2)',
+                cursor: 'pointer', transition: 'all 0.2s',
+                boxShadow: entry?.status === status ? `0 0 16px ${activeColor}60` : 'none',
+              }}
+            >
+              <Icon size={18} color={entry?.status === status ? '#fff' : '#d1d5db'} fill={entry?.status === status && status !== 'CURRENT' ? 'currentColor' : 'none'} />
+            </button>
+          ))}
         </div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-transparent to-transparent opacity-80 group-hover:opacity-40 transition-opacity" />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(14,14,22,0.9) 0%, transparent 55%)', opacity: hovered ? 0.4 : 0.8, transition: 'opacity 0.3s' }} />
 
-        <div className="absolute top-3 right-3">
-          <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider border ${style}`}>
+        {/* Category */}
+        <div style={{ position: 'absolute', top: 8, right: 8 }}>
+          <span style={{
+            padding: '2px 8px', borderRadius: 5,
+            background: cat.dim, border: `1px solid ${cat.border}`,
+            fontFamily: 'var(--font-mono)', fontSize: '0.58rem', fontWeight: 700,
+            color: cat.color, textTransform: 'uppercase', letterSpacing: '0.07em',
+          }}>
             {item.category}
           </span>
         </div>
 
+        {/* Rating */}
         {item.rating && (
-          <div className="absolute bottom-3 left-3 px-2 py-0.5 rounded-full bg-dark/80 backdrop-blur-md border border-white/10 flex items-center gap-1 z-20">
-            <Star size={10} className="text-amber-400 fill-amber-400" />
-            <span className="text-[10px] font-mono font-bold text-amber-400">{item.rating.toFixed(1)}</span>
+          <div style={{
+            position: 'absolute', bottom: 8, left: 8, zIndex: 20,
+            display: 'flex', alignItems: 'center', gap: 4,
+            padding: '3px 8px', borderRadius: 20,
+            background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)',
+            border: '1px solid rgba(255,255,255,0.1)',
+          }}>
+            <Star size={9} color="#fbbf24" fill="#fbbf24" />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', fontWeight: 700, color: '#fbbf24' }}>
+              {item.rating.toFixed(1)}
+            </span>
           </div>
         )}
       </div>
 
-      <div className="p-4 space-y-2 flex-1 flex flex-col">
-        <h3 className="font-display font-bold text-sm text-white line-clamp-2 min-h-[40px] group-hover:text-electric-purple transition-colors">
+      {/* Info */}
+      <div style={{ padding: '12px 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <h3 style={{
+          fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.82rem',
+          color: hovered ? cat.color : '#fff',
+          overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical', minHeight: 36, lineHeight: 1.35,
+          transition: 'color 0.2s',
+        }}>
           {item.title}
         </h3>
 
+        {/* Library status indicator */}
         {entry && (
-          <div className={`text-[9px] font-mono font-bold uppercase tracking-widest mb-1 ${entry.status === 'COMPLETED' ? 'text-spotify-green' :
-              entry.status === 'PLANNING' ? 'text-electric-purple' : 'text-cyan-400'
-            }`}>
-            • {entry.status === 'PLANNING' ? 'Watchlist' : entry.status}
+          <div style={{
+            fontFamily: 'var(--font-mono)', fontSize: '0.58rem', fontWeight: 700,
+            textTransform: 'uppercase', letterSpacing: '0.08em',
+            color: entry.status === 'COMPLETED' ? '#34d399' : entry.status === 'PLANNING' ? '#7C3AED' : '#22d3ee',
+            display: 'flex', alignItems: 'center', gap: 4,
+          }}>
+            <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} />
+            {entry.status === 'PLANNING' ? 'Watchlist' : entry.status === 'CURRENT' ? 'Watching' : 'Completed'}
           </div>
         )}
 
-        <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest mt-auto">
-          <div className="flex items-center gap-2 text-gray-500">
-            <span className="w-1.5 h-1.5 rounded-full bg-electric-purple/40" />
-            {item.tags?.[0]?.name || 'Untagged'}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(124,58,237,0.5)', flexShrink: 0 }} />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+              {item.tags?.[0]?.name || 'Untagged'}
+            </span>
           </div>
           {item.discordLink && (
             <a
-              href={item.discordLink}
-              target="_blank"
-              rel="noopener noreferrer"
+              href={item.discordLink} target="_blank" rel="noopener noreferrer"
               onClick={e => e.stopPropagation()}
-              className="text-discord-blue hover:text-white transition-colors flex items-center gap-1"
+              style={{ display: 'flex', alignItems: 'center', gap: 3, color: '#5865F2', fontSize: '0.58rem', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.07em' }}
             >
-              <ExternalLink size={10} /> Portal
+              <ExternalLink size={9} /> Portal
             </a>
           )}
         </div>
@@ -163,73 +197,49 @@ function ContentCard({ item, index, onNavigate }) {
 // ── Main Page ──────────────────────────────────────
 export default function DiscoverPage({ onNavigate }) {
   const toast = useToast();
-
   const [items, setItems] = useState([]);
   const [allTags, setAllTags] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
-
-  // Filters
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
   const [selectedTags, setSelectedTags] = useState([]);
   const [sort, setSort] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
-
   const debouncedSearch = useDebounce(search, 350);
   const firstLoad = useRef(true);
 
-  // Load tags once
   useEffect(() => {
     tagsApi.list()
       .then(d => setAllTags(Object.values(d.tags || {}).flat()))
       .catch(() => { });
   }, []);
 
-  // Fetch content whenever filters change
   const fetchContent = useCallback(async () => {
-    if (firstLoad.current) {
-      setLoading(true);
-      firstLoad.current = false;
-    } else {
-      setSearching(true);
-    }
-
+    if (firstLoad.current) { setLoading(true); firstLoad.current = false; }
+    else setSearching(true);
     try {
       const params = {};
       if (category !== 'All') params.category = category;
-      // Pass only first selected tag (backend supports single tagId)
       if (selectedTags.length > 0) params.tagId = selectedTags[0];
-
       const data = await contentApi.list(params);
       let results = data.content || [];
-
-      // Client-side: text search filter
       if (debouncedSearch.trim()) {
         const q = debouncedSearch.toLowerCase();
-        results = results.filter(
-          item =>
-            item.title.toLowerCase().includes(q) ||
-            item.description?.toLowerCase().includes(q)
+        results = results.filter(item =>
+          item.title.toLowerCase().includes(q) || item.description?.toLowerCase().includes(q)
         );
       }
-
-      // Client-side: multi-tag filter (for additional selected tags beyond first)
       if (selectedTags.length > 1) {
         results = results.filter(item =>
-          selectedTags.every(tid =>
-            item.tags?.some(t => t.id === tid)
-          )
+          selectedTags.every(tid => item.tags?.some(t => t.id === tid))
         );
       }
-
-      // Sort
       results = [...results].sort((a, b) => {
         if (sort === 'rating') return (b.rating ?? 0) - (a.rating ?? 0);
         if (sort === 'title') return a.title.localeCompare(b.title);
-        return new Date(b.createdAt) - new Date(a.createdAt); // newest
+        return new Date(b.createdAt) - new Date(a.createdAt);
       });
-
       setItems(results);
     } catch {
       toast('Failed to load content index', 'error');
@@ -241,181 +251,269 @@ export default function DiscoverPage({ onNavigate }) {
 
   useEffect(() => { fetchContent(); }, [fetchContent]);
 
-  const toggleTag = (id) => {
-    setSelectedTags(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-    );
-  };
+  const toggleTag = id => setSelectedTags(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+  const clearFilters = () => { setCategory('All'); setSearch(''); setSelectedTags([]); setSort('newest'); };
+  const hasFilters = category !== 'All' || selectedTags.length > 0 || search.trim() || sort !== 'newest';
 
-  const clearFilters = () => {
-    setCategory('All');
-    setSearch('');
-    setSelectedTags([]);
-    setSort('newest');
-  };
-
-  const hasActiveFilters =
-    category !== 'All' || selectedTags.length > 0 || search.trim() || sort !== 'newest';
+  // Group tags by type
+  const tagsByType = allTags.reduce((acc, t) => {
+    if (!acc[t.type]) acc[t.type] = [];
+    acc[t.type].push(t);
+    return acc;
+  }, {});
 
   return (
-    <div className="space-y-8 lg:space-y-10">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <style>{`
+        @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
 
-      {/* ── Header ── */}
-      <header>
-        <h1 className="text-4xl font-display font-bold text-white mb-2 tracking-tight">Transmission Feed</h1>
-        <p className="text-gray-500 italic font-body">Explore the global synchronized library across all media sectors.</p>
+      {/* Header */}
+      <header style={{ animation: 'fadeUp 0.4s ease' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+          <span style={{
+            padding: '3px 10px', borderRadius: 20,
+            background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)',
+            fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#7C3AED',
+            textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700,
+          }}>
+            Transmission Feed
+          </span>
+          {!loading && (
+            <span style={{
+              fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#374151',
+              textTransform: 'uppercase', letterSpacing: '0.1em',
+            }}>
+              {items.length} nodes
+            </span>
+          )}
+        </div>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2rem', color: '#fff', letterSpacing: '-0.03em', marginBottom: 6 }}>
+          Discover
+        </h1>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem', color: '#6b7280', fontStyle: 'italic' }}>
+          Explore the synchronized global library across all media sectors.
+        </p>
       </header>
 
-      {/* ── Search + Controls ── */}
-      <div className="space-y-4">
-        <div className="flex flex-col lg:flex-row gap-4 lg:items-center">
-          {/* Search bar */}
-          <div className="relative flex-1 max-w-lg">
-            {searching ? (
-              <Loader2 className="absolute left-4 top-1/2 -translate-y-1/2 text-electric-purple animate-spin" size={18} />
-            ) : (
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-            )}
+      {/* Controls bar */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, animation: 'fadeUp 0.4s 0.05s ease both' }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          {/* Search */}
+          <div style={{ position: 'relative', flex: 1, minWidth: 220, maxWidth: 400 }}>
+            <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }}>
+              {searching
+                ? <Loader2 size={16} color="#7C3AED" style={{ animation: 'spin 0.8s linear infinite' }} />
+                : <Search size={16} color="#6b7280" />
+              }
+            </div>
             <input
               type="text"
               placeholder="Search titles and descriptions..."
-              className="w-full bg-white/5 border border-white/5 rounded-xl py-3 pl-12 pr-10 text-sm font-body focus:bg-white/[0.08] focus:border-electric-purple/40 transition-all outline-none text-white"
               value={search}
               onChange={e => setSearch(e.target.value)}
+              style={{
+                width: '100%',
+                background: 'rgba(255,255,255,0.04)',
+                border: search ? '1px solid rgba(124,58,237,0.3)' : '1px solid rgba(255,255,255,0.07)',
+                borderRadius: 12, padding: '11px 14px 11px 42px',
+                fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: '#fff',
+                outline: 'none', transition: 'all 0.2s',
+              }}
+              onFocus={e => { e.target.style.background = 'rgba(255,255,255,0.06)'; e.target.style.borderColor = 'rgba(124,58,237,0.4)'; }}
+              onBlur={e => { e.target.style.background = 'rgba(255,255,255,0.04)'; e.target.style.borderColor = search ? 'rgba(124,58,237,0.3)' : 'rgba(255,255,255,0.07)'; }}
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 2 }}
               >
-                <X size={14} />
+                <X size={13} color="#6b7280" />
               </button>
             )}
           </div>
 
           {/* Category pills */}
-          <div className="flex gap-1 p-1 bg-white/5 rounded-xl border border-white/5 flex-wrap">
-            {CATEGORIES.map(cat => (
-              <button
-                key={cat}
-                onClick={() => setCategory(cat)}
-                className={`px-4 py-2 rounded-lg font-display text-xs font-bold uppercase tracking-widest transition-all ${category === cat
-                  ? 'bg-electric-purple text-white shadow-lg'
-                  : 'text-gray-500 hover:text-white'
-                  }`}
-              >
-                {cat}
-              </button>
-            ))}
+          <div style={{
+            display: 'flex', gap: 3, padding: 4,
+            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+            borderRadius: 12, flexWrap: 'wrap',
+          }}>
+            {CATEGORIES.map(cat => {
+              const cfg = CAT[cat];
+              const active = category === cat;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setCategory(cat)}
+                  style={{
+                    padding: '7px 14px', borderRadius: 9,
+                    fontFamily: 'var(--font-display)', fontSize: '0.75rem', fontWeight: 700,
+                    textTransform: 'uppercase', letterSpacing: '0.05em',
+                    border: 'none', cursor: 'pointer', transition: 'all 0.2s',
+                    background: active
+                      ? (cfg ? cfg.dim : 'rgba(124,58,237,0.15)')
+                      : 'transparent',
+                    color: active
+                      ? (cfg ? cfg.color : '#7C3AED')
+                      : '#6b7280',
+                    boxShadow: active && cfg ? `0 0 10px ${cfg.color}20` : 'none',
+                  }}
+                >
+                  {cat}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Sort + Filter toggle */}
-          <div className="flex items-center gap-3">
-            {/* Sort dropdown */}
-            <div className="relative">
-              <select
-                value={sort}
-                onChange={e => setSort(e.target.value)}
-                className="bg-white/5 border border-white/5 rounded-xl pl-4 pr-9 py-2.5 text-xs font-display font-semibold uppercase tracking-widest text-gray-400 outline-none focus:border-electric-purple/40 transition-all appearance-none cursor-pointer"
-              >
-                {SORT_OPTIONS.map(o => (
-                  <option key={o.value} value={o.value} className="bg-charcoal text-white">
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-            </div>
-
-            {/* Filter toggle */}
-            <button
-              onClick={() => setShowFilters(v => !v)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-display font-semibold uppercase tracking-widest border transition-all ${showFilters || selectedTags.length > 0
-                ? 'bg-electric-purple/10 border-electric-purple/30 text-electric-purple'
-                : 'bg-white/5 border-white/5 text-gray-500 hover:text-white'
-                }`}
+          {/* Sort */}
+          <div style={{ position: 'relative' }}>
+            <select
+              value={sort}
+              onChange={e => setSort(e.target.value)}
+              style={{
+                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
+                borderRadius: 12, padding: '11px 36px 11px 14px',
+                fontFamily: 'var(--font-display)', fontSize: '0.75rem', fontWeight: 700,
+                color: '#9ca3af', outline: 'none', cursor: 'pointer', appearance: 'none',
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center',
+              }}
             >
-              <SlidersHorizontal size={14} />
-              Tags {selectedTags.length > 0 && `(${selectedTags.length})`}
-            </button>
-
-            {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-[10px] font-mono uppercase tracking-widest text-red-400/70 hover:text-red-400 hover:bg-red-400/10 border border-red-400/10 transition-all"
-              >
-                <X size={12} /> Clear
-              </button>
-            )}
+              {SORT_OPTIONS.map(o => (
+                <option key={o.value} value={o.value} style={{ background: '#1E1E1E', color: '#fff' }}>{o.label}</option>
+              ))}
+            </select>
           </div>
+
+          {/* Tags toggle */}
+          <button
+            onClick={() => setShowFilters(v => !v)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 7,
+              padding: '11px 16px', borderRadius: 12,
+              background: showFilters || selectedTags.length > 0 ? 'rgba(124,58,237,0.12)' : 'rgba(255,255,255,0.04)',
+              border: showFilters || selectedTags.length > 0 ? '1px solid rgba(124,58,237,0.3)' : '1px solid rgba(255,255,255,0.07)',
+              color: showFilters || selectedTags.length > 0 ? '#7C3AED' : '#6b7280',
+              fontFamily: 'var(--font-display)', fontSize: '0.75rem', fontWeight: 700,
+              cursor: 'pointer', transition: 'all 0.2s',
+            }}
+          >
+            <Filter size={14} />
+            Tags {selectedTags.length > 0 && `(${selectedTags.length})`}
+          </button>
+
+          {hasFilters && (
+            <button
+              onClick={clearFilters}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                padding: '11px 14px', borderRadius: 12,
+                background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.15)',
+                color: '#f87171', fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
+                textTransform: 'uppercase', letterSpacing: '0.1em',
+                cursor: 'pointer', transition: 'all 0.2s',
+              }}
+            >
+              <X size={12} /> Clear
+            </button>
+          )}
         </div>
 
-        {/* Expanded tag filter panel */}
+        {/* Tag filter panel */}
         {showFilters && allTags.length > 0 && (
-          <div className="glass-panel p-5 space-y-4 animate-fade-up">
-            <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500">Filter by tags</p>
-            <div className="flex flex-wrap gap-2">
-              {allTags.map(tag => (
-                <button
-                  key={tag.id}
-                  onClick={() => toggleTag(tag.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-[10px] uppercase tracking-widest border transition-all ${selectedTags.includes(tag.id)
-                    ? 'bg-electric-purple border-electric-purple text-white shadow-[0_0_10px_rgba(124,58,237,0.3)]'
-                    : 'bg-white/5 border-white/5 text-gray-500 hover:text-gray-300 hover:border-white/10'
-                    }`}
-                >
-                  <Hash size={9} />
-                  {tag.name}
-                  <span className="text-[8px] opacity-60">({tag.type})</span>
-                </button>
-              ))}
-            </div>
+          <div style={{
+            padding: '20px 22px',
+            background: 'rgba(255,255,255,0.025)',
+            border: '1px solid rgba(255,255,255,0.07)',
+            borderRadius: 16,
+            animation: 'fadeUp 0.25s ease',
+          }}>
+            {Object.entries(tagsByType).map(([type, typeTags]) => (
+              <div key={type} style={{ marginBottom: 14 }}>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#7C3AED' }} />
+                  {type}s
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {typeTags.map(tag => {
+                    const active = selectedTags.includes(tag.id);
+                    return (
+                      <button
+                        key={tag.id}
+                        onClick={() => toggleTag(tag.id)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 5,
+                          padding: '5px 12px', borderRadius: 20,
+                          fontFamily: 'var(--font-mono)', fontSize: '0.62rem',
+                          textTransform: 'uppercase', letterSpacing: '0.08em',
+                          border: 'none', cursor: 'pointer', transition: 'all 0.2s',
+                          background: active ? 'rgba(124,58,237,0.2)' : 'rgba(255,255,255,0.05)',
+                          color: active ? '#a78bfa' : '#6b7280',
+                          outline: active ? '1px solid rgba(124,58,237,0.4)' : '1px solid transparent',
+                        }}
+                      >
+                        <Hash size={8} />
+                        {tag.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
 
-      {/* ── Results ── */}
-      <section>
-        <div className="flex items-center gap-4 mb-8">
-          <div className="h-px flex-1 bg-white/5" />
-          <span className="font-mono text-[10px] text-gray-700 uppercase tracking-[0.4em]">
-            {loading
-              ? 'Scanning index...'
-              : `${items.length} node${items.length !== 1 ? 's' : ''} resolved`}
-          </span>
-          <div className="h-px flex-1 bg-white/5" />
-        </div>
+      {/* Divider with count */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ height: 1, flex: 1, background: 'rgba(255,255,255,0.05)' }} />
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.2em', flexShrink: 0 }}>
+          {loading ? 'Scanning index...' : `${items.length} node${items.length !== 1 ? 's' : ''} resolved`}
+        </span>
+        <div style={{ height: 1, flex: 1, background: 'rgba(255,255,255,0.05)' }} />
+      </div>
 
-        {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="aspect-[3/4] rounded-2xl bg-white/5 animate-pulse" />
-            ))}
-          </div>
-        ) : items.length === 0 ? (
-          <div className="py-24 text-center border border-dashed border-white/5 rounded-3xl">
-            <Rocket className="w-12 h-12 text-gray-700 mx-auto mb-4" />
-            <h3 className="text-white font-display font-bold text-lg mb-2">Sector Uncharted</h3>
-            <p className="text-gray-500 text-sm italic font-body mb-6">
-              No nodes match your current scanning parameters.
-            </p>
-            {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="text-electric-purple font-mono text-xs uppercase tracking-widest hover:underline"
-              >
-                Clear filters
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {items.map((item, i) => (
-              <ContentCard key={item.id} item={item} index={i} onNavigate={onNavigate} />
-            ))}
-          </div>
-        )}
-      </section>
+      {/* Results grid */}
+      {loading ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: 16 }}>
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} style={{ aspectRatio: '3/4', borderRadius: 16, background: 'rgba(255,255,255,0.03)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+          ))}
+        </div>
+      ) : items.length === 0 ? (
+        <div style={{
+          padding: '80px 32px', textAlign: 'center',
+          border: '1px dashed rgba(255,255,255,0.07)', borderRadius: 20,
+          animation: 'fadeUp 0.4s ease',
+        }}>
+          <Rocket size={44} color="#374151" style={{ margin: '0 auto 16px' }} />
+          <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.2rem', color: '#fff', marginBottom: 8 }}>Sector Uncharted</h3>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: '#6b7280', fontStyle: 'italic', marginBottom: 20 }}>
+            No nodes match your current scanning parameters.
+          </p>
+          {hasFilters && (
+            <button
+              onClick={clearFilters}
+              style={{
+                fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#7C3AED',
+                textTransform: 'uppercase', letterSpacing: '0.1em',
+                background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline',
+              }}
+            >
+              Clear all filters
+            </button>
+          )}
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: 16 }}>
+          {items.map((item, i) => (
+            <ContentCard key={item.id} item={item} index={i} onNavigate={onNavigate} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

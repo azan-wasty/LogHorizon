@@ -1,87 +1,144 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { recommendations as recsApi, preferences as prefApi } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import {
-    Sparkles,
-    Star,
-    ExternalLink,
-    Zap,
-    Compass,
-    ChevronRight,
-    Loader2,
-    TrendingUp,
-    Hexagon,
-    Database,
-    Hash,
-    Settings2,
-    BarChart3,
+    Sparkles, Star, ExternalLink, Zap, Compass,
+    ChevronRight, Loader2, TrendingUp, Database,
+    Hash, Settings2, BarChart3, Award, Activity,
+    Play, Bookmark, Check, ArrowUpRight,
 } from 'lucide-react';
 
-// ── Category accent colours ───────────────────────
-const CAT_STYLE = {
-    Anime: { pill: 'bg-pink-500/10 text-pink-400 border-pink-500/20', dot: 'bg-pink-400' },
-    Manga: { pill: 'bg-blue-500/10 text-blue-400 border-blue-500/20', dot: 'bg-blue-400' },
-    Movie: { pill: 'bg-amber-500/10 text-amber-400 border-amber-500/20', dot: 'bg-amber-400' },
-    TV: { pill: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20', dot: 'bg-cyan-400' },
+// ── Category styles ────────────────────────────────
+const CAT = {
+    Anime: { color: '#f472b6', dim: 'rgba(244,114,182,0.1)', border: 'rgba(244,114,182,0.2)', label: 'Anime' },
+    Manga: { color: '#60a5fa', dim: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.2)', label: 'Manga' },
+    Movie: { color: '#fbbf24', dim: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.2)', label: 'Movie' },
+    TV: { color: '#34d399', dim: 'rgba(52,211,153,0.1)', border: 'rgba(52,211,153,0.2)', label: 'TV' },
 };
-const fallbackStyle = { pill: 'bg-white/5 text-gray-400 border-white/10', dot: 'bg-gray-500' };
+const fallbackCat = { color: '#7C3AED', dim: 'rgba(124,58,237,0.1)', border: 'rgba(124,58,237,0.2)', label: '—' };
 
-// ── Score badge colour ────────────────────────────
+// Score badge
 function scoreBadge(score) {
-    if (score >= 9) return 'bg-electric-purple text-white shadow-[0_0_12px_rgba(124,58,237,0.5)]';
-    if (score >= 6) return 'bg-electric-purple/20 text-accent-violet border border-electric-purple/30';
-    if (score >= 3) return 'bg-white/10 text-gray-300 border border-white/10';
-    return 'bg-white/5 text-gray-500 border border-white/5';
+    if (score >= 9) return { bg: '#7C3AED', color: '#fff', shadow: '0 0 12px rgba(124,58,237,0.5)' };
+    if (score >= 6) return { bg: 'rgba(124,58,237,0.2)', color: '#a78bfa', shadow: 'none' };
+    return { bg: 'rgba(255,255,255,0.08)', color: '#6b7280', shadow: 'none' };
 }
 
-// ── Single recommendation card ────────────────────
+// ── Animated counter ───────────────────────────────
+function AnimNum({ target, decimals = 0 }) {
+    const [val, setVal] = useState(0);
+    useEffect(() => {
+        if (!target) return;
+        let frame;
+        const start = performance.now();
+        const dur = 900;
+        const tick = (now) => {
+            const t = Math.min((now - start) / dur, 1);
+            const ease = 1 - Math.pow(1 - t, 3);
+            setVal(parseFloat((ease * target).toFixed(decimals)));
+            if (t < 1) frame = requestAnimationFrame(tick);
+        };
+        frame = requestAnimationFrame(tick);
+        return () => cancelAnimationFrame(frame);
+    }, [target]);
+    return <>{val}</>;
+}
+
+// ── Recommendation card ────────────────────────────
 function RecCard({ item, index, onNavigate }) {
-    const style = CAT_STYLE[item.category] || fallbackStyle;
+    const [hovered, setHovered] = useState(false);
+    const cat = CAT[item.category] || fallbackCat;
+    const sb = item._score > 0 ? scoreBadge(item._score) : null;
+
     return (
         <div
             onClick={() => onNavigate(`content/${item.id}`)}
-            className="premium-card overflow-hidden group animate-fade-up cursor-pointer"
-            style={{ animationDelay: `${index * 40}ms` }}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            style={{
+                borderRadius: 16,
+                overflow: 'hidden',
+                cursor: 'pointer',
+                background: 'rgba(255,255,255,0.03)',
+                border: hovered ? `1px solid ${cat.color}30` : '1px solid rgba(255,255,255,0.06)',
+                transition: 'all 0.3s',
+                transform: hovered ? 'translateY(-5px)' : 'none',
+                boxShadow: hovered ? `0 16px 40px rgba(0,0,0,0.4), 0 0 0 1px ${cat.color}20` : 'none',
+                animation: `fadeUp 0.4s ${index * 35}ms ease both`,
+            }}
         >
             {/* Cover */}
-            <div className="relative aspect-[3/4] overflow-hidden">
+            <div style={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden' }}>
                 {item.isSuggested && (
-                    <div className="absolute top-3 left-3 z-20 px-2 py-1 rounded bg-amber-500 text-black text-[9px] font-display font-bold uppercase tracking-tighter shadow-lg flex items-center gap-1 animate-pulse">
-                        <Star size={10} fill="currentColor" /> Suggested
+                    <div style={{
+                        position: 'absolute', top: 8, left: 8, zIndex: 20,
+                        padding: '3px 8px', borderRadius: 6,
+                        background: '#f59e0b', color: '#000',
+                        fontFamily: 'var(--font-display)', fontSize: '0.6rem', fontWeight: 800,
+                        textTransform: 'uppercase', letterSpacing: '0.05em',
+                        display: 'flex', alignItems: 'center', gap: 4,
+                        animation: 'pulse 2s infinite',
+                    }}>
+                        <Star size={8} fill="currentColor" /> Suggested
                     </div>
                 )}
+
                 {item.coverImage ? (
                     <img
                         src={item.coverImage}
                         alt={item.title}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        style={{
+                            width: '100%', height: '100%', objectFit: 'cover',
+                            transition: 'transform 0.6s',
+                            transform: hovered ? 'scale(1.08)' : 'scale(1)',
+                        }}
                     />
                 ) : (
-                    <div className="w-full h-full bg-white/5 flex items-center justify-center">
-                        <Database className="text-gray-800" size={40} />
+                    <div style={{ width: '100%', height: '100%', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Database size={36} color="#374151" />
                     </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-transparent to-transparent opacity-80 group-hover:opacity-40 transition-opacity" />
+
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(14,14,22,0.9) 0%, transparent 50%)' }} />
 
                 {/* Category badge */}
-                <div className="absolute top-3 right-3">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider border ${style.pill}`}>
+                <div style={{ position: 'absolute', top: 8, right: 8 }}>
+                    <span style={{
+                        padding: '2px 8px', borderRadius: 5,
+                        background: cat.dim, border: `1px solid ${cat.border}`,
+                        fontFamily: 'var(--font-mono)', fontSize: '0.58rem', fontWeight: 700,
+                        color: cat.color, textTransform: 'uppercase', letterSpacing: '0.07em',
+                    }}>
                         {item.category}
                     </span>
                 </div>
 
                 {/* Rating */}
-                {item.rating ? (
-                    <div className="absolute top-3 left-3 px-2 py-0.5 rounded-full bg-dark/80 backdrop-blur-md border border-white/10 flex items-center gap-1">
-                        <Star size={10} className="text-amber-400 fill-amber-400" />
-                        <span className="text-[10px] font-mono font-bold text-amber-400">{item.rating.toFixed(1)}</span>
+                {item.rating && (
+                    <div style={{
+                        position: 'absolute', bottom: 8, left: 8,
+                        display: 'flex', alignItems: 'center', gap: 4,
+                        padding: '3px 8px', borderRadius: 20,
+                        background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                    }}>
+                        <Star size={9} color="#fbbf24" fill="#fbbf24" />
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', fontWeight: 700, color: '#fbbf24' }}>
+                            {item.rating.toFixed(1)}
+                        </span>
                     </div>
-                ) : null}
+                )}
 
                 {/* Match score */}
-                {item._score > 0 && (
-                    <div className={`absolute bottom-3 left-3 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold flex items-center gap-1 ${scoreBadge(item._score)}`}>
+                {sb && (
+                    <div style={{
+                        position: 'absolute', bottom: 8, right: 8,
+                        display: 'flex', alignItems: 'center', gap: 3,
+                        padding: '3px 8px', borderRadius: 20,
+                        background: sb.bg, color: sb.color, boxShadow: sb.shadow,
+                        fontFamily: 'var(--font-mono)', fontSize: '0.6rem', fontWeight: 700,
+                    }}>
                         <Zap size={9} fill="currentColor" />
                         {item._score}
                     </div>
@@ -89,14 +146,23 @@ function RecCard({ item, index, onNavigate }) {
             </div>
 
             {/* Info */}
-            <div className="p-4 space-y-2">
-                <h3 className="font-display font-bold text-sm text-white line-clamp-2 min-h-[40px] group-hover:text-electric-purple transition-colors">
+            <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <h3 style={{
+                    fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.82rem',
+                    color: hovered ? cat.color : '#fff',
+                    overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical', minHeight: 36, lineHeight: 1.35,
+                    transition: 'color 0.2s',
+                }}>
                     {item.title}
                 </h3>
-                <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest">
-                    <div className="flex items-center gap-1.5 text-gray-500">
-                        <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
-                        {item._matchedTags?.[0]?.name || item.tags?.[0]?.name || 'Untagged'}
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <div style={{ width: 5, height: 5, borderRadius: '50%', background: cat.color, flexShrink: 0 }} />
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                            {item._matchedTags?.[0]?.name || item.tags?.[0]?.name || 'Untagged'}
+                        </span>
                     </div>
                     {item.discordLink && (
                         <a
@@ -104,21 +170,23 @@ function RecCard({ item, index, onNavigate }) {
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={e => e.stopPropagation()}
-                            className="text-discord-blue hover:text-white transition-colors flex items-center gap-1"
+                            style={{ display: 'flex', alignItems: 'center', gap: 3, color: '#5865F2', fontSize: '0.58rem', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.07em' }}
                         >
-                            <ExternalLink size={10} /> Portal
+                            <ExternalLink size={9} /> Portal
                         </a>
                     )}
                 </div>
 
                 {/* Matched tags */}
                 {item._matchedTags?.length > 0 && (
-                    <div className="flex flex-wrap gap-1 pt-1">
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                         {item._matchedTags.slice(0, 3).map(t => (
-                            <span
-                                key={t.id}
-                                className="px-2 py-0.5 rounded-full bg-electric-purple/10 border border-electric-purple/20 text-[9px] font-mono text-accent-violet uppercase tracking-wider"
-                            >
+                            <span key={t.id} style={{
+                                padding: '2px 7px', borderRadius: 20,
+                                background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)',
+                                fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: '#a78bfa',
+                                textTransform: 'uppercase', letterSpacing: '0.07em',
+                            }}>
                                 {t.name}
                             </span>
                         ))}
@@ -129,65 +197,110 @@ function RecCard({ item, index, onNavigate }) {
     );
 }
 
-// ── Explore card (no match) ───────────────────────
+// ── Explore card ───────────────────────────────────
 function ExploreCard({ item, index, onNavigate }) {
-    const style = CAT_STYLE[item.category] || fallbackStyle;
+    const [hovered, setHovered] = useState(false);
+    const cat = CAT[item.category] || fallbackCat;
+
     return (
         <div
             onClick={() => onNavigate(`content/${item.id}`)}
-            className="premium-card p-4 flex gap-4 group animate-fade-up cursor-pointer"
-            style={{ animationDelay: `${index * 50}ms` }}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            style={{
+                display: 'flex', gap: 14, padding: 14,
+                borderRadius: 14,
+                background: hovered ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.02)',
+                border: hovered ? `1px solid ${cat.color}20` : '1px solid rgba(255,255,255,0.05)',
+                cursor: 'pointer', transition: 'all 0.2s',
+                transform: hovered ? 'translateY(-2px)' : 'none',
+                animation: `fadeUp 0.4s ${index * 50}ms ease both`,
+            }}
         >
-            <div className="relative w-14 h-20 bg-white/5 rounded-lg overflow-hidden flex-shrink-0">
+            <div style={{ width: 50, height: 70, borderRadius: 10, overflow: 'hidden', flexShrink: 0, position: 'relative', background: 'rgba(255,255,255,0.05)' }}>
                 {item.isSuggested && (
-                    <div className="absolute top-0 right-0 p-1 bg-amber-500 text-black z-10 rounded-bl-lg">
-                        <Star size={8} fill="currentColor" />
+                    <div style={{ position: 'absolute', top: 0, right: 0, padding: 3, background: '#f59e0b', borderRadius: '0 0 0 5px', zIndex: 10 }}>
+                        <Star size={7} color="#000" fill="#000" />
                     </div>
                 )}
-                {item.coverImage ? (
-                    <img src={item.coverImage} className="w-full h-full object-cover group-hover:scale-110 transition-transform" alt="" />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-700">
-                        <Database size={20} />
-                    </div>
-                )}
+                {item.coverImage
+                    ? <img src={item.coverImage} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s', transform: hovered ? 'scale(1.08)' : 'scale(1)' }} alt="" />
+                    : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Database size={18} color="#374151" /></div>
+                }
             </div>
-            <div className="flex-1 min-w-0 space-y-1.5">
-                <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase tracking-wider border ${style.pill}`}>
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 5 }}>
+                <span style={{
+                    padding: '2px 7px', borderRadius: 4, display: 'inline-block', width: 'fit-content',
+                    background: cat.dim, border: `1px solid ${cat.border}`,
+                    fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: cat.color, fontWeight: 700,
+                    textTransform: 'uppercase', letterSpacing: '0.07em',
+                }}>
                     {item.category}
                 </span>
-                <p className="text-sm font-display font-bold text-white truncate group-hover:text-electric-purple transition-colors">
+                <p style={{
+                    fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.85rem',
+                    color: hovered ? cat.color : '#fff',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                    transition: 'color 0.2s',
+                }}>
                     {item.title}
                 </p>
                 {item.rating && (
-                    <div className="flex items-center gap-1 text-amber-500">
-                        <Star size={10} fill="currentColor" />
-                        <span className="text-[10px] font-mono font-bold">{item.rating.toFixed(1)}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Star size={9} color="#fbbf24" fill="#fbbf24" />
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#fbbf24', fontWeight: 700 }}>{item.rating.toFixed(1)}</span>
                     </div>
                 )}
-                <p className="text-[10px] text-gray-600 line-clamp-2 leading-relaxed">{item.description}</p>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.7rem', color: '#4b5563', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                    {item.description}
+                </p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                <ArrowUpRight size={16} color={hovered ? cat.color : '#374151'} style={{ transition: 'color 0.2s' }} />
             </div>
         </div>
     );
 }
 
-// ── Stat widget ───────────────────────────────────
-function StatWidget({ label, value, sub, icon: Icon, accent }) {
+// ── Stat card ──────────────────────────────────────
+function StatCard({ label, value, sub, icon: Icon, color, dim }) {
     return (
-        <div className={`premium-card p-6 flex items-center gap-4`}>
-            <div className={`p-3 rounded-xl ${accent}`}>
-                <Icon size={22} />
+        <div style={{
+            padding: '20px 22px',
+            background: 'rgba(255,255,255,0.025)',
+            border: '1px solid rgba(255,255,255,0.06)',
+            borderRadius: 16,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 16,
+            animation: 'fadeUp 0.4s ease both',
+        }}>
+            <div style={{
+                width: 44, height: 44, borderRadius: 12,
+                background: dim,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0,
+                border: `1px solid ${color}20`,
+            }}>
+                <Icon size={20} color={color} />
             </div>
             <div>
-                <p className="text-2xl font-display font-bold text-white">{value}</p>
-                <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500">{label}</p>
-                {sub && <p className="text-[10px] text-gray-600 mt-0.5">{sub}</p>}
+                <p style={{
+                    fontFamily: 'var(--font-display)', fontWeight: 800,
+                    fontSize: '1.5rem', color: '#fff', lineHeight: 1, marginBottom: 4,
+                }}>
+                    {value}
+                </p>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+                    {label}
+                </p>
+                {sub && <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: '#374151', marginTop: 2 }}>{sub}</p>}
             </div>
         </div>
     );
 }
 
-// ── Main Page ─────────────────────────────────────
+// ── Main Dashboard ─────────────────────────────────
 export default function DashboardPage({ onNavigate }) {
     const { user, achievements } = useAuth();
     const toast = useToast();
@@ -227,83 +340,99 @@ export default function DashboardPage({ onNavigate }) {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center py-40 gap-4">
-                <Loader2 className="w-10 h-10 text-electric-purple animate-spin" />
-                <p className="font-mono text-xs uppercase tracking-widest text-gray-600">Calibrating neural feed...</p>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: 16 }}>
+                <Loader2 size={36} color="#7C3AED" style={{ animation: 'spin 0.8s linear infinite' }} />
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#374151' }}>
+                    Calibrating neural feed...
+                </p>
+                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
         );
     }
 
     return (
-        <div className="space-y-12">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
+            <style>{`
+        @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+      `}</style>
 
-            {/* ── Header ── */}
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-2">
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className="px-2.5 py-0.5 rounded-full bg-electric-purple/10 border border-electric-purple/20 text-[10px] font-mono font-bold uppercase tracking-widest text-electric-purple">
-                            Dashboard
+            {/* ── Header ─────────────────────────────────── */}
+            <header style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap', animation: 'fadeUp 0.4s ease' }}>
+                <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                        <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#34d399', boxShadow: '0 0 8px #34d399', animation: 'pulse 2s infinite' }} />
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#34d399', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+                            Live Feed
                         </span>
                     </div>
-                    <h1 className="text-4xl font-display font-bold text-white tracking-tight">
-                        Welcome back, <span className="text-electric-purple">@{handle}</span>
+                    <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2.2rem', color: '#fff', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 8 }}>
+                        Welcome back, <span style={{ color: '#7C3AED' }}>@{handle}</span>
                     </h1>
-                    <p className="text-gray-500 text-sm italic font-body">
+                    <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: '#6b7280', fontStyle: 'italic' }}>
                         {hasPrefs
-                            ? `Your neural profile found ${totalRecs} matched titles.`
-                            : 'Set your preferences to unlock personalised recommendations.'}
+                            ? `Your neural profile matched ${totalRecs} titles from the global index.`
+                            : 'Configure your taste profile to unlock personalised picks.'}
                     </p>
                 </div>
+
                 <button
                     onClick={() => onNavigate('onboarding')}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 border border-white/5 text-sm font-display font-semibold text-gray-400 hover:text-white hover:bg-white/10 transition-all group"
+                    style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '10px 18px', borderRadius: 12,
+                        background: 'rgba(124,58,237,0.08)',
+                        border: '1px solid rgba(124,58,237,0.2)',
+                        cursor: 'pointer', transition: 'all 0.2s',
+                        fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.8rem', color: '#9ca3af',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(124,58,237,0.15)'; e.currentTarget.style.color = '#fff'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(124,58,237,0.08)'; e.currentTarget.style.color = '#9ca3af'; }}
                 >
-                    <Settings2 size={16} />
+                    <Settings2 size={15} />
                     Tune Profile
-                    <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                    <ChevronRight size={13} color="rgba(124,58,237,0.5)" />
                 </button>
             </header>
 
-            {/* ── Library Stats ── */}
+            {/* ── Library quick stats ─────────────────────── */}
             {stats?.libraryStats && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-                    <StatWidget
-                        label="Total Archive"
-                        value={stats.libraryStats.total}
-                        icon={Database}
-                        accent="bg-white/10 text-white"
-                    />
-                    <StatWidget
-                        label="Completed"
-                        value={stats.libraryStats.completed}
-                        icon={TrendingUp}
-                        accent="bg-spotify-green/10 text-spotify-green"
-                    />
-                    <StatWidget
-                        label="Currently Watching"
-                        value={stats.libraryStats.current}
-                        icon={Sparkles}
-                        accent="bg-cyan-400/10 text-cyan-400"
-                    />
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14 }}>
+                    <StatCard label="Archive Total" value={<AnimNum target={stats.libraryStats.total} />} icon={Database} color="#8B5CF6" dim="rgba(139,92,246,0.12)" />
+                    <StatCard label="Completed" value={<AnimNum target={stats.libraryStats.completed} />} icon={Check} color="#34d399" dim="rgba(52,211,153,0.12)" />
+                    <StatCard label="Active Watch" value={<AnimNum target={stats.libraryStats.current} />} icon={Play} color="#22d3ee" dim="rgba(34,211,238,0.12)" />
+                    <StatCard label="Watchlist" value={<AnimNum target={stats.libraryStats.planning || 0} />} icon={Bookmark} color="#f472b6" dim="rgba(244,114,182,0.12)" />
                 </div>
             )}
 
-            {/* ── Achievements ── */}
-            {achievements && achievements.length > 0 && (
-                <section className="space-y-6">
-                    <div className="flex items-center gap-3">
-                        <Sparkles className="text-amber-400" size={22} fill="currentColor" />
-                        <h2 className="text-xl font-display font-bold text-white tracking-tight">Unlocked Badges</h2>
+            {/* ── Achievements ────────────────────────────── */}
+            {achievements?.length > 0 && (
+                <section style={{ animation: 'fadeUp 0.4s 0.1s ease both' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                        <div style={{ padding: '5px 7px', borderRadius: 9, background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)' }}>
+                            <Award size={15} color="#fbbf24" fill="rgba(251,191,36,0.3)" />
+                        </div>
+                        <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1rem', color: '#fff', letterSpacing: '-0.02em' }}>
+                            Unlocked Badges
+                        </h2>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#fbbf24', background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)', padding: '2px 8px', borderRadius: 20 }}>
+                            {achievements.length}
+                        </span>
                     </div>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        {achievements.map((ach) => (
-                            <div key={ach.title} className="premium-card p-4 flex gap-4 items-center">
-                                <div className="p-3 bg-amber-500/10 text-amber-400 rounded-xl">
-                                    <Star size={20} fill="currentColor" />
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>
+                        {achievements.map((ach, i) => (
+                            <div key={ach.title} style={{
+                                display: 'flex', alignItems: 'center', gap: 12,
+                                padding: '12px 16px', borderRadius: 12,
+                                background: 'rgba(251,191,36,0.04)', border: '1px solid rgba(251,191,36,0.1)',
+                                animation: `fadeUp 0.4s ${i * 60}ms ease both`,
+                            }}>
+                                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                    <Star size={16} color="#fbbf24" fill="rgba(251,191,36,0.4)" />
                                 </div>
                                 <div>
-                                    <h4 className="font-display font-bold text-sm text-white">{ach.title}</h4>
-                                    <p className="text-[10px] text-gray-400 font-mono tracking-wide">{ach.description}</p>
+                                    <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.82rem', color: '#fbbf24', marginBottom: 2 }}>{ach.title}</p>
+                                    <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{ach.description}</p>
                                 </div>
                             </div>
                         ))}
@@ -311,76 +440,81 @@ export default function DashboardPage({ onNavigate }) {
                 </section>
             )}
 
-            {/* ── Stats Row ── */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatWidget
-                    label="Matched Titles"
-                    value={totalRecs}
-                    icon={Sparkles}
-                    accent="bg-electric-purple/10 text-electric-purple"
-                />
-                <StatWidget
-                    label="Index Match Rate"
-                    value={`${matchRate}%`}
-                    sub="of total library"
-                    icon={BarChart3}
-                    accent="bg-cyan-400/10 text-cyan-400"
-                />
-                <StatWidget
-                    label="Top Genre"
-                    value={topGenre}
-                    icon={TrendingUp}
-                    accent="bg-amber-500/10 text-amber-500"
-                />
-                <StatWidget
-                    label="Preference Nodes"
-                    value={Object.values(prefs).flat().length}
-                    icon={Hash}
-                    accent="bg-pink-500/10 text-pink-400"
-                />
+            {/* ── Stats row ───────────────────────────────── */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14 }}>
+                <StatCard label="Matched Titles" value={<AnimNum target={totalRecs} />} icon={Sparkles} color="#7C3AED" dim="rgba(124,58,237,0.12)" />
+                <StatCard label="Index Match Rate" value={<><AnimNum target={matchRate} />%</>} sub="of total library" icon={BarChart3} color="#22d3ee" dim="rgba(34,211,238,0.12)" />
+                <StatCard label="Top Genre" value={topGenre} icon={TrendingUp} color="#f59e0b" dim="rgba(245,158,11,0.12)" />
+                <StatCard label="Preference Nodes" value={<AnimNum target={Object.values(prefs).flat().length} />} icon={Hash} color="#f472b6" dim="rgba(244,114,182,0.12)" />
             </div>
 
-            {/* ── No Preferences State ── */}
+            {/* ── No Preferences ──────────────────────────── */}
             {!hasPrefs && (
-                <div className="glass-panel p-12 flex flex-col items-center text-center gap-6">
-                    <div className="w-16 h-16 rounded-full bg-electric-purple/10 flex items-center justify-center text-electric-purple border border-electric-purple/20">
-                        <Hexagon size={32} />
+                <div style={{
+                    padding: '56px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 20,
+                    background: 'rgba(124,58,237,0.04)', border: '1px dashed rgba(124,58,237,0.2)', borderRadius: 20,
+                    animation: 'fadeUp 0.4s ease',
+                }}>
+                    <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 30px rgba(124,58,237,0.15)' }}>
+                        <Activity size={28} color="#7C3AED" />
                     </div>
                     <div>
-                        <h3 className="text-xl font-display font-bold text-white mb-2">Neural Profile Empty</h3>
-                        <p className="text-gray-400 font-body text-sm max-w-sm mx-auto">
-                            Select your genres, moods and themes to unlock personalised recommendations.
+                        <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem', color: '#fff', marginBottom: 8 }}>Neural Profile Empty</h3>
+                        <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: '#6b7280', maxWidth: 360, margin: '0 auto', fontStyle: 'italic' }}>
+                            Select your genres, moods and themes to unlock the full recommendation engine.
                         </p>
                     </div>
                     <button
                         onClick={() => onNavigate('onboarding')}
-                        className="bg-electric-purple text-white px-8 py-3 rounded-xl font-display font-bold shadow-[0_0_20px_rgba(124,58,237,0.3)] hover:bg-accent-violet hover:-translate-y-0.5 transition-all"
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: 8,
+                            padding: '12px 28px', borderRadius: 12,
+                            background: '#7C3AED', color: '#fff',
+                            fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.9rem',
+                            border: 'none', cursor: 'pointer',
+                            boxShadow: '0 0 25px rgba(124,58,237,0.4)',
+                            transition: 'all 0.2s',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#8B5CF6'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#7C3AED'; e.currentTarget.style.transform = 'none'; }}
                     >
-                        Initialize Profile
+                        Initialize Profile <ChevronRight size={16} />
                     </button>
                 </div>
             )}
 
-            {/* ── For You Grid ── */}
+            {/* ── For You ─────────────────────────────────── */}
             {recs.length > 0 && (
-                <section className="space-y-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <Zap className="text-electric-purple" size={22} fill="currentColor" />
-                            <h2 className="text-xl font-display font-bold text-white tracking-tight">For You</h2>
-                            <span className="px-2 py-0.5 rounded-full bg-electric-purple/10 border border-electric-purple/20 text-[10px] font-mono text-electric-purple">
+                <section>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <div style={{ padding: '6px 8px', borderRadius: 10, background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.2)' }}>
+                                <Zap size={15} color="#7C3AED" fill="#7C3AED" />
+                            </div>
+                            <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem', color: '#fff', letterSpacing: '-0.02em' }}>
+                                For You
+                            </h2>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#7C3AED', background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)', padding: '2px 8px', borderRadius: 20 }}>
                                 {recs.length} matches
                             </span>
                         </div>
                         <button
                             onClick={() => onNavigate('discover')}
-                            className="text-xs font-mono uppercase tracking-widest text-gray-500 hover:text-electric-purple transition-colors flex items-center gap-1.5"
+                            style={{
+                                display: 'flex', alignItems: 'center', gap: 5,
+                                fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#4b5563',
+                                textTransform: 'uppercase', letterSpacing: '0.1em',
+                                background: 'none', border: 'none', cursor: 'pointer',
+                                transition: 'color 0.2s',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.color = '#7C3AED'}
+                            onMouseLeave={e => e.currentTarget.style.color = '#4b5563'}
                         >
-                            Browse All <ChevronRight size={14} />
+                            Browse All <ChevronRight size={13} />
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: 16 }}>
                         {recs.map((item, i) => (
                             <RecCard key={item.id} item={item} index={i} onNavigate={onNavigate} />
                         ))}
@@ -388,18 +522,22 @@ export default function DashboardPage({ onNavigate }) {
                 </section>
             )}
 
-            {/* ── Explore Beyond ── */}
+            {/* ── Explore Beyond ──────────────────────────── */}
             {explore.length > 0 && (
-                <section className="space-y-6">
-                    <div className="flex items-center gap-3">
-                        <Compass className="text-cyan-400" size={22} />
-                        <h2 className="text-xl font-display font-bold text-white tracking-tight">Explore Beyond</h2>
-                        <span className="text-[10px] font-mono uppercase tracking-widest text-gray-600">
+                <section>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                        <div style={{ padding: '6px 8px', borderRadius: 10, background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.2)' }}>
+                            <Compass size={15} color="#22d3ee" />
+                        </div>
+                        <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem', color: '#fff', letterSpacing: '-0.02em' }}>
+                            Explore Beyond
+                        </h2>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                             Outside your current profile
                         </span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 10 }}>
                         {explore.map((item, i) => (
                             <ExploreCard key={item.id} item={item} index={i} onNavigate={onNavigate} />
                         ))}
@@ -407,23 +545,40 @@ export default function DashboardPage({ onNavigate }) {
                 </section>
             )}
 
-            {/* ── Category Breakdown ── */}
+            {/* ── Category Breakdown ──────────────────────── */}
             {stats?.hasPreferences && Object.keys(stats.stats || {}).length > 0 && (
-                <section className="space-y-6">
-                    <div className="flex items-center gap-3">
-                        <BarChart3 className="text-accent-violet" size={22} />
-                        <h2 className="text-xl font-display font-bold text-white tracking-tight">Match Breakdown</h2>
+                <section>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                        <div style={{ padding: '6px 8px', borderRadius: 10, background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)' }}>
+                            <BarChart3 size={15} color="#8B5CF6" />
+                        </div>
+                        <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem', color: '#fff', letterSpacing: '-0.02em' }}>
+                            Match Breakdown
+                        </h2>
                     </div>
 
-                    <div className="glass-panel p-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                    <div style={{
+                        display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 14,
+                        padding: '24px 28px',
+                        background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 18,
+                    }}>
                         {Object.entries(stats.stats).map(([cat, count]) => {
-                            const style = CAT_STYLE[cat] || fallbackStyle;
+                            const cfg = CAT[cat] || fallbackCat;
                             return (
-                                <div key={cat} className="flex flex-col items-center gap-3 group">
-                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${style.pill} transition-transform group-hover:scale-110`}>
-                                        <span className="text-xl font-display font-bold">{count}</span>
+                                <div key={cat} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+                                    <div style={{
+                                        width: 56, height: 56, borderRadius: 16,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        background: cfg.dim, border: `1px solid ${cfg.border}`,
+                                        boxShadow: `0 0 20px ${cfg.color}20`,
+                                    }}>
+                                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.3rem', color: cfg.color }}>
+                                            {count}
+                                        </span>
                                     </div>
-                                    <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500">{cat}</p>
+                                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                                        {cat}
+                                    </span>
                                 </div>
                             );
                         })}
