@@ -333,26 +333,47 @@ export default function ContentPage({ id, goBack }) {
 
       <div style={{ position: 'relative', zIndex: 1, maxWidth: 1300, margin: '0 auto', padding: '32px 40px 80px' }}>
 
-        {/* ── BACK BUTTON ── */}
-        <button
-          onClick={goBack}
-          className="back-btn"
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            marginBottom: 40,
-            padding: '9px 16px', borderRadius: 10,
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.07)',
-            color: '#6b7280', cursor: 'pointer',
-            fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.72rem',
-            textTransform: 'uppercase', letterSpacing: '0.1em',
-            transition: 'all 0.2s',
-            animation: 'fadeIn 0.4s ease',
-          }}
-        >
-          <ArrowLeft size={14} className="back-arrow" />
-          Back
-        </button>
+        {/* ── TOP NAVIGATION ── */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 40, animation: 'fadeIn 0.4s ease' }}>
+          <button
+            onClick={goBack}
+            className="back-btn"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '9px 16px', borderRadius: 10,
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              color: '#6b7280', cursor: 'pointer',
+              fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.72rem',
+              textTransform: 'uppercase', letterSpacing: '0.1em',
+              transition: 'all 0.2s',
+            }}
+          >
+            <ArrowLeft size={14} className="back-arrow" /> Back
+          </button>
+
+          {/* TOP BAR FAVOURITE TOGGLE */}
+          <button
+            onClick={handleToggleFavourite}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              background: isFavourite ? 'rgba(239,68,68,0.12)' : 'rgba(255,255,255,0.04)',
+              border: isFavourite ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 10, padding: '9px 20px',
+              color: isFavourite ? '#ef4444' : '#6b7280',
+              fontFamily: 'var(--font-mono)', fontSize: '0.65rem', fontWeight: 700,
+              textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer',
+              transition: 'all 0.2s',
+              boxShadow: isFavourite ? '0 0 20px rgba(239,68,68,0.25)' : 'none',
+              backdropFilter: 'blur(8px)',
+            }}
+            onMouseEnter={e => { if (!isFavourite) e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseLeave={e => { if (!isFavourite) e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.transform = 'none'; }}
+          >
+            <Heart size={15} fill={isFavourite ? '#ef4444' : 'none'} />
+            {isFavourite ? 'Favourited' : 'Add Favourite'}
+          </button>
+        </div>
 
         {/* ── MAIN LAYOUT ── */}
         <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 60, alignItems: 'start' }}>
@@ -558,31 +579,10 @@ export default function ContentPage({ id, goBack }) {
           {/* ════════════════════════════════
               RIGHT COLUMN — CONTENT INFO
               ════════════════════════════════ */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0, paddingTop: 8, position: 'relative' }}>
-            
-            {/* Absolute Favourites Toggle */}
-            <div style={{ position: 'absolute', top: 0, right: 0, zIndex: 100 }}>
-              <button
-                onClick={handleToggleFavourite}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  width: 56, height: 56, borderRadius: '50%', border: 'none', cursor: 'pointer',
-                  background: isFavourite ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.05)',
-                  color: isFavourite ? '#ef4444' : '#4b5563',
-                  border: isFavourite ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(255,255,255,0.1)',
-                  transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                  boxShadow: isFavourite ? '0 0 25px rgba(239,68,68,0.25)' : '0 8px 32px rgba(0,0,0,0.2)',
-                  backdropFilter: 'blur(8px)',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1) rotate(5deg)'; if (!isFavourite) e.currentTarget.style.color = '#fff'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; if (!isFavourite) e.currentTarget.style.color = '#4b5563'; }}
-              >
-                <Heart size={26} fill={isFavourite ? '#ef4444' : 'none'} />
-              </button>
-            </div>
-
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0, paddingTop: 8 }}>
+ 
             {/* Category label + title */}
-            <div style={{ marginBottom: 24, paddingRight: 70, animation: 'slideInLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both' }}>
+            <div style={{ marginBottom: 24, animation: 'slideInLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
                 <span style={{
                   padding: '4px 12px', borderRadius: 4,
