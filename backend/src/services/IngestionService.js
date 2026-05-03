@@ -150,9 +150,16 @@ class IngestionService {
             const resp = await fetch(
                 `https://api.jikan.moe/v4/${type}?q=${encodeURIComponent(title)}&limit=1`
             );
-            const json = await resp.json();
-            const data = json.data?.[0];
-            if (!data) return { ok: false, message: `No ${type} found: "${title}"` };
+            
+            if (!resp.ok) {
+                return { ok: false, message: `Jikan API error (${resp.status}). They might be rate-limiting requests.` };
+            }
+
+            const json = await resp.json().catch(() => null);
+            if (!json || !json.data || !json.data[0]) {
+                return { ok: false, message: `No ${type} found matching: "${title}"` };
+            }
+            const data = json.data[0];
 
             const existing = await prisma.content.findFirst({
                 where: { externalId: String(data.mal_id), source: "Jikan" },
@@ -178,7 +185,7 @@ class IngestionService {
                     },
                     include: { tags: { include: { tag: true } } },
                 });
-            });
+            }, { timeout: 30000 });
             return { ok: true, content };
         } catch (err) {
             console.error("ingestAnime error:", err);
@@ -231,9 +238,16 @@ class IngestionService {
             const resp = await fetch(
                 `https://api.themoviedb.org/3/search/${type}?api_key=${apiKey}&query=${encodeURIComponent(title)}&language=en-US&page=1`
             );
-            const json = await resp.json();
-            const data = json.results?.[0];
-            if (!data) return { ok: false, message: `No ${type} found: "${title}"` };
+
+            if (!resp.ok) {
+                return { ok: false, message: `TMDB API error (${resp.status}). Check your API key or connection.` };
+            }
+
+            const json = await resp.json().catch(() => null);
+            if (!json || !json.results || !json.results[0]) {
+                return { ok: false, message: `No ${type} found matching: "${title}"` };
+            }
+            const data = json.results[0];
 
             const externalId = String(data.id);
             const source = "TMDB";
@@ -258,7 +272,7 @@ class IngestionService {
                     },
                     include: { tags: { include: { tag: true } } },
                 });
-            });
+            }, { timeout: 30000 });
             return { ok: true, content };
         } catch (err) {
             console.error("ingestMovie error:", err);
@@ -391,7 +405,11 @@ class IngestionService {
                     break;
                 }
 
-                const json = await resp.json();
+                const json = await resp.json().catch(() => null);
+                if (!json) {
+                    console.log(`[Jikan] Invalid JSON on page ${page} – stopping.`);
+                    break;
+                }
                 const items = json.data || [];
 
                 if (items.length === 0) {
@@ -471,7 +489,11 @@ class IngestionService {
                     break;
                 }
 
-                const json = await resp.json();
+                const json = await resp.json().catch(() => null);
+                if (!json) {
+                    console.log(`[TMDB] Invalid JSON on page ${page} – stopping.`);
+                    break;
+                }
                 const items = json.results || [];
 
                 // TMDB returns an empty results array (not an error) past the last page
