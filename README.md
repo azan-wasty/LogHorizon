@@ -1,46 +1,44 @@
-# 🌌 LogHorizon: Modernized Full-Stack Content Indexing
+# LogHorizon: Modernized Full-Stack Content Indexing
 
-Sprint 1 delivers a state-of-the-art content management foundation, transitioning the platform to a high-fidelity architecture with automated metadata ingestion and a premium dark-mode interface.
+LogHorizon is a state-of-the-art content management platform featuring a high-fidelity architecture, automated metadata ingestion, and a premium dark-mode interface.
 
-## 🚀 Tech Stack
-- **Frontend**: React (Vite) + Tailwind CSS v4 + Lucide Icons + Framer Motion
-- **Backend**: Node.js (Express.js) - Layered Services/Controllers Architecture
-- **Database**: Microsoft SQL Server (MSSQL) managed via Prisma ORM
-- **Automation**: Ingestion Pipeline (Jikan, TMDB integration)
+## Tech Stack
+- Frontend: React (Vite) + Lucide Icons + Framer Motion
+- Backend: Node.js (Express.js) - Layered Services/Controllers Architecture
+- Database: PostgreSQL managed via Prisma ORM
+- Automation: Advanced Ingestion Pipeline (Jikan, TMDB integration)
 
-## 📋 Sprint 1 Features
-- **Void Codex UI**: A complete premium dark-mode redesign using the "Electric Purple" design system.
-- **Automated Ingestion**: Rapid metadata fetching for Anime, Manga, Movies, and TV.
-- **Member Management**: Unified Admin Panel to promote users and manage content/tags.
-- **Neural Nodes**: Preference selection system (Mood/Theme/Genre) for future recommendation engines.
-- **Secure Auth**: JWT-based authentication with role-based access control (RBAC).
+## Core Features
+- Void Codex UI: A complete premium dark-mode interface using the "Electric Purple" design system.
+- Automated Ingestion: Rapid metadata fetching for Anime, Manga, Movies, and TV with robust error handling.
+- Library and Favourites: Personal content tracking with custom status updates and engagement metrics.
+- Community and Events: Discord-integrated event hosting with administrative approval workflows.
+- Member Management: Unified Admin Panel for user role management and content curation.
+- Standardized Identity: Username-based identification system across all dashboard and profile views.
+- Retractable Sidebar: Dynamic, responsive navigation with a sleek retractable tab system.
 
-## 🛠️ Setup Instructions
+## Setup Instructions
 
 ### 1. Requirements
 - Node.js 18+
-- Microsoft SQL Server
-- [TMDB API Key](https://www.themoviedb.org/settings/api) (Optional: for movie ingestion)
+- PostgreSQL database (e.g., Supabase or local instance)
+- TMDB API Key (for movie and TV metadata fetching)
 
 ### 2. Database Setup
-Ensure your SQL Server instance is active and the database (e.g., `LogHorizonDB`) is created.
+Ensure your PostgreSQL instance is active and the database is accessible via your connection string.
 
 ### 3. Environment Variables
-**In `backend/.env`**:
+In backend/.env:
 ```env
-# SQL Server Connection string
-DATABASE_URL="sqlserver://<user>:<pass>@<server>:<port>;database=LogHorizonDB;trustServerCertificate=true"
-
-# App Settings
 PORT=6767
 JWT_SECRET=your_jwt_secret_here
-
-# External APIs
+DATABASE_URL="postgresql://user:pass@host:port/dbname"
 TMDB_API_KEY=your_tmdb_key_here
 ```
 
 ### 4. Running the Application
-**Backend:**
+
+Backend:
 ```bash
 cd backend
 npm install
@@ -49,32 +47,28 @@ npx prisma db push
 npm run dev
 ```
 
-**Frontend:**
+Frontend:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-npx prisma studio --browser none
+The application will be accessible at http://localhost:3000.
 
-The application will be accessible at `http://localhost:3000` (or `3001/3002`).
+## Project Structure
+- /backend: Express API, Prisma Schema, Ingestion Services.
+- /frontend: React Application with custom design system.
+- /docs: Official submission reports and iteration records.
+- API_REFERENCE.md: Detailed endpoint technical documentation.
 
-## 📁 Project Structure
-- **/backend**: Express API, Prisma Schema, Ingestion Services.
-- **/frontend**: React Application, Tailwind v4 Styles.
-- **/docs**: Official submission reports and iteration records.
-- **API_REFERENCE.md**: Detailed endpoint technical documentation.
+## Scrum Board Progress
+- Start: [Initial Sprint Planning]
+- During: [Development Phase]
+- End: [Feature Finalization]
 
-##  Scrum Board
-- **Start** <img width="1496" height="934" alt="Screenshot 2026-03-24 at 9 41 55 PM" src="https://github.com/user-attachments/assets/2501b80d-0d20-472b-b057-e9de37ea155e" />
-- **During** <img width="1496" height="967" alt="Screenshot 2026-03-24 at 9 44 44 PM" src="https://github.com/user-attachments/assets/91d13b25-1778-444c-bb2c-0eb56103eac9" />
-
-- **End** <img width="1496" height="967" alt="Screenshot 2026-03-24 at 9 45 20 PM" src="https://github.com/user-attachments/assets/c9cdcec7-602f-4967-8d57-58b4f2f0f727" />
-
-
-## 👥 Team
-- **Azan Wasty** (@azan_w) - Lead Architect
+## Team
+- Azan Wasty (@azan_w) - Lead Architect
 
 ---
-*Developed for Software Engineering | Spring 2026 | FAST-NUCES*
+Developed for Software Engineering | Spring 2026 | FAST-NUCES
