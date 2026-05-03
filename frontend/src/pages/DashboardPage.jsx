@@ -353,7 +353,7 @@ export default function DashboardPage({ onNavigate }) {
 
     return (
         <div style={{ position: 'relative' }}>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.15 }}>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.75 }}>
             <Hyperspeed effectOptions={{
               distortion: 'turbulentDistortion', length: 400, roadWidth: 10, islandWidth: 2,
               lanesPerRoad: 4, fov: 90, fovSpeedUp: 150, speedUp: 2, carLightsFade: 0.4,
@@ -367,9 +367,9 @@ export default function DashboardPage({ onNavigate }) {
               colors: {
                 roadColor: 0x080808, islandColor: 0x0a0a0a, background: 0x000000,
                 shoulderLines: 0x131318, brokenLines: 0x131318,
-                leftCars: [0xff5f00, 0xff2200, 0xff9900],
-                rightCars: [0xffd700, 0xffa500, 0xff6600],
-                sticks: 0xffd700,
+                leftCars: [0x8B5CF6, 0x7C3AED, 0xA78BFA],
+                rightCars: [0x06b6d4, 0x0891b2, 0x22d3ee],
+                sticks: 0x06b6d4,
               }
             }} />
           </div>

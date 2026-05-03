@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import Galaxy from '../components/Galaxy';
 import { me as meApi } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
 import { useLibrary } from '../hooks/useLibrary';
@@ -525,7 +526,24 @@ export default function ProfilePage({ onNavigate }) {
         .avatar-overlay { opacity:0; transition:opacity 0.2s; }
       `}</style>
 
-      <div className="profile-page">
+      <div className="profile-page" style={{ position: 'relative' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.5 }}>
+          <Galaxy
+            mouseRepulsion
+            mouseInteraction
+            density={1}
+            glowIntensity={0.3}
+            saturation={0}
+            hueShift={140}
+            twinkleIntensity={0.3}
+            rotationSpeed={0.1}
+            repulsionStrength={2}
+            autoCenterRepulsion={0}
+            starSpeed={0.5}
+            speed={1}
+          />
+        </div>
+        <div style={{ position: 'relative', zIndex: 1 }}>
 
         {/* ── HERO CARD ── */}
         <div style={{ position: 'relative', borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)' }}>
@@ -845,6 +863,7 @@ export default function ProfilePage({ onNavigate }) {
               ))}
             </div>
           )}
+        </div>
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import LandingPage from './pages/LandingPage';
 import DashboardPage from './pages/DashboardPage';
 import DiscoverPage from './pages/DiscoverPage';
@@ -80,21 +80,6 @@ function App() {
     return (
       <div style={{ position: 'relative', width: '100vw', height: '100vh', background: 'var(--void)', overflow: 'hidden' }}>
         <Hyperspeed effectOptions={HYPERSPEED_OPTIONS} />
-        <div style={{
-          position: 'absolute', inset: 0,
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center', gap: 16,
-          zIndex: 10,
-        }}>
-          <div style={{
-            width: 40, height: 40,
-            border: '2px solid var(--violet)',
-            borderTopColor: 'transparent',
-            borderRadius: '50%',
-            animation: 'spin 0.8s linear infinite'
-          }} />
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        </div>
       </div>
     );
   }
