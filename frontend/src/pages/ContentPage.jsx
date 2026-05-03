@@ -350,10 +350,10 @@ export default function ContentPage({ id, goBack }) {
         }} />
       </div>
 
-      <div style={{ position: 'relative', zIndex: 1, maxWidth: 1300, margin: '0 auto', padding: '32px 40px 80px' }}>
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: 1300, margin: '0 auto', padding: '32px 40px 80px' }} className="content-page-wrapper">
 
         {/* ── TOP NAVIGATION ── */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 40, animation: 'fadeIn 0.4s ease' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 40, animation: 'fadeIn 0.4s ease' }} className="content-top-nav">
           <button
             onClick={goBack}
             className="back-btn"
@@ -390,17 +390,26 @@ export default function ContentPage({ id, goBack }) {
             onMouseLeave={e => { if (!isFavourite) e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.transform = 'none'; }}
           >
             <Heart size={15} fill={isFavourite ? '#ef4444' : 'none'} />
-            {isFavourite ? 'Favourited' : 'Add Favourite'}
+            <span className="fav-text">{isFavourite ? 'Favourited' : 'Add Favourite'}</span>
           </button>
         </div>
 
         {/* ── MAIN LAYOUT ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 60, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 60, alignItems: 'start' }} className="content-main-grid">
+          <style>{`
+            @media (max-width: 1024px) {
+              .content-page-wrapper { padding: 24px 20px 80px !important; }
+              .content-main-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+              .content-left-col { position: relative !important; top: 0 !important; width: 100% !important; max-width: 320px !important; margin: 0 auto !important; }
+              .content-top-nav { margin-bottom: 24px !important; }
+              .fav-text { display: none; }
+            }
+          `}</style>
 
           {/* ════════════════════════════════
               LEFT COLUMN — COVER + ACTIONS
               ════════════════════════════════ */}
-          <div style={{ position: 'sticky', top: 32, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ position: 'sticky', top: 32, display: 'flex', flexDirection: 'column', gap: 16 }} className="content-left-col">
 
             {/* Cover Art */}
             <div

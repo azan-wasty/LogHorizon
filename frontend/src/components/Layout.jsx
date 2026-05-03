@@ -145,21 +145,24 @@ export default function Layout({ children, currentPage, onNavigate }) {
   const dateStr = time.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
 
   const Sidebar = () => (
-    <aside style={{
-      width: isCollapsed ? 80 : 240,
-      height: '100vh',
-      background: 'rgba(14,14,22,0.98)',
-      borderRight: '1px solid rgba(255,255,255,0.05)',
-      display: 'flex',
-      flexDirection: 'column',
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      zIndex: 100,
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
-      transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    }}>
+    <aside 
+      className="desktop-sidebar"
+      style={{
+        width: isCollapsed ? 80 : 240,
+        height: '100vh',
+        background: 'rgba(14,14,22,0.98)',
+        borderRight: '1px solid rgba(255,255,255,0.05)',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        zIndex: 100,
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      }}
+    >
       {/* Top gradient accent */}
       <div style={{ height: 2, background: 'linear-gradient(90deg, #7C3AED, #22d3ee, #f472b6)', flexShrink: 0 }} />
 
@@ -362,6 +365,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
         flexDirection: 'column',
         gap: 3,
         flexShrink: 0,
+        position: 'relative'
       }}>
         <button
           onClick={() => { onNavigate('onboarding'); setMobileOpen(false); }}
@@ -414,10 +418,11 @@ export default function Layout({ children, currentPage, onNavigate }) {
         {/* Retract Toggle symbol on the right edge */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
+          className="sidebar-toggle"
           style={{
             position: 'absolute',
             right: -12,
-            top: 96,
+            top: -40,
             width: 24,
             height: 24,
             borderRadius: '50%',
@@ -455,6 +460,21 @@ export default function Layout({ children, currentPage, onNavigate }) {
       <style>{`
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        @media (max-width: 1024px) {
+          .main-content-area { padding-left: 0 !important; }
+          .mobile-header { display: flex !important; }
+          .mobile-menu-btn { display: flex !important; }
+          .desktop-sidebar { transform: translateX(-100%); }
+          .desktop-sidebar.mobile-open { transform: translateX(0) !important; }
+          .sidebar-toggle { display: none !important; }
+          .main-content-wrapper { padding: 24px 20px !important; }
+        }
+        @media (min-width: 1024px) {
+          .mobile-header { border-bottom: none; background: transparent !important; height: 0 !important; overflow: hidden; }
+          .mobile-nav { display: none !important; }
+        }
       `}</style>
 
       {/* Mobile overlay */}
@@ -469,17 +489,14 @@ export default function Layout({ children, currentPage, onNavigate }) {
       )}
 
       {/* Sidebar — desktop always visible */}
-      <div style={{ display: 'none' }} className="lg-sidebar-placeholder" />
-      <div style={{
-        position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 100,
-        transform: mobileOpen ? 'translateX(0)' : undefined,
-      }}>
-        <div style={{
-          display: 'block',
-          animation: mobileOpen ? 'slideIn 0.25s ease' : undefined,
-        }}>
-          <Sidebar />
-        </div>
+      <div 
+        className={`desktop-sidebar ${mobileOpen ? 'mobile-open' : ''}`}
+        style={{
+          position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 100,
+          transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      >
+        <Sidebar />
       </div>
 
       {/* Main content */}
@@ -488,7 +505,8 @@ export default function Layout({ children, currentPage, onNavigate }) {
         display: 'flex', 
         flexDirection: 'column', 
         paddingLeft: isCollapsed ? 80 : 240,
-        transition: 'padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+        transition: 'padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        paddingBottom: 70, // Space for mobile nav
       }} className="main-content-area">
 
         {/* Mobile header */}
@@ -508,7 +526,16 @@ export default function Layout({ children, currentPage, onNavigate }) {
         }} className="mobile-header">
           <button
             onClick={() => setMobileOpen(true)}
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: 8, cursor: 'pointer', display: 'none' }}
+            style={{ 
+              background: 'rgba(255,255,255,0.06)', 
+              border: '1px solid rgba(255,255,255,0.08)', 
+              borderRadius: 8, 
+              padding: 8, 
+              cursor: 'pointer', 
+              display: 'none',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
             className="mobile-menu-btn"
           >
             <Menu size={20} color="#9ca3af" />
@@ -519,30 +546,82 @@ export default function Layout({ children, currentPage, onNavigate }) {
               Log<span style={{ color: '#7C3AED' }}>Horizon</span>
             </span>
           </div>
-          <div style={{ width: 36 }} />
+          <button 
+            onClick={() => onNavigate('profile')}
+            style={{ 
+              width: 32, height: 32, borderRadius: '50%', 
+              background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}
+          >
+            <User size={16} color="#7C3AED" />
+          </button>
         </header>
 
-        <main style={{
-          flex: 1,
-          padding: '36px 40px',
-          maxWidth: 1440,
-          width: '100%',
-          margin: '0 auto',
-          animation: 'fadeUp 0.5s ease',
-        }}>
-          <style>{`
-            @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
-            @media (max-width: 1024px) {
-              .main-content-area { padding-left: 0 !important; }
-              .mobile-header { display: flex !important; }
-              .mobile-menu-btn { display: flex !important; }
-            }
-            @media (min-width: 1024px) {
-              .mobile-header { border-bottom: none; background: transparent !important; height: 0 !important; overflow: hidden; }
-            }
-          `}</style>
+        <main 
+          className="main-content-wrapper"
+          style={{
+            flex: 1,
+            padding: '36px 40px',
+            maxWidth: 1440,
+            width: '100%',
+            margin: '0 auto',
+            animation: 'fadeUp 0.5s ease',
+          }}
+        >
           {children}
         </main>
+
+        {/* Mobile Bottom Nav */}
+        <nav className="mobile-nav" style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 70,
+          background: 'rgba(14,14,22,0.95)',
+          backdropFilter: 'blur(20px)',
+          borderTop: '1px solid rgba(255,255,255,0.05)',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 10px',
+          zIndex: 90,
+          animation: 'slideUp 0.3s ease-out'
+        }}>
+          {NAV_ITEMS.map(item => {
+            const Icon = item.icon;
+            const active = currentPage === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => onNavigate(item.id)}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 4,
+                  background: 'none',
+                  border: 'none',
+                  color: active ? '#7C3AED' : '#6b7280',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <div style={{
+                  padding: '6px 16px',
+                  borderRadius: 20,
+                  background: active ? 'rgba(124,58,237,0.12)' : 'transparent',
+                  transition: 'all 0.2s'
+                }}>
+                  <Icon size={20} />
+                </div>
+                <span style={{ fontSize: '0.6rem', fontWeight: active ? 700 : 500, fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
+                  {item.label === 'Dashboard' ? 'Feed' : item.label.split(' ')[0]}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
       </div>
     </div>
   );

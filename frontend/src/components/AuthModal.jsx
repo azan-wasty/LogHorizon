@@ -77,9 +77,9 @@ export default function AuthModal({ mode, onClose, onSwitch, onSuccess }) {
         {/* Accent bar */}
         <div style={{ height: 3, background: 'linear-gradient(90deg, #7C3AED, #22d3ee)' }} />
 
-        <div style={{ padding: '32px 36px' }}>
+        <div style={{ padding: '32px 36px' }} className="auth-modal-content">
           {/* Logo + heading */}
-          <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <div style={{ textAlign: 'center', marginBottom: 28 }} className="auth-header">
             <div style={{
               width: 44, height: 44, borderRadius: 12, margin: '0 auto 14px',
               background: 'linear-gradient(135deg, #7C3AED, #8B5CF6)',
@@ -153,6 +153,10 @@ export default function AuthModal({ mode, onClose, onSwitch, onSuccess }) {
       <style>{`
         @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
         @keyframes spin { to { transform:rotate(360deg); } }
+        @media (max-width: 480px) {
+          .auth-modal-content { padding: 24px 24px !important; }
+          .auth-header { margin-bottom: 20px !important; }
+        }
       `}</style>
     </div>
   );

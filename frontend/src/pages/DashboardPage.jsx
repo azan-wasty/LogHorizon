@@ -373,14 +373,41 @@ export default function DashboardPage({ onNavigate }) {
               }
             }} />
           </div>
-          <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 40 }}>
+          <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 40 }} className="dashboard-content">
             <style>{`
         @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+        
+        .dashboard-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+          gap: 14px;
+        }
+        
+        .rec-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+          gap: 16px;
+        }
+
+        .explore-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+          .dashboard-content { gap: 32px !important; }
+          .dashboard-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+          .rec-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+          .explore-grid { grid-template-columns: 1fr; }
+          .dashboard-header h1 { font-size: 1.6rem !important; }
+          .dashboard-header p { font-size: 0.8rem !important; }
+        }
       `}</style>
 
             {/* ── Header ─────────────────────────────────── */}
-            <header style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap', animation: 'fadeUp 0.4s ease' }}>
+            <header className="dashboard-header" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap', animation: 'fadeUp 0.4s ease' }}>
                 <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                         <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#34d399', boxShadow: '0 0 8px #34d399', animation: 'pulse 2s infinite' }} />
@@ -419,7 +446,7 @@ export default function DashboardPage({ onNavigate }) {
 
             {/* ── Library quick stats ─────────────────────── */}
             {stats?.libraryStats && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14 }}>
+                <div className="dashboard-grid">
                     <StatCard label="Archive Total" value={<AnimNum target={stats.libraryStats.total} />} icon={Database} color="#8B5CF6" dim="rgba(139,92,246,0.12)" />
                     <StatCard label="Completed" value={<AnimNum target={stats.libraryStats.completed} />} icon={Check} color="#34d399" dim="rgba(52,211,153,0.12)" />
                     <StatCard label="Active Watch" value={<AnimNum target={stats.libraryStats.current} />} icon={Play} color="#22d3ee" dim="rgba(34,211,238,0.12)" />
@@ -441,7 +468,7 @@ export default function DashboardPage({ onNavigate }) {
                             {achievements.length}
                         </span>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>
+                    <div className="dashboard-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
                         {achievements.map((ach, i) => (
                             <div key={ach.title} style={{
                                 display: 'flex', alignItems: 'center', gap: 12,
@@ -463,7 +490,7 @@ export default function DashboardPage({ onNavigate }) {
             )}
 
             {/* ── Stats row ───────────────────────────────── */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14 }}>
+            <div className="dashboard-grid">
                 <StatCard label="Matched Titles" value={<AnimNum target={totalRecs} />} icon={Sparkles} color="#7C3AED" dim="rgba(124,58,237,0.12)" />
                 <StatCard label="Index Match Rate" value={<><AnimNum target={matchRate} />%</>} sub="of total library" icon={BarChart3} color="#22d3ee" dim="rgba(34,211,238,0.12)" />
                 <StatCard label="Top Genre" value={topGenre} icon={TrendingUp} color="#f59e0b" dim="rgba(245,158,11,0.12)" />
@@ -536,7 +563,7 @@ export default function DashboardPage({ onNavigate }) {
                         </button>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: 16 }}>
+                    <div className="rec-grid">
                         {recs.map((item, i) => (
                             <RecCard key={item.id} item={item} index={i} onNavigate={onNavigate} />
                         ))}
@@ -559,7 +586,7 @@ export default function DashboardPage({ onNavigate }) {
                         </span>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 10 }}>
+                    <div className="explore-grid">
                         {explore.map((item, i) => (
                             <ExploreCard key={item.id} item={item} index={i} onNavigate={onNavigate} />
                         ))}
@@ -583,7 +610,7 @@ export default function DashboardPage({ onNavigate }) {
                         display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 14,
                         padding: '24px 28px',
                         background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 18,
-                    }}>
+                    }} className="breakdown-grid">
                         {Object.entries(stats.stats).map(([cat, count]) => {
                             const cfg = CAT[cat] || fallbackCat;
                             return (

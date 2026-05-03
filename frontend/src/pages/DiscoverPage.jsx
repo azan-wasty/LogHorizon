@@ -263,15 +263,30 @@ export default function DiscoverPage({ onNavigate }) {
   }, {});
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }} className="discover-content">
       <style>{`
         @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        .discover-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+          gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+          .discover-content { gap: 24px !important; }
+          .discover-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+          .discover-header h1 { font-size: 1.6rem !important; }
+          .filter-controls { gap: 8px !important; }
+          .search-box { max-width: none !important; width: 100% !important; order: -1; }
+          .category-scroll { overflow-x: auto; padding-bottom: 4px; width: 100%; }
+        }
       `}</style>
 
       {/* Header */}
-      <header style={{ animation: 'fadeUp 0.4s ease' }}>
+      <header style={{ animation: 'fadeUp 0.4s ease' }} className="discover-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
           <span style={{
             padding: '3px 10px', borderRadius: 20,
@@ -290,19 +305,19 @@ export default function DiscoverPage({ onNavigate }) {
             </span>
           )}
         </div>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2rem', color: '#fff', letterSpacing: '-0.03em', marginBottom: 6 }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2.2rem', color: '#fff', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 8 }}>
           Discover
         </h1>
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem', color: '#6b7280', fontStyle: 'italic' }}>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: '#6b7280', fontStyle: 'italic' }}>
           Explore the synchronized global library across all media sectors.
         </p>
       </header>
 
       {/* Controls bar */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, animation: 'fadeUp 0.4s 0.05s ease both' }}>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }} className="filter-controls">
           {/* Search */}
-          <div style={{ position: 'relative', flex: 1, minWidth: 220, maxWidth: 400 }}>
+          <div style={{ position: 'relative', flex: 1, minWidth: 220, maxWidth: 400 }} className="search-box">
             <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }}>
               {searching
                 ? <Loader2 size={16} color="#7C3AED" style={{ animation: 'spin 0.8s linear infinite' }} />
@@ -340,7 +355,7 @@ export default function DiscoverPage({ onNavigate }) {
             display: 'flex', gap: 3, padding: 4,
             background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
             borderRadius: 12, flexWrap: 'wrap',
-          }}>
+          }} className="category-scroll">
             {CATEGORIES.map(cat => {
               const cfg = CAT[cat];
               const active = category === cat;
@@ -360,6 +375,7 @@ export default function DiscoverPage({ onNavigate }) {
                       ? (cfg ? cfg.color : '#7C3AED')
                       : '#6b7280',
                     boxShadow: active && cfg ? `0 0 10px ${cfg.color}20` : 'none',
+                    flexShrink: 0
                   }}
                 >
                   {cat}
@@ -478,7 +494,7 @@ export default function DiscoverPage({ onNavigate }) {
 
       {/* Results grid */}
       {loading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: 16 }}>
+        <div className="discover-grid">
           {Array.from({ length: 12 }).map((_, i) => (
             <div key={i} style={{ aspectRatio: '3/4', borderRadius: 16, background: 'rgba(255,255,255,0.03)', animation: 'pulse 1.5s ease-in-out infinite' }} />
           ))}
@@ -508,7 +524,7 @@ export default function DiscoverPage({ onNavigate }) {
           )}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: 16 }}>
+        <div className="discover-grid">
           {items.map((item, i) => (
             <ContentCard key={item.id} item={item} index={i} onNavigate={onNavigate} />
           ))}

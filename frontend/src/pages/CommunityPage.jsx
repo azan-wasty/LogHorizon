@@ -176,7 +176,7 @@ function EventsSection({ currentUser, isAdmin }) {
 
       {/* Events grid */}
       {loading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
+        <div className="community-grid">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} style={{ height: 180, borderRadius: 16, background: 'rgba(255,255,255,0.03)', animation: 'pulse 1.5s ease-in-out infinite' }} />
           ))}
@@ -188,7 +188,7 @@ function EventsSection({ currentUser, isAdmin }) {
           <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: '#6b7280', fontStyle: 'italic' }}>Be the first to create a community gathering.</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14 }}>
+        <div className="community-grid">
           {eventsList.map((event, i) => {
             const ecfg = EVENT_CFG[event.type] || EVENT_CFG.COMMUNITY;
             return (
@@ -427,7 +427,7 @@ function MembersSection({ currentUser }) {
           </p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10 }}>
+        <div className="community-grid" style={{ gap: 10 }}>
           {results.map((user, i) => (
             <div
               key={user.id}
@@ -651,7 +651,7 @@ function SocialHubSection({ onNavigate }) {
       </div>
 
       {loading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: 14 }}>
+        <div className="social-grid">
           {Array.from({ length: 10 }).map((_, i) => (
             <div key={i} style={{ aspectRatio: '3/4', borderRadius: 16, background: 'rgba(255,255,255,0.03)', animation: 'pulse 1.5s ease-in-out infinite' }} />
           ))}
@@ -670,7 +670,7 @@ function SocialHubSection({ onNavigate }) {
           )}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(148px, 1fr))', gap: 14 }}>
+        <div className="social-grid">
           {items.map((item, i) => {
             const cfg = CAT_CFG[item.category] || { color: '#7C3AED', dim: 'rgba(124,58,237,0.1)', border: 'rgba(124,58,237,0.2)' };
             return (
@@ -787,16 +787,36 @@ export default function CommunityPage({ onNavigate }) {
           mouseInfluence={0.1}
         />
       </div>
-      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 32 }} className="community-content">
       <style>{`
         @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
         @keyframes spin { to { transform:rotate(360deg); } }
         @keyframes slideInRight { from { transform:translateX(100%); } to { transform:translateX(0); } }
+
+        .community-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 14px;
+        }
+        
+        .social-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+          gap: 14px;
+        }
+
+        @media (max-width: 768px) {
+          .community-content { gap: 24px !important; }
+          .community-grid { grid-template-columns: 1fr; gap: 12px; }
+          .social-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+          .community-header h1 { font-size: 1.6rem !important; }
+          .tab-container { overflow-x: auto; padding-bottom: 8px; }
+        }
       `}</style>
 
       {/* Header */}
-      <header style={{ animation: 'fadeUp 0.4s ease' }}>
+      <header style={{ animation: 'fadeUp 0.4s ease' }} className="community-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
           <span style={{
             padding: '3px 10px', borderRadius: 20,
@@ -807,16 +827,16 @@ export default function CommunityPage({ onNavigate }) {
             Community Nexus
           </span>
         </div>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2rem', color: '#fff', letterSpacing: '-0.03em', marginBottom: 6 }}>
-          Community
+        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2.2rem', color: '#fff', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 8 }}>
+          The <span style={{ color: '#7C3AED' }}>Community</span>
         </h1>
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.88rem', color: '#6b7280', fontStyle: 'italic' }}>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: '#6b7280', fontStyle: 'italic' }}>
           Connect, discover, and sync with your community.
         </p>
       </header>
 
       {/* Tab Navigation */}
-      <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.06)', gap: 2 }}>
+      <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.06)', gap: 2 }} className="tab-container">
         {TABS.map(tab => {
           const active = activeTab === tab.id;
           return (
@@ -833,6 +853,7 @@ export default function CommunityPage({ onNavigate }) {
                 position: 'relative',
                 borderBottom: active ? '2px solid #7C3AED' : '2px solid transparent',
                 marginBottom: -1,
+                flexShrink: 0
               }}
             >
               <tab.icon size={15} color={active ? '#7C3AED' : '#4b5563'} />

@@ -63,8 +63,20 @@ export default function LandingPage({ onNavigate }) {
         @keyframes gradientShift { 0% { background-position:0% 50%; } 50% { background-position:100% 50%; } 100% { background-position:0% 50%; } }
       `}</style>
 
-      <div style={{ minHeight: '100vh', background: 'var(--dark)', color: 'var(--text-primary)', position: 'relative', display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: 'var(--font-body)' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--dark)', color: 'var(--text-primary)', position: 'relative', display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: 'var(--font-body)' }} className="landing-wrapper">
         <StarField />
+        <style>{`
+          @media (max-width: 768px) {
+            .landing-nav { padding: 16px 20px !important; }
+            .landing-nav-links { display: none !important; }
+            .landing-hero { padding: 60px 20px 40px !important; }
+            .landing-hero h1 { font-size: 2.5rem !important; line-height: 1 !important; margin-bottom: 20px !important; }
+            .landing-hero p { font-size: 0.95rem !important; margin-bottom: 32px !important; }
+            .landing-search { margin-bottom: 40px !important; }
+            .landing-footer { padding: 24px 20px !important; flex-direction: column !important; text-align: center !important; gap: 16px !important; }
+            .landing-footer-links { gap: 16px !important; justify-content: center !important; }
+          }
+        `}</style>
 
         {/* Grid Scan */}
         <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 1 }}>
@@ -78,7 +90,7 @@ export default function LandingPage({ onNavigate }) {
         </div>
 
         {/* Navigation */}
-        <nav style={{ position: 'relative', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 32px', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(12,12,18,0.4)' }}>
+        <nav style={{ position: 'relative', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 32px', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(12,12,18,0.4)' }} className="landing-nav">
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, #7C3AED, #8B5CF6)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(124,58,237,0.4)' }}>
               <Hexagon size={22} color="#fff" fill="#fff" />
@@ -88,10 +100,12 @@ export default function LandingPage({ onNavigate }) {
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <button onClick={() => setAuthModal('login')} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.85rem', color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.2s' }}
-              onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#9ca3af'}>
-              Sign In
-            </button>
+            <div className="landing-nav-links" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <button onClick={() => setAuthModal('login')} style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.85rem', color: '#9ca3af', background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.2s' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#9ca3af'}>
+                Sign In
+              </button>
+            </div>
             <button onClick={() => setAuthModal('register')} style={{
               padding: '10px 24px', borderRadius: 99, background: '#fff', color: '#000',
               fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.85rem',
@@ -106,7 +120,7 @@ export default function LandingPage({ onNavigate }) {
         </nav>
 
         {/* Hero */}
-        <main style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px 60px', textAlign: 'center', zIndex: 10 }}>
+        <main style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px 60px', textAlign: 'center', zIndex: 10 }} className="landing-hero">
 
           {/* Badge */}
           <div style={{ animation: 'fadeUp 0.4s ease', display: 'inline-flex', alignItems: 'center', gap: 8, padding: '5px 16px', borderRadius: 99, background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)', marginBottom: 36, boxShadow: '0 0 15px rgba(124,58,237,0.1)' }}>
@@ -125,7 +139,7 @@ export default function LandingPage({ onNavigate }) {
           </p>
 
           {/* Search */}
-          <form onSubmit={handleSearch} style={{ width: '100%', maxWidth: 580, position: 'relative', marginBottom: 56, animation: 'fadeUp 0.5s 0.3s ease both' }}>
+          <form onSubmit={handleSearch} style={{ width: '100%', maxWidth: 580, position: 'relative', marginBottom: 56, animation: 'fadeUp 0.5s 0.3s ease both' }} className="landing-search">
             <div style={{ position: 'absolute', inset: 0, background: 'rgba(124,58,237,0.1)', filter: 'blur(40px)', zIndex: -1 }} />
             <div style={{ position: 'relative' }}>
               <Search size={20} color="#6b7280" style={{ position: 'absolute', left: 22, top: '50%', transform: 'translateY(-50%)' }} />
@@ -177,9 +191,9 @@ export default function LandingPage({ onNavigate }) {
         </main>
 
         {/* Footer */}
-        <footer style={{ position: 'relative', zIndex: 10, padding: '36px 32px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 20, background: 'rgba(12,12,18,0.4)', backdropFilter: 'blur(20px)' }}>
+        <footer style={{ position: 'relative', zIndex: 10, padding: '36px 32px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 20, background: 'rgba(12,12,18,0.4)', backdropFilter: 'blur(20px)' }} className="landing-footer">
           <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '0.25em', color: '#374151' }}>LOGHORIZON PROTOCOL // v2.0-STABLE</p>
-          <div style={{ display: 'flex', gap: 28 }}>
+          <div style={{ display: 'flex', gap: 28 }} className="landing-footer-links">
             {['Documentation', 'Terms of Entry', 'Privacy Shield'].map(t => (
               <button key={t} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#374151', background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.2s' }}
                 onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#374151'}>
