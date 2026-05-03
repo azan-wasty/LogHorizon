@@ -296,55 +296,136 @@ function EditModal({ user, onSave, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-[1000] bg-black/80 backdrop-blur-md flex items-center justify-center p-6"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        background: 'rgba(0, 0, 0, 0.85)',
+        backdropFilter: 'blur(16px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 24,
+      }}
       onClick={e => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-md bg-midnight border border-white/10 rounded-[2rem] overflow-hidden shadow-3xl animate-fade-up" style={{ backgroundColor: 'var(--midnight)' }}>
-        <div className="h-1.5 bg-gradient-to-r from-electric-purple via-accent-violet to-cyan-400" style={{ background: 'linear-gradient(90deg, var(--electric-purple), var(--accent-violet), var(--cyan))' }} />
-        <div className="p-8">
-          <div className="flex justify-between items-center mb-8">
-            <h3 className="font-display font-black text-xl text-white uppercase tracking-tighter italic">Update Profile</h3>
-            <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-xl transition-colors">
-              <X size={20} className="text-gray-500" />
+      <div style={{
+        width: '100%',
+        maxWidth: 440,
+        background: 'var(--midnight)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        borderRadius: 32,
+        overflow: 'hidden',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+        animation: 'fadeUp 0.4s ease',
+      }}>
+        {/* Accent line */}
+        <div style={{ height: 4, background: 'linear-gradient(90deg, var(--electric-purple), var(--cyan), #f472b6)' }} />
+        
+        <div style={{ padding: 32 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.25rem', color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.02em', fontStyle: 'italic' }}>Update Profile</h3>
+            <button 
+              onClick={onClose} 
+              style={{ padding: 8, borderRadius: 12, transition: 'background 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <X size={20} color="#6b7280" />
             </button>
           </div>
 
-          <div className="flex flex-col gap-8">
-            <div className="flex flex-col items-center gap-4">
-              <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                <div className="w-24 h-24 rounded-full p-1 shadow-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, var(--electric-purple), var(--accent-violet))' }}>
-                  <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--dark)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+              <div 
+                style={{ position: 'relative', cursor: 'pointer' }} 
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <div style={{ 
+                  width: 96, 
+                  height: 96, 
+                  borderRadius: '50%', 
+                  padding: 4, 
+                  background: 'linear-gradient(135deg, var(--electric-purple), var(--accent-violet))',
+                  boxShadow: '0 0 24px rgba(124, 58, 237, 0.3)'
+                }}>
+                  <div style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    borderRadius: '50%', 
+                    overflow: 'hidden', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    backgroundColor: 'var(--dark)'
+                  }}>
                     {uploading ? (
-                      <Loader2 className="w-8 h-8 text-electric-purple animate-spin" style={{ color: 'var(--electric-purple)' }} />
+                      <Loader2 size={32} color="var(--electric-purple)" className="animate-spin" />
                     ) : avatar ? (
-                      <img src={avatar} className="w-full h-full object-cover" alt="preview" />
+                      <img src={avatar} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="preview" />
                     ) : (
-                      <Camera className="w-8 h-8 text-gray-600" />
+                      <Camera size={32} color="#4b5563" />
                     )}
                   </div>
                 </div>
-                <div className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <Camera size={20} className="text-white" />
+                <div style={{ 
+                  position: 'absolute', 
+                  inset: 0, 
+                  borderRadius: '50%', 
+                  background: 'rgba(0,0,0,0.4)', 
+                  opacity: 0, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  transition: 'opacity 0.2s' 
+                }}
+                  onMouseEnter={e => e.currentTarget.style.opacity = 1}
+                  onMouseLeave={e => e.currentTarget.style.opacity = 0}
+                >
+                  <Camera size={20} color="#fff" />
                 </div>
               </div>
-              <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
-              <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-500">Click to upload from device</span>
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} accept="image/*" />
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Click to upload from device</span>
             </div>
 
-            <div className="space-y-6">
-              <div>
-                <label className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-500 mb-2 block">Avatar Source (URL)</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Avatar Source (URL)</label>
                 <input
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-electric-purple/50 transition-colors"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)' }}
+                  style={{ 
+                    width: '100%', 
+                    backgroundColor: 'rgba(255,255,255,0.03)', 
+                    border: '1px solid rgba(255,255,255,0.1)', 
+                    borderRadius: 12, 
+                    padding: '12px 16px', 
+                    fontSize: '0.875rem', 
+                    color: '#fff', 
+                    outline: 'none',
+                    transition: 'border-color 0.2s'
+                  }}
+                  onFocus={e => e.currentTarget.style.borderColor = 'rgba(124, 58, 237, 0.5)'}
+                  onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
                   value={avatar} onChange={e => setAvatar(e.target.value)} placeholder="https://..."
                 />
               </div>
-              <div>
-                <label className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-500 mb-2 block">Personal Transmission (Bio)</label>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Personal Transmission (Bio)</label>
                 <textarea
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-electric-purple/50 transition-colors resize-none"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)' }}
+                  style={{ 
+                    width: '100%', 
+                    backgroundColor: 'rgba(255,255,255,0.03)', 
+                    border: '1px solid rgba(255,255,255,0.1)', 
+                    borderRadius: 12, 
+                    padding: '12px 16px', 
+                    fontSize: '0.875rem', 
+                    color: '#fff', 
+                    outline: 'none',
+                    resize: 'none',
+                    transition: 'border-color 0.2s'
+                  }}
+                  onFocus={e => e.currentTarget.style.borderColor = 'rgba(124, 58, 237, 0.5)'}
+                  onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
                   value={bio} onChange={e => setBio(e.target.value)} placeholder="What defines your taste?" rows={3}
                 />
               </div>
@@ -352,7 +433,27 @@ function EditModal({ user, onSave, onClose }) {
 
             <button
               onClick={save} disabled={saving || uploading}
-              className="w-full py-4 bg-white text-black rounded-2xl font-display font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+              style={{ 
+                width: '100%', 
+                padding: 16, 
+                backgroundColor: '#fff', 
+                color: '#000', 
+                borderRadius: 16, 
+                fontFamily: 'var(--font-display)', 
+                fontWeight: 900, 
+                fontSize: '0.75rem', 
+                textTransform: 'uppercase', 
+                letterSpacing: '0.15em', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: 12, 
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                opacity: (saving || uploading) ? 0.5 : 1
+              }}
+              onMouseEnter={e => { if(!saving && !uploading) e.currentTarget.style.backgroundColor = '#e5e7eb'; }}
+              onMouseLeave={e => { if(!saving && !uploading) e.currentTarget.style.backgroundColor = '#fff'; }}
             >
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
               {saving ? 'Synchronizing...' : 'Save Changes'}
@@ -481,7 +582,7 @@ export default function ProfilePage({ onNavigate }) {
                   </button>
                 </div>
                 <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#7C3AED', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 12 }}>
-                  @{user.email?.split('@')[0]}
+                  @{user.username}
                 </p>
                 <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.6, maxWidth: 420, marginBottom: 24 }}>
                   {user.bio || 'A wanderer across the media horizon.'}

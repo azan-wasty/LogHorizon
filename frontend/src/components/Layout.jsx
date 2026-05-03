@@ -14,6 +14,8 @@ import {
   ChevronRight,
   Activity,
   Zap,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -23,7 +25,7 @@ const NAV_ITEMS = [
   { id: 'community', label: 'Community', icon: Users, desc: 'Events & members' },
 ];
 
-function NavItem({ item, active, onClick }) {
+function NavItem({ item, active, onClick, isCollapsed }) {
   const [hovered, setHovered] = useState(false);
   const Icon = item.icon;
   return (
@@ -35,8 +37,9 @@ function NavItem({ item, active, onClick }) {
         width: '100%',
         display: 'flex',
         alignItems: 'center',
-        gap: 12,
-        padding: '11px 14px',
+        gap: isCollapsed ? 0 : 12,
+        padding: isCollapsed ? '11px 0' : '11px 14px',
+        justifyContent: isCollapsed ? 'center' : 'flex-start',
         borderRadius: 12,
         border: active ? '1px solid rgba(124,58,237,0.25)' : '1px solid transparent',
         background: active
@@ -50,6 +53,7 @@ function NavItem({ item, active, onClick }) {
         position: 'relative',
         overflow: 'hidden',
       }}
+      title={isCollapsed ? item.label : ''}
     >
       {/* Active glow */}
       {active && (
@@ -85,31 +89,33 @@ function NavItem({ item, active, onClick }) {
         />
       </div>
 
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{
-          fontFamily: 'var(--font-display)',
-          fontWeight: 700,
-          fontSize: '0.82rem',
-          color: active ? '#fff' : hovered ? '#e5e7eb' : '#9ca3af',
-          transition: 'color 0.2s',
-          lineHeight: 1,
-          marginBottom: 2,
-        }}>
-          {item.label}
-        </p>
-        <p style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.58rem',
-          color: active ? 'rgba(124,58,237,0.8)' : '#4b5563',
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          transition: 'color 0.2s',
-        }}>
-          {item.desc}
-        </p>
-      </div>
+      {!isCollapsed && (
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{
+            fontFamily: 'var(--font-display)',
+            fontWeight: 700,
+            fontSize: '0.82rem',
+            color: active ? '#fff' : hovered ? '#e5e7eb' : '#9ca3af',
+            transition: 'color 0.2s',
+            lineHeight: 1,
+            marginBottom: 2,
+          }}>
+            {item.label}
+          </p>
+          <p style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.58rem',
+            color: active ? 'rgba(124,58,237,0.8)' : '#4b5563',
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            transition: 'color 0.2s',
+          }}>
+            {item.desc}
+          </p>
+        </div>
+      )}
 
-      {active && (
+      {active && !isCollapsed && (
         <ChevronRight size={13} color="rgba(124,58,237,0.6)" style={{ flexShrink: 0 }} />
       )}
     </button>
@@ -119,6 +125,7 @@ function NavItem({ item, active, onClick }) {
 export default function Layout({ children, currentPage, onNavigate }) {
   const { user, logout, isAdmin } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
@@ -131,7 +138,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
     onNavigate('landing');
   };
 
-  const handle = user?.email?.split('@')[0] || 'user';
+  const handle = user?.username || 'user';
   const initial = handle[0]?.toUpperCase() || 'U';
 
   const timeStr = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -139,7 +146,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
 
   const Sidebar = () => (
     <aside style={{
-      width: 240,
+      width: isCollapsed ? 80 : 240,
       height: '100vh',
       background: 'rgba(14,14,22,0.98)',
       borderRight: '1px solid rgba(255,255,255,0.05)',
@@ -151,17 +158,27 @@ export default function Layout({ children, currentPage, onNavigate }) {
       zIndex: 100,
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
+      transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     }}>
       {/* Top gradient accent */}
       <div style={{ height: 2, background: 'linear-gradient(90deg, #7C3AED, #22d3ee, #f472b6)', flexShrink: 0 }} />
 
       {/* Logo */}
       <div style={{
-        padding: '20px 20px 16px',
+        padding: isCollapsed ? '20px 0' : '20px 20px 16px',
         borderBottom: '1px solid rgba(255,255,255,0.04)',
         flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: isCollapsed ? 'center' : 'stretch',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 10, 
+          marginBottom: isCollapsed ? 0 : 14,
+          justifyContent: isCollapsed ? 'center' : 'flex-start'
+        }}>
           <div style={{
             width: 34,
             height: 34,
@@ -175,38 +192,42 @@ export default function Layout({ children, currentPage, onNavigate }) {
           }}>
             <Hexagon size={18} color="#fff" fill="white" />
           </div>
-          <div>
-            <span style={{
-              fontFamily: 'var(--font-display)',
-              fontWeight: 800,
-              fontSize: '1.05rem',
-              letterSpacing: '-0.03em',
-              color: '#fff',
-            }}>
-              Log<span style={{ color: '#7C3AED' }}>Horizon</span>
-            </span>
-          </div>
+          {!isCollapsed && (
+            <div>
+              <span style={{
+                fontFamily: 'var(--font-display)',
+                fontWeight: 800,
+                fontSize: '1.05rem',
+                letterSpacing: '-0.03em',
+                color: '#fff',
+              }}>
+                Log<span style={{ color: '#7C3AED' }}>Horizon</span>
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Live clock */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '8px 12px',
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.05)',
-          borderRadius: 8,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#34d399', boxShadow: '0 0 6px #34d399', animation: 'pulse 2s infinite' }} />
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#34d399', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Online</span>
+        {/* Live clock - hide when collapsed */}
+        {!isCollapsed && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '8px 12px',
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.05)',
+            borderRadius: 8,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#34d399', boxShadow: '0 0 6px #34d399', animation: 'pulse 2s infinite' }} />
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#34d399', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Online</span>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', color: '#9ca3af', lineHeight: 1.2 }}>{timeStr}</p>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: '#4b5563', lineHeight: 1.2 }}>{dateStr}</p>
+            </div>
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', color: '#9ca3af', lineHeight: 1.2 }}>{timeStr}</p>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: '#4b5563', lineHeight: 1.2 }}>{dateStr}</p>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* User card */}
@@ -219,7 +240,8 @@ export default function Layout({ children, currentPage, onNavigate }) {
           display: 'flex',
           alignItems: 'center',
           gap: 10,
-          padding: '10px 12px',
+          padding: isCollapsed ? '10px 0' : '10px 12px',
+          justifyContent: isCollapsed ? 'center' : 'flex-start',
           background: 'rgba(124,58,237,0.06)',
           border: '1px solid rgba(124,58,237,0.12)',
           borderRadius: 12,
@@ -227,6 +249,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
           transition: 'all 0.2s',
         }}
           onClick={() => { onNavigate('profile'); setMobileOpen(false); }}
+          title={isCollapsed ? `@${handle}` : ''}
         >
           {user?.avatarUrl ? (
             <img src={user.avatarUrl} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid rgba(124,58,237,0.4)' }} />
@@ -250,46 +273,50 @@ export default function Layout({ children, currentPage, onNavigate }) {
               {initial}
             </div>
           )}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{
-              fontFamily: 'var(--font-display)',
-              fontWeight: 700,
-              fontSize: '0.82rem',
-              color: '#fff',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              marginBottom: 2,
-            }}>
-              @{handle}
-            </p>
-            <p style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.55rem',
-              color: '#7C3AED',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-            }}>
-              {isAdmin ? 'Administrator' : 'Member'}
-            </p>
-          </div>
-          <ChevronRight size={12} color="rgba(124,58,237,0.5)" />
+          {!isCollapsed && (
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{
+                fontFamily: 'var(--font-display)',
+                fontWeight: 700,
+                fontSize: '0.82rem',
+                color: '#fff',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                marginBottom: 2,
+              }}>
+                @{handle}
+              </p>
+              <p style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.55rem',
+                color: '#7C3AED',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+              }}>
+                {isAdmin ? 'Administrator' : 'Member'}
+              </p>
+            </div>
+          )}
+          {!isCollapsed && <ChevronRight size={12} color="rgba(124,58,237,0.5)" />}
         </div>
       </div>
 
       {/* Navigation */}
       <nav style={{ flex: 1, padding: '14px 12px', overflowY: 'auto' }}>
-        <p style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.55rem',
-          textTransform: 'uppercase',
-          letterSpacing: '0.2em',
-          color: '#374151',
-          marginBottom: 8,
-          paddingLeft: 4,
-        }}>
-          Navigation
-        </p>
+        {!isCollapsed && (
+          <p style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.55rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.2em',
+            color: '#374151',
+            marginBottom: 8,
+            paddingLeft: 4,
+          }}>
+            Navigation
+          </p>
+        )}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {NAV_ITEMS.map(item => (
             <NavItem
@@ -297,27 +324,31 @@ export default function Layout({ children, currentPage, onNavigate }) {
               item={item}
               active={currentPage === item.id}
               onClick={() => { onNavigate(item.id); setMobileOpen(false); }}
+              isCollapsed={isCollapsed}
             />
           ))}
         </div>
 
         {isAdmin && (
           <div style={{ marginTop: 20 }}>
-            <p style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: '0.55rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.2em',
-              color: '#374151',
-              marginBottom: 8,
-              paddingLeft: 4,
-            }}>
-              Systems
-            </p>
+            {!isCollapsed && (
+              <p style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.55rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.2em',
+                color: '#374151',
+                marginBottom: 8,
+                paddingLeft: 4,
+              }}>
+                Systems
+              </p>
+            )}
             <NavItem
               item={{ id: 'admin', label: 'Content Studio', icon: ShieldCheck, desc: 'Admin panel' }}
               active={currentPage === 'admin'}
               onClick={() => { onNavigate('admin'); setMobileOpen(false); }}
+              isCollapsed={isCollapsed}
             />
           </div>
         )}
@@ -338,8 +369,9 @@ export default function Layout({ children, currentPage, onNavigate }) {
             width: '100%',
             display: 'flex',
             alignItems: 'center',
-            gap: 10,
-            padding: '9px 14px',
+            gap: isCollapsed ? 0 : 10,
+            padding: isCollapsed ? '9px 0' : '9px 14px',
+            justifyContent: isCollapsed ? 'center' : 'flex-start',
             borderRadius: 10,
             border: '1px solid transparent',
             background: 'transparent',
@@ -347,11 +379,12 @@ export default function Layout({ children, currentPage, onNavigate }) {
             transition: 'all 0.2s',
             color: '#6b7280',
           }}
+          title={isCollapsed ? 'Preferences' : ''}
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#9ca3af'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6b7280'; }}
         >
           <Settings size={15} color="currentColor" />
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.8rem' }}>Preferences</span>
+          {!isCollapsed && <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.8rem' }}>Preferences</span>}
         </button>
 
         <button
@@ -360,8 +393,9 @@ export default function Layout({ children, currentPage, onNavigate }) {
             width: '100%',
             display: 'flex',
             alignItems: 'center',
-            gap: 10,
-            padding: '9px 14px',
+            gap: isCollapsed ? 0 : 10,
+            padding: isCollapsed ? '9px 0' : '9px 14px',
+            justifyContent: isCollapsed ? 'center' : 'flex-start',
             borderRadius: 10,
             border: '1px solid transparent',
             background: 'transparent',
@@ -369,19 +403,47 @@ export default function Layout({ children, currentPage, onNavigate }) {
             transition: 'all 0.2s',
             color: 'rgba(248,113,113,0.6)',
           }}
+          title={isCollapsed ? 'Sign Out' : ''}
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.08)'; e.currentTarget.style.color = '#f87171'; e.currentTarget.style.borderColor = 'rgba(248,113,113,0.15)'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(248,113,113,0.6)'; e.currentTarget.style.borderColor = 'transparent'; }}
         >
           <LogOut size={15} color="currentColor" />
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.8rem' }}>Sign Out</span>
+          {!isCollapsed && <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.8rem' }}>Sign Out</span>}
         </button>
 
-        {/* Version tag */}
-        <div style={{ paddingTop: 10, paddingLeft: 4 }}>
-          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.52rem', color: '#2d2d3d', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
-            LogHorizon v2.0 · Spring '26
-          </p>
-        </div>
+        {/* Retract Toggle Button */}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          style={{
+            marginTop: 8,
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: isCollapsed ? 0 : 10,
+            padding: isCollapsed ? '9px 0' : '9px 14px',
+            justifyContent: isCollapsed ? 'center' : 'flex-start',
+            borderRadius: 10,
+            border: '1px solid rgba(255,255,255,0.04)',
+            background: 'rgba(255,255,255,0.02)',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            color: '#4b5563',
+          }}
+          title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#9ca3af'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.color = '#4b5563'; }}
+        >
+          {isCollapsed ? <PanelLeftOpen size={15} color="currentColor" /> : <PanelLeftClose size={15} color="currentColor" />}
+          {!isCollapsed && <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.8rem' }}>Collapse</span>}
+        </button>
+
+        {!isCollapsed && (
+          <div style={{ paddingTop: 10, paddingLeft: 4 }}>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.52rem', color: '#2d2d3d', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+              LogHorizon v2.0 · Spring '26
+            </p>
+          </div>
+        )}
       </div>
     </aside>
   );
@@ -419,7 +481,13 @@ export default function Layout({ children, currentPage, onNavigate }) {
       </div>
 
       {/* Main content */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', paddingLeft: 240 }} className="main-content-area">
+      <div style={{ 
+        flex: 1, 
+        display: 'flex', 
+        flexDirection: 'column', 
+        paddingLeft: isCollapsed ? 80 : 240,
+        transition: 'padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+      }} className="main-content-area">
 
         {/* Mobile header */}
         <header style={{

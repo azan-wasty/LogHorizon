@@ -333,7 +333,7 @@ export default function DashboardPage({ onNavigate }) {
         })();
     }, []);
 
-    const handle = user?.email?.split('@')[0] || 'User';
+    const handle = user?.username || 'User';
     const totalRecs = recs.length;
     const matchRate = stats?.matchRate ?? 0;
     const topGenre = stats?.topGenres?.[0] || '—';
