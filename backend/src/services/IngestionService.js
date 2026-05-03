@@ -213,7 +213,7 @@ class IngestionService {
                     },
                     include: { tags: { include: { tag: true } } },
                 });
-            });
+            }, { timeout: 30000 });
             return { ok: true, content };
         } catch (err) {
             console.error("ingestJikanDirect error:", err);

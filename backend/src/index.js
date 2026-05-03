@@ -51,8 +51,9 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 6767;
 
-// Only listen when running locally, not on Vercel
-if (process.env.NODE_ENV !== "production") {
+// Listen on the provided port (Render/Local)
+// We only skip listen if we are explicitly told we are in a serverless environment (like Vercel)
+if (process.env.VERCEL !== '1') {
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
