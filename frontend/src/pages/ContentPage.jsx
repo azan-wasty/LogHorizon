@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { content as contentApi, discord as discordApi, subreddit as subredditApi, favourites as favouritesApi } from '../api/client';
 import { useLibrary } from '../hooks/useLibrary';
+import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import {
   Star, Database, ExternalLink, Loader2, Bookmark,
