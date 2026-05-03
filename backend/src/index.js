@@ -4,18 +4,30 @@ require("dotenv").config();
 
 const app = express();
 
+// ---- CORS Configuration ----
+const rawFrontendUrl = process.env.FRONTEND_URL || "";
+const cleanFrontendUrl = rawFrontendUrl.replace(/\/$/, ""); // Remove trailing slash
+
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
-  process.env.FRONTEND_URL,
+  cleanFrontendUrl,
 ].filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
+    // Allow server-to-server or no-origin requests (like mobile apps or curl)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    if (origin.endsWith(".vercel.app")) return callback(null, true);
-    return callback(new Error("Not allowed by CORS"));
+
+    const isAllowed = allowedOrigins.includes(origin);
+    const isVercel = origin.endsWith(".vercel.app");
+
+    if (isAllowed || isVercel) {
+      callback(null, true);
+    } else {
+      console.warn(`[CORS] Blocked request from origin: ${origin}`);
+      callback(new Error("Not allowed by CORS"));
+    }
   },
   credentials: true,
 }));
