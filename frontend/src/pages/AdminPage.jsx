@@ -116,7 +116,7 @@ export default function ContentStudio() {
     setIngesting(true);
     try {
       const res = await adminApi.ingestContent({ title: ingestTitle, category: ingestCategory });
-      toast(`Successfully ingested ${res.content.title}`, 'success');
+      toast(`Successfully ingested ${res.content?.title || 'item'}`, 'success');
       setIngestTitle('');
       refresh();
     } catch (err) {
