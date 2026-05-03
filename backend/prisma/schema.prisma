@@ -22,6 +22,7 @@ model User {
   achievements           UserAchievement[]
   discordRecommendations DiscordRecommendation[]
   events                 Event[]
+  favourites             Favourite[]
 }
 
 model Content {
@@ -42,6 +43,7 @@ model Content {
   tags                   ContentTag[]
   library                UserLibrary[]
   discordRecommendations DiscordRecommendation[]
+  favourites             Favourite[]
 
   @@unique([source, externalId])
 }
@@ -127,16 +129,30 @@ model DiscordRecommendation {
 }
 
 model Event {
-  id          Int       @id @default(autoincrement())
-  title       String
-  description String
-  type        String
-  startDate   DateTime
-  endDate     DateTime?
-  createdBy   Int
-  status      String    @default("UPCOMING")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id            Int       @id @default(autoincrement())
+  title         String
+  description   String
+  type          String
+  startDate     DateTime
+  endDate       DateTime?
+  discordServer String?
+  createdBy     Int
+  status        String    @default("UPCOMING")
+  approval      String    @default("PENDING")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   host User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+}
+
+model Favourite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  contentId Int
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId])
 }

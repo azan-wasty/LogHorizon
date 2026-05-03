@@ -140,7 +140,7 @@ function RecCard({ item, index, onNavigate }) {
                         fontFamily: 'var(--font-mono)', fontSize: '0.6rem', fontWeight: 700,
                     }}>
                         <Zap size={9} fill="currentColor" />
-                        {item._score}
+                        {item._score.toFixed(3)}
                     </div>
                 )}
             </div>

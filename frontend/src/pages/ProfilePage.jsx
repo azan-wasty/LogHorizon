@@ -55,7 +55,6 @@ function DNABar({ library }) {
       <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', letterSpacing: '0.15em', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 10 }}>
         Media DNA
       </p>
-      {/* Segmented bar */}
       <div style={{ display: 'flex', height: 8, borderRadius: 99, overflow: 'hidden', gap: 3, marginBottom: 14 }}>
         {Object.entries(counts).map(([cat, count]) => {
           const pct = (count / total) * 100;
@@ -76,7 +75,6 @@ function DNABar({ library }) {
           );
         })}
       </div>
-      {/* Legend pills */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {Object.entries(counts).map(([cat, count]) => {
           const cfg = CAT[cat];
@@ -119,23 +117,19 @@ function GridCard({ entry, onNavigate, onRemove }) {
       onMouseLeave={() => setHovered(false)}
       onClick={() => onNavigate(`content/${item.id}`)}
     >
-      {/* Cover */}
       <div style={{ aspectRatio: '3/4', background: '#1e1e1e', overflow: 'hidden' }}>
         {item?.coverImage
           ? <img src={item.coverImage} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s', transform: hovered ? 'scale(1.08)' : 'scale(1)' }} />
           : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Film size={28} color="#374151" /></div>
         }
-        {/* Gradient overlay */}
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)' }} />
 
-        {/* Category badge */}
         <div style={{ position: 'absolute', top: 8, left: 8 }}>
           <span style={{ padding: '2px 7px', borderRadius: 6, background: cfg.dim, border: `1px solid ${cfg.color}40`, fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: cfg.color, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             {item?.category}
           </span>
         </div>
 
-        {/* Rating */}
         {item?.rating && (
           <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', alignItems: 'center', gap: 3, padding: '2px 7px', borderRadius: 6, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}>
             <Star size={9} color="#fbbf24" fill="#fbbf24" />
@@ -143,21 +137,18 @@ function GridCard({ entry, onNavigate, onRemove }) {
           </div>
         )}
 
-        {/* Status icon */}
         <div style={{ position: 'absolute', bottom: 8, right: 8 }}>
           <div style={{ width: 24, height: 24, borderRadius: '50%', background: sc.accent, border: `1px solid ${sc.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <StatusIcon size={12} color={sc.color} />
           </div>
         </div>
 
-        {/* Title */}
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '24px 10px 10px' }}>
           <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.75rem', color: '#fff', lineHeight: 1.3, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
             {item?.title}
           </p>
         </div>
 
-        {/* Hover: remove button */}
         {hovered && (
           <button
             onClick={e => { e.stopPropagation(); onRemove(item.id); }}
@@ -194,12 +185,10 @@ function ListRow({ entry, index, onNavigate, onRemove }) {
         transition: 'background 0.15s',
       }}
     >
-      {/* Rank */}
       <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', color: 'var(--text-muted)', textAlign: 'right' }}>
         {String(index + 1).padStart(2, '0')}
       </span>
 
-      {/* Cover */}
       <div style={{ width: 40, height: 56, borderRadius: 8, overflow: 'hidden', background: '#1e1e1e', border: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
         {item?.coverImage
           ? <img src={item.coverImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
@@ -207,7 +196,6 @@ function ListRow({ entry, index, onNavigate, onRemove }) {
         }
       </div>
 
-      {/* Info */}
       <div style={{ minWidth: 0 }}>
         <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.875rem', color: hovered ? cfg.color : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', transition: 'color 0.15s', marginBottom: 4 }}>
           {item?.title}
@@ -224,7 +212,6 @@ function ListRow({ entry, index, onNavigate, onRemove }) {
         </div>
       </div>
 
-      {/* Personal stars */}
       {entry.rating ? (
         <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
           {[1, 2, 3, 4, 5].map(i => (
@@ -233,7 +220,6 @@ function ListRow({ entry, index, onNavigate, onRemove }) {
         </div>
       ) : <div />}
 
-      {/* Remove */}
       {hovered ? (
         <button
           onClick={e => { e.stopPropagation(); onRemove(item.id); }}
@@ -265,7 +251,7 @@ function AchBadge({ ach, i }) {
       <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 0 16px rgba(251,191,36,0.15)' }}>
         <Award size={20} color="#fbbf24" fill="rgba(251,191,36,0.3)" />
       </div>
-      <div>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.85rem', color: '#fbbf24', marginBottom: 2 }}>{ach.title}</p>
         <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{ach.description}</p>
       </div>
@@ -290,19 +276,11 @@ function EditModal({ user, onSave, onClose }) {
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast('File is too large (max 5MB)', 'error');
-      return;
-    }
-
+    if (file.size > 5 * 1024 * 1024) { toast('File is too large (max 5MB)', 'error'); return; }
     try {
       setUploading(true);
       const res = await meApi.uploadAvatar(file);
-      if (res.ok) {
-        setAvatar(res.url);
-        toast('Image uploaded successfully', 'success');
-      }
+      if (res.ok) { setAvatar(res.url); toast('Image uploaded successfully', 'success'); }
     } catch (err) {
       toast(err.message || 'Upload failed', 'error');
     } finally {
@@ -332,12 +310,8 @@ function EditModal({ user, onSave, onClose }) {
           </div>
 
           <div className="flex flex-col gap-8">
-            {/* Avatar Upload Area */}
             <div className="flex flex-col items-center gap-4">
-              <div 
-                className="relative group cursor-pointer"
-                onClick={() => fileInputRef.current?.click()}
-              >
+              <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                 <div className="w-24 h-24 rounded-full p-1 shadow-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, var(--electric-purple), var(--accent-violet))' }}>
                   <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'var(--dark)' }}>
                     {uploading ? (
@@ -353,43 +327,31 @@ function EditModal({ user, onSave, onClose }) {
                   <Camera size={20} className="text-white" />
                 </div>
               </div>
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handleFileChange} 
-                className="hidden" 
-                accept="image/*"
-              />
+              <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
               <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-500">Click to upload from device</span>
             </div>
 
             <div className="space-y-6">
               <div>
                 <label className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-500 mb-2 block">Avatar Source (URL)</label>
-                <input 
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-electric-purple/50 transition-colors" 
+                <input
+                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-electric-purple/50 transition-colors"
                   style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)' }}
-                  value={avatar} 
-                  onChange={e => setAvatar(e.target.value)} 
-                  placeholder="https://..." 
+                  value={avatar} onChange={e => setAvatar(e.target.value)} placeholder="https://..."
                 />
               </div>
               <div>
                 <label className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-500 mb-2 block">Personal Transmission (Bio)</label>
-                <textarea 
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-electric-purple/50 transition-colors resize-none" 
+                <textarea
+                  className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-electric-purple/50 transition-colors resize-none"
                   style={{ backgroundColor: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)' }}
-                  value={bio} 
-                  onChange={e => setBio(e.target.value)} 
-                  placeholder="What defines your taste?" 
-                  rows={3} 
+                  value={bio} onChange={e => setBio(e.target.value)} placeholder="What defines your taste?" rows={3}
                 />
               </div>
             </div>
 
-            <button 
-              onClick={save} 
-              disabled={saving || uploading} 
+            <button
+              onClick={save} disabled={saving || uploading}
               className="w-full py-4 bg-white text-black rounded-2xl font-display font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
             >
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
@@ -409,7 +371,12 @@ export default function ProfilePage({ onNavigate }) {
   const toast = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('COMPLETED');
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
+  const [viewMode, setViewMode] = useState('grid');
+
+  // ✅ FIX: Always refetch on mount so achievements are up-to-date
+  useEffect(() => {
+    refetch();
+  }, []);
 
   const handleSave = async (data) => {
     try {
@@ -445,9 +412,7 @@ export default function ProfilePage({ onNavigate }) {
   ];
 
   const tabItems = activeTab === 'COMPLETED' ? completed : activeTab === 'CURRENT' ? current : planning;
-  const tabColor = TABS.find(t => t.id === activeTab)?.color || '#7C3AED';
 
-  // Pick a background cover from current/completed for the hero
   const heroCover = (current[0] || completed[0])?.content?.coverImage;
 
   return (
@@ -461,10 +426,8 @@ export default function ProfilePage({ onNavigate }) {
 
       <div className="profile-page">
 
-        {/* ── HERO CARD ──────────────────────────────────────── */}
+        {/* ── HERO CARD ── */}
         <div style={{ position: 'relative', borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)' }}>
-
-          {/* Cinematic background */}
           {heroCover ? (
             <>
               <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${heroCover})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(40px) brightness(0.18) saturate(180%)', transform: 'scale(1.1)' }} />
@@ -474,11 +437,9 @@ export default function ProfilePage({ onNavigate }) {
             <div style={{ position: 'absolute', inset: 0, background: 'rgba(18,18,30,0.95)' }} />
           )}
 
-          {/* Ambient glow blobs */}
           <div style={{ position: 'absolute', top: -60, right: -60, width: 280, height: 280, background: 'radial-gradient(circle, rgba(124,58,237,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
           <div style={{ position: 'absolute', bottom: -40, left: -40, width: 200, height: 200, background: 'radial-gradient(circle, rgba(34,211,238,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-          {/* Top accent line */}
           <div style={{ height: 3, background: 'linear-gradient(90deg, #7C3AED 0%, #22d3ee 50%, #f472b6 100%)' }} />
 
           <div style={{ position: 'relative', zIndex: 1, padding: '28px 32px 32px' }}>
@@ -590,26 +551,54 @@ export default function ProfilePage({ onNavigate }) {
           </div>
         </div>
 
-        {/* ── ACHIEVEMENTS ───────────────────────────────────── */}
-        {achievements?.length > 0 && (
-          <div style={{ animation: 'fadeUp 0.5s 0.08s ease both' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-              <Award size={16} color="#fbbf24" fill="rgba(251,191,36,0.3)" />
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-muted)' }}>
-                Achievements — {achievements.length} unlocked
-              </span>
-              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.05)' }} />
-            </div>
+        {/* ── ACHIEVEMENTS ── always rendered, shows empty state if none */}
+        <div style={{ animation: 'fadeUp 0.5s 0.08s ease both' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+            <Award size={16} color="#fbbf24" fill="rgba(251,191,36,0.3)" />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-muted)' }}>
+              Achievements
+            </span>
+            <span style={{
+              padding: '2px 8px', borderRadius: 20,
+              background: achievements?.length > 0 ? 'rgba(251,191,36,0.1)' : 'rgba(255,255,255,0.04)',
+              border: achievements?.length > 0 ? '1px solid rgba(251,191,36,0.2)' : '1px solid rgba(255,255,255,0.06)',
+              fontFamily: 'var(--font-mono)', fontSize: '0.55rem', fontWeight: 700,
+              color: achievements?.length > 0 ? '#fbbf24' : '#374151',
+              letterSpacing: '0.08em',
+            }}>
+              {achievements?.length || 0} unlocked
+            </span>
+            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.05)' }} />
+          </div>
+
+          {achievements?.length > 0 ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
               {achievements.map((ach, i) => <AchBadge key={ach.title} ach={ach} i={i} />)}
             </div>
-          </div>
-        )}
+          ) : (
+            <div style={{
+              padding: '28px 24px',
+              background: 'rgba(251,191,36,0.02)',
+              border: '1px dashed rgba(251,191,36,0.1)',
+              borderRadius: 16,
+              display: 'flex', alignItems: 'center', gap: 16,
+            }}>
+              <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Award size={18} color="#374151" />
+              </div>
+              <div>
+                <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.85rem', color: '#4b5563', marginBottom: 3 }}>No achievements yet</p>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#2d2d3d', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  Complete entries, rate content, and build your library to unlock badges
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
 
-        {/* ── LIBRARY SECTION ────────────────────────────────── */}
+        {/* ── LIBRARY SECTION ── */}
         <div style={{ animation: 'fadeUp 0.5s 0.14s ease both' }}>
 
-          {/* Tab row + view toggle */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, flexWrap: 'wrap', gap: 12 }}>
             <div style={{ display: 'flex', gap: 4, padding: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 14, border: '1px solid rgba(255,255,255,0.06)' }}>
               {TABS.map(tab => (
@@ -618,15 +607,9 @@ export default function ProfilePage({ onNavigate }) {
                   onClick={() => setActiveTab(tab.id)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '9px 18px',
-                    borderRadius: 10,
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontFamily: 'var(--font-display)',
-                    fontWeight: 700,
-                    fontSize: '0.8rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
+                    padding: '9px 18px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                    fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.8rem',
+                    textTransform: 'uppercase', letterSpacing: '0.05em',
                     background: activeTab === tab.id ? `${tab.color}18` : 'transparent',
                     color: activeTab === tab.id ? tab.color : 'var(--text-muted)',
                     borderBottom: activeTab === tab.id ? `2px solid ${tab.color}` : '2px solid transparent',
@@ -646,7 +629,6 @@ export default function ProfilePage({ onNavigate }) {
               ))}
             </div>
 
-            {/* Grid / List toggle */}
             <div style={{ display: 'flex', gap: 2, padding: 3, background: 'rgba(255,255,255,0.04)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)' }}>
               {[['grid', LayoutGrid], ['list', List]].map(([mode, Icon]) => (
                 <button
@@ -666,7 +648,6 @@ export default function ProfilePage({ onNavigate }) {
             </div>
           </div>
 
-          {/* Empty state */}
           {tabItems.length === 0 ? (
             <div style={{ padding: '56px 24px', textAlign: 'center', border: '1px dashed rgba(255,255,255,0.06)', borderRadius: 20 }}>
               <Compass size={36} color="#374151" style={{ margin: '0 auto 12px' }} />
@@ -681,7 +662,6 @@ export default function ProfilePage({ onNavigate }) {
               </button>
             </div>
           ) : viewMode === 'grid' ? (
-            /* GRID VIEW */
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 14 }}>
               {tabItems.map((entry, i) => (
                 <div key={entry.id} style={{ animation: `fadeUp 0.35s ${i * 30}ms ease both` }}>
@@ -690,9 +670,7 @@ export default function ProfilePage({ onNavigate }) {
               ))}
             </div>
           ) : (
-            /* LIST VIEW */
             <div style={{ background: 'rgba(18,18,30,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 18, overflow: 'hidden' }}>
-              {/* Header */}
               <div style={{ display: 'grid', gridTemplateColumns: '24px 52px 1fr auto auto', gap: 14, padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}>
                 {['#', '', 'Title', 'Rating', ''].map((h, i) => (
                   <span key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{h}</span>

@@ -45,7 +45,7 @@ async function ingestContent(req, res) {
  */
 async function discoverContent(req, res) {
     try {
-        const { category, mode, pages, query } = req.body || {};
+        const { category, mode, pages, query, startPage } = req.body || {};
         if (!category) {
             return res.status(400).json({ ok: false, message: "category is required" });
         }
@@ -56,6 +56,7 @@ async function discoverContent(req, res) {
             mode: mode || "popular",
             pages: safePages,
             query: query || "",
+            startPage: Number(startPage) || 1,
         });
 
         if (!result.ok) {

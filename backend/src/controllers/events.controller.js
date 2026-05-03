@@ -1,19 +1,28 @@
 const prisma = require("../prismaClient");
+const achievementsService = require("../services/AchievementsService");
 
 const VALID_TYPES = ["WATCH_PARTY", "DISCUSSION", "TOURNAMENT", "COMMUNITY"];
 const VALID_STATUSES = ["UPCOMING", "LIVE", "ENDED"];
+const VALID_APPROVALS = ["PENDING", "APPROVED", "REJECTED"];
 
 /**
  * GET /api/events
  * List events sorted: LIVE first, then UPCOMING by date, then ENDED.
- * Optional query: ?type=WATCH_PARTY
+ * Optional query: ?type=WATCH_PARTY&approval=APPROVED
+ * By default only APPROVED events are shown to regular users.
  */
 async function listEvents(req, res) {
     try {
-        const { type } = req.query;
+        const { type, approval } = req.query;
         const where = {};
         if (type && VALID_TYPES.includes(type)) {
             where.type = type;
+        }
+        // Default to showing only approved events unless explicitly requesting
+        if (approval && VALID_APPROVALS.includes(approval)) {
+            where.approval = approval;
+        } else {
+            where.approval = "APPROVED";
         }
 
         const events = await prisma.event.findMany({
@@ -42,23 +51,78 @@ async function listEvents(req, res) {
 }
 
 /**
+ * GET /api/events/pending
+ * Admin only — list events pending approval.
+ */
+async function listPendingEvents(req, res) {
+    try {
+        const events = await prisma.event.findMany({
+            where: { approval: "PENDING" },
+            include: {
+                host: {
+                    select: { id: true, username: true, avatarUrl: true },
+                },
+            },
+            orderBy: { createdAt: "desc" },
+        });
+
+        return res.status(200).json({ ok: true, events });
+    } catch (err) {
+        console.error("listPendingEvents error:", err);
+        return res.status(500).json({ ok: false, message: "internal server error" });
+    }
+}
+
+/**
+ * PUT /api/events/:id/approve
+ * Admin only — approve or reject an event.
+ * Body: { approval: "APPROVED" | "REJECTED" }
+ */
+async function approveEvent(req, res) {
+    try {
+        const id = Number(req.params.id);
+        if (!Number.isInteger(id) || id <= 0) {
+            return res.status(400).json({ ok: false, message: "invalid id" });
+        }
+
+        const { approval } = req.body || {};
+        if (!approval || !["APPROVED", "REJECTED"].includes(approval)) {
+            return res.status(400).json({ ok: false, message: "approval must be APPROVED or REJECTED" });
+        }
+
+        const existing = await prisma.event.findUnique({ where: { id } });
+        if (!existing) return res.status(404).json({ ok: false, message: "event not found" });
+
+        const updated = await prisma.event.update({
+            where: { id },
+            data: { approval },
+            include: { host: { select: { id: true, username: true, avatarUrl: true } } },
+        });
+
+        return res.status(200).json({ ok: true, event: updated });
+    } catch (err) {
+        console.error("approveEvent error:", err);
+        return res.status(500).json({ ok: false, message: "internal server error" });
+    }
+}
+
+/**
  * POST /api/events
- * Auth required. Body: { title, description, type, startDate, endDate? }
+ * Auth required. Body: { title, description, type, startDate, endDate?, discordServer? }
+ * Events from admins are auto-approved. Otherwise they go to PENDING.
  */
 async function createEvent(req, res) {
     try {
         const userId = req.user?.id;
+        const isAdmin = req.user?.role?.toUpperCase() === "ADMIN";
         console.log("Creating event for user:", userId);
         if (!userId) return res.status(401).json({ ok: false, message: "unauthorized" });
 
-        const { title, description, type, startDate, endDate } = req.body || {};
-        console.log("Event data:", { title, description, type, startDate, endDate });
+        const { title, description, type, startDate, endDate, discordServer } = req.body || {};
+        console.log("Event data:", { title, description, type, startDate, endDate, discordServer });
 
         if (!title || typeof title !== "string" || title.trim().length === 0) {
             return res.status(400).json({ ok: false, message: "title is required" });
-        }
-        if (title && typeof title === "string") {
-            // title is required, but description is now optional
         }
         if (!type || !VALID_TYPES.includes(type)) {
             return res.status(400).json({ ok: false, message: `type must be one of: ${VALID_TYPES.join(", ")}` });
@@ -74,8 +138,10 @@ async function createEvent(req, res) {
                 type,
                 startDate: new Date(startDate),
                 endDate: endDate ? new Date(endDate) : null,
+                discordServer: discordServer?.trim() || null,
                 createdBy: userId,
                 status: "UPCOMING",
+                approval: isAdmin ? "APPROVED" : "PENDING",
             },
             include: {
                 host: {
@@ -83,6 +149,9 @@ async function createEvent(req, res) {
                 },
             },
         });
+
+        // Check for SOCIAL_BUTTERFLY achievement
+        await achievementsService.checkSingleAchievement(userId, "SOCIAL_BUTTERFLY");
 
         console.log("Event created successfully:", event.id);
         return res.status(201).json({ ok: true, event });
@@ -95,7 +164,7 @@ async function createEvent(req, res) {
 /**
  * PUT /api/events/:id
  * Auth required. Admins can update any event; owners can update their own.
- * Body: { title?, description?, type?, startDate?, endDate?, status? }
+ * Body: { title?, description?, type?, startDate?, endDate?, status?, discordServer? }
  */
 async function updateEvent(req, res) {
     try {
@@ -115,7 +184,7 @@ async function updateEvent(req, res) {
             return res.status(403).json({ ok: false, message: "forbidden" });
         }
 
-        const { title, description, type, startDate, endDate, status } = req.body || {};
+        const { title, description, type, startDate, endDate, status, discordServer } = req.body || {};
         const data = {};
 
         if (title !== undefined) data.title = title.trim();
@@ -130,6 +199,7 @@ async function updateEvent(req, res) {
             if (!VALID_STATUSES.includes(status)) return res.status(400).json({ ok: false, message: "invalid status" });
             data.status = status;
         }
+        if (discordServer !== undefined) data.discordServer = discordServer?.trim() || null;
 
         const updated = await prisma.event.update({
             where: { id },
@@ -175,4 +245,4 @@ async function deleteEvent(req, res) {
     }
 }
 
-module.exports = { listEvents, createEvent, updateEvent, deleteEvent };
+module.exports = { listEvents, listPendingEvents, approveEvent, createEvent, updateEvent, deleteEvent };

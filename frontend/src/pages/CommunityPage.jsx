@@ -3,7 +3,7 @@ import {
   Calendar, Users, MessageSquare, Plus, RefreshCw,
   Search, ExternalLink, X, ChevronRight, Loader2, Star,
   Database, ShieldCheck, Clock, CheckCircle, Activity,
-  Radio,
+  Radio, Heart, Award,
 } from 'lucide-react';
 import { events as eventsApi, users as usersApi, content as contentApi } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
@@ -85,7 +85,7 @@ function EventsSection({ currentUser, isAdmin }) {
   const [filter, setFilter] = useState('All');
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({ title: '', description: '', type: 'WATCH_PARTY', startDate: '' });
+  const [form, setForm] = useState({ title: '', description: '', type: 'WATCH_PARTY', startDate: '', discordServer: '' });
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
@@ -114,9 +114,9 @@ function EventsSection({ currentUser, isAdmin }) {
     try {
       const res = await eventsApi.create(form);
       console.log("Event created res:", res);
-      toast('Event created!', 'success');
+      toast(res.event?.approval === 'PENDING' ? 'Event submitted for admin approval!' : 'Event created!', 'success');
       setShowCreate(false);
-      setForm({ title: '', description: '', type: 'WATCH_PARTY', startDate: '' });
+      setForm({ title: '', description: '', type: 'WATCH_PARTY', startDate: '', discordServer: '' });
       fetchEvents();
     } catch (err) {
       console.error("Event creation error:", err);
@@ -213,7 +213,21 @@ function EventsSection({ currentUser, isAdmin }) {
                   }}>
                     {EVENT_LABELS[event.type] || event.type}
                   </span>
-                  <StatusPill status={event.status} />
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {event.approval === 'PENDING' && (
+                      <span style={{
+                        padding: '4px 8px', borderRadius: 20, background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)',
+                        fontFamily: 'var(--font-mono)', fontSize: '0.52rem', fontWeight: 700, color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '0.05em',
+                      }}>Pending</span>
+                    )}
+                    {event.approval === 'REJECTED' && (
+                      <span style={{
+                        padding: '4px 8px', borderRadius: 20, background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)',
+                        fontFamily: 'var(--font-mono)', fontSize: '0.52rem', fontWeight: 700, color: '#f87171', textTransform: 'uppercase', letterSpacing: '0.05em',
+                      }}>Rejected</span>
+                    )}
+                    <StatusPill status={event.status} />
+                  </div>
                 </div>
 
                 <div>
@@ -223,6 +237,19 @@ function EventsSection({ currentUser, isAdmin }) {
                   <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: '#6b7280', fontStyle: 'italic', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                     {event.description}
                   </p>
+                  {event.discordServer && (
+                    <a href={event.discordServer} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 8,
+                      padding: '4px 10px', borderRadius: 8, background: 'rgba(88,101,242,0.1)', border: '1px solid rgba(88,101,242,0.2)',
+                      fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#5865F2', fontWeight: 700,
+                      textTransform: 'uppercase', letterSpacing: '0.07em', textDecoration: 'none', transition: 'all 0.2s',
+                    }}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#5865F2'; e.currentTarget.style.color = '#fff'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'rgba(88,101,242,0.1)'; e.currentTarget.style.color = '#5865F2'; }}
+                    >
+                      <ExternalLink size={10} /> Discord Server
+                    </a>
+                  )}
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
@@ -287,6 +314,10 @@ function EventsSection({ currentUser, isAdmin }) {
               <div>
                 <label className="label">Start Date & Time</label>
                 <input className="input" type="datetime-local" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} required />
+              </div>
+              <div>
+                <label className="label">Discord Server (optional)</label>
+                <input className="input" placeholder="https://discord.gg/..." value={form.discordServer} onChange={e => setForm(f => ({ ...f, discordServer: e.target.value }))} />
               </div>
               <div style={{ display: 'flex', gap: 10, paddingTop: 4 }}>
                 <button type="button" onClick={() => setShowCreate(false)} style={{ flex: 1, padding: '11px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.82rem', color: '#9ca3af' }}>Cancel</button>
@@ -508,6 +539,44 @@ function MembersSection({ currentUser }) {
                     </div>
                   );
                 })()}
+
+                {/* Achievements */}
+                {profile.achievements?.length > 0 && (
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+                      <Award size={13} color="#fbbf24" fill="rgba(251,191,36,0.3)" />
+                      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Achievements — {profile.achievements.length}</p>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {profile.achievements.map(ach => (
+                        <div key={ach.id || ach.title} style={{
+                          display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px',
+                          background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.15)', borderRadius: 8,
+                        }}>
+                          <Star size={10} color="#fbbf24" fill="rgba(251,191,36,0.4)" />
+                          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.65rem', color: '#fbbf24' }}>{ach.title}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Favourites */}
+                {profile.favourites?.length > 0 && (
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+                      <Heart size={13} color="#f472b6" fill="rgba(244,114,182,0.3)" />
+                      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#f472b6', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Favourites</p>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+                      {profile.favourites.slice(0, 8).map(c => (
+                        <div key={c.id} style={{ aspectRatio: '3/4', borderRadius: 8, overflow: 'hidden', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(244,114,182,0.15)', position: 'relative' }}>
+                          {c.coverImage ? <img src={c.coverImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={c.title} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Heart size={10} color="#f472b6" /></div>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Completed covers */}
                 {profile.completed.length > 0 && (

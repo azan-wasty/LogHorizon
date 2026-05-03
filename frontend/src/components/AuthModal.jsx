@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
+import { Loader2, X, Hexagon } from 'lucide-react';
 
 export default function AuthModal({ mode, onClose, onSwitch, onSuccess }) {
   const { login, register } = useAuth();
@@ -52,121 +53,115 @@ export default function AuthModal({ mode, onClose, onSwitch, onSuccess }) {
     }
   };
 
+  const inputStyle = {
+    width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: 12, padding: '12px 16px', fontSize: '0.9rem', fontFamily: 'var(--font-body)',
+    color: '#fff', outline: 'none', transition: 'border-color 0.2s',
+  };
+
+  const labelStyle = {
+    fontFamily: 'var(--font-mono)', fontSize: '0.6rem', textTransform: 'uppercase',
+    letterSpacing: '0.15em', color: '#6b7280', marginBottom: 6, display: 'block',
+  };
+
   return (
-    <div className="modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal glass-card" style={{ padding: 0, overflow: 'hidden' }}>
-        {/* Header accent */}
-        <div style={{ height: 3, background: 'linear-gradient(90deg, var(--violet), var(--cyan))' }} />
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(12px)' }}
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      <div style={{
+        width: '100%', maxWidth: 420, background: '#0f0f16', border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 24, overflow: 'hidden', boxShadow: '0 30px 80px rgba(0,0,0,0.6)',
+        animation: 'fadeUp 0.3s ease',
+      }}>
+        {/* Accent bar */}
+        <div style={{ height: 3, background: 'linear-gradient(90deg, #7C3AED, #22d3ee)' }} />
 
         <div style={{ padding: '32px 36px' }}>
-          {/* Logo */}
+          {/* Logo + heading */}
           <div style={{ textAlign: 'center', marginBottom: 28 }}>
             <div style={{
-              width: 44, height: 44, borderRadius: 10, margin: '0 auto 12px',
-              background: 'linear-gradient(135deg, var(--violet), #4f46e5)',
+              width: 44, height: 44, borderRadius: 12, margin: '0 auto 14px',
+              background: 'linear-gradient(135deg, #7C3AED, #8B5CF6)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '1.2rem', boxShadow: '0 0 20px var(--violet-glow)',
-            }}>◈</div>
-            <h2 style={{ fontSize: '1.3rem', color: 'var(--text-primary)', marginBottom: 4 }}>
+              boxShadow: '0 0 24px rgba(124,58,237,0.4)',
+            }}>
+              <Hexagon size={22} color="#fff" fill="#fff" />
+            </div>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem', color: '#fff', letterSpacing: '-0.02em', marginBottom: 6 }}>
               {mode === 'login' ? 'Welcome back' : 'Join LogHorizon'}
             </h2>
-            <p style={{ fontSize: '0.85rem', margin: 0, fontStyle: 'italic' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.82rem', color: '#6b7280', fontStyle: 'italic', margin: 0 }}>
               {mode === 'login' ? 'Enter your credentials to continue' : 'Create your account to get started'}
             </p>
           </div>
 
+          {/* Form */}
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {mode === 'register' && (
               <div>
-                <label className="label">Username</label>
-                <input
-                  className="input"
-                  type="text"
-                  placeholder="your_handle"
-                  value={form.username}
-                  onChange={set('username')}
-                  autoFocus
-                />
+                <label style={labelStyle}>Username</label>
+                <input style={inputStyle} type="text" placeholder="your_handle" value={form.username} onChange={set('username')} autoFocus
+                  onFocus={e => e.target.style.borderColor = 'rgba(124,58,237,0.4)'} onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
                 {errors.username && <FieldError msg={errors.username} />}
               </div>
             )}
-
             <div>
-              <label className="label">Email</label>
-              <input
-                className="input"
-                type="email"
-                placeholder="you@example.com"
-                value={form.email}
-                onChange={set('email')}
-                autoFocus={mode === 'login'}
-              />
+              <label style={labelStyle}>Email</label>
+              <input style={inputStyle} type="email" placeholder="you@example.com" value={form.email} onChange={set('email')} autoFocus={mode === 'login'}
+                onFocus={e => e.target.style.borderColor = 'rgba(124,58,237,0.4)'} onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
               {errors.email && <FieldError msg={errors.email} />}
             </div>
-
             <div>
-              <label className="label">Password</label>
-              <input
-                className="input"
-                type="password"
-                placeholder="••••••••"
-                value={form.password}
-                onChange={set('password')}
-              />
+              <label style={labelStyle}>Password</label>
+              <input style={inputStyle} type="password" placeholder="••••••••" value={form.password} onChange={set('password')}
+                onFocus={e => e.target.style.borderColor = 'rgba(124,58,237,0.4)'} onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
               {errors.password && <FieldError msg={errors.password} />}
             </div>
 
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={loading}
-              style={{ width: '100%', justifyContent: 'center', marginTop: 8, padding: '13px' }}
-            >
-              {loading ? (
-                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Spinner /> {mode === 'login' ? 'Signing in...' : 'Creating account...'}
-                </span>
-              ) : (
-                mode === 'login' ? 'Sign In' : 'Create Account'
-              )}
+            <button type="submit" disabled={loading} style={{
+              width: '100%', padding: '14px', borderRadius: 14, border: 'none', cursor: 'pointer',
+              background: '#fff', color: '#000', fontFamily: 'var(--font-display)', fontWeight: 700,
+              fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              marginTop: 8, transition: 'all 0.2s', opacity: loading ? 0.6 : 1,
+              boxShadow: '0 4px 20px rgba(255,255,255,0.1)',
+            }}
+              onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#e5e7eb'; }}
+              onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
+              {loading && <Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} />}
+              {loading ? (mode === 'login' ? 'Signing in...' : 'Creating account...') : (mode === 'login' ? 'Sign In' : 'Create Account')}
             </button>
           </form>
 
-          <div className="divider" />
+          {/* Divider */}
+          <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '24px 0' }} />
 
-          <p style={{ textAlign: 'center', fontSize: '0.85rem', margin: 0, color: 'var(--text-muted)' }}>
+          {/* Switch mode */}
+          <p style={{ textAlign: 'center', fontSize: '0.82rem', margin: 0, color: '#6b7280', fontFamily: 'var(--font-body)' }}>
             {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
-            <button
-              onClick={() => onSwitch(mode === 'login' ? 'register' : 'login')}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: 'var(--violet-bright)', fontFamily: 'inherit',
-                fontSize: 'inherit', fontWeight: 600,
-              }}
-            >
+            <button onClick={() => onSwitch(mode === 'login' ? 'register' : 'login')} style={{
+              background: 'none', border: 'none', cursor: 'pointer', color: '#7C3AED',
+              fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 600,
+            }}>
               {mode === 'login' ? 'Sign up' : 'Sign in'}
             </button>
           </p>
         </div>
       </div>
+
+      <style>{`
+        @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes spin { to { transform:rotate(360deg); } }
+      `}</style>
     </div>
   );
 }
 
 function FieldError({ msg }) {
   return (
-    <p style={{
-      fontFamily: 'var(--font-mono)', fontSize: '0.72rem',
-      color: 'var(--error)', marginTop: 5, display: 'flex', alignItems: 'center', gap: 4,
-    }}>✕ {msg}</p>
-  );
-}
-
-function Spinner() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ animation: 'spin 0.8s linear infinite' }}>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10" strokeLinecap="round" />
-    </svg>
+    <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: '#f87171', marginTop: 5, display: 'flex', alignItems: 'center', gap: 4 }}>
+      ✕ {msg}
+    </p>
   );
 }

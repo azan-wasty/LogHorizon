@@ -79,7 +79,6 @@ const TMDB_GENRE_MAP = {
 };
 
 
-
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -103,10 +102,6 @@ async function upsertTags(tx, rawTags) {
     return tagIds;
 }
 
-/**
- * After tags are upserted during ingestion, sync them to PreferenceOptions
- * so the recommendation engine & onboarding can see new options dynamically.
- */
 async function syncTagsToPreferenceOptions(tx, rawTags) {
     for (const t of rawTags) {
         await tx.preferenceOption.upsert({
@@ -139,9 +134,8 @@ function mapTmdbTags(genreIds = []) {
     return tags;
 }
 
-
-
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // INGESTION METHODS
@@ -306,29 +300,52 @@ class IngestionService {
     }
 
 
-
     // ─────────────────────────────────────────────────────────────────────────
     // ADVANCED DISCOVERY
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
      * Discover and ingest content for a category.
-     * 
-     * @param {string} category - "Anime", "Manga", "Movie", "TV"
+     *
+     * @param {string} category  - "Anime" | "Manga" | "Movie" | "TV"
      * @param {object} options
-     * @param {string} options.mode - "popular" | "top_rated" | "trending" | "upcoming" | "search"
-     * @param {number} options.pages - number of pages to fetch (default 3 = ~60 items)
-     * @param {string} options.query - search query (only for mode "search")
+     * @param {string}  options.mode       - "popular" | "top_rated" | "trending" | "upcoming" | "search"
+     * @param {number}  options.pages      - how many NEW pages to actually ingest (default 3)
+     * @param {number}  options.startPage  - which API page to begin from (default 1).
+     *                                       Pass the `nextPage` value returned by a previous run
+     *                                       to continue where you left off.
+     * @param {number}  options.maxPages   - hard ceiling on total pages fetched, including
+     *                                       all-duplicate pages that are skipped over (default 20).
+     * @param {string}  options.query      - search query (only for mode "search")
+     *
+     * @returns {{ ok, stats }}
+     *   stats includes: total, ingested, skipped, failed, pagesScanned, nextPage
+     *   → store `nextPage` and pass it as `startPage` on the next discovery run
+     *     so you never re-scan the same pages.
      */
     async discoverAndIngest(category, options = {}) {
-        const { mode = "popular", pages = 3, query = "" } = options;
-        const stats = { total: 0, ingested: 0, skipped: 0, failed: 0 };
+        const {
+            mode = "popular",
+            pages = 3,
+            startPage = 1,
+            maxPages = 20,
+            query = "",
+        } = options;
+
+        const stats = {
+            total: 0,
+            ingested: 0,
+            skipped: 0,
+            failed: 0,
+            pagesScanned: 0,
+            nextPage: startPage,   // caller should persist this and pass it back next time
+        };
 
         try {
             if (category === "Anime" || category === "Manga") {
-                await this._discoverJikan(category, mode, pages, stats);
+                await this._discoverJikan(category, mode, pages, startPage, maxPages, query, stats);
             } else if (category === "Movie" || category === "TV") {
-                await this._discoverTmdb(category, mode, pages, query, stats);
+                await this._discoverTmdb(category, mode, pages, startPage, maxPages, query, stats);
             } else {
                 return { ok: false, message: `Discovery not supported for "${category}"` };
             }
@@ -340,12 +357,13 @@ class IngestionService {
     }
 
     // ── Jikan multi-page discovery ──
-    async _discoverJikan(category, mode, pages, stats) {
+    async _discoverJikan(category, mode, targetNewPages, startPage, maxPages, query, stats) {
         const type = category.toLowerCase(); // "anime" or "manga"
 
-        // Jikan endpoints: /top, /top?filter=bypopularity, /top?filter=upcoming, /seasons/now
         let baseUrl;
-        if (mode === "top_rated") {
+        if (mode === "search" && query) {
+            baseUrl = `https://api.jikan.moe/v4/${type}?q=${encodeURIComponent(query)}&order_by=members&sort=desc`;
+        } else if (mode === "top_rated") {
             baseUrl = `https://api.jikan.moe/v4/top/${type}?filter=score`;
         } else if (mode === "upcoming") {
             baseUrl = `https://api.jikan.moe/v4/top/${type}?filter=upcoming`;
@@ -355,15 +373,34 @@ class IngestionService {
             baseUrl = `https://api.jikan.moe/v4/top/${type}?filter=bypopularity`;
         }
 
-        for (let page = 1; page <= pages; page++) {
+        let newPagesIngested = 0;
+        let page = startPage;
+        const absoluteMax = startPage + maxPages - 1;
+
+        while (newPagesIngested < targetNewPages && page <= absoluteMax) {
             try {
-                const url = `${baseUrl}&page=${page}&limit=25`;
+                const url = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}page=${page}&limit=25`;
                 console.log(`[Jikan] Fetching ${category} ${mode} page ${page}: ${url}`);
-                const resp = await fetch(url);
+                const resp = await fetch(url, {
+                    headers: { 'User-Agent': 'LogHorizon/1.0.0 (Research Project)' }
+                });
+
+                // Jikan returns 404 / empty data past the last page
+                if (!resp.ok) {
+                    console.log(`[Jikan] Non-OK status ${resp.status} on page ${page} – stopping.`);
+                    break;
+                }
+
                 const json = await resp.json();
                 const items = json.data || [];
 
-                if (items.length === 0) break;
+                if (items.length === 0) {
+                    console.log(`[Jikan] No items on page ${page} – end of results.`);
+                    break;
+                }
+
+                stats.pagesScanned++;
+                const pageIngestedBefore = stats.ingested;
 
                 for (const item of items) {
                     stats.total++;
@@ -376,25 +413,42 @@ class IngestionService {
                             stats.failed++;
                         }
                     } catch { stats.failed++; }
-                    // Jikan rate limit: ~3 req/s, but we batch so be conservative
                     await sleep(400);
                 }
+
+                // Only count a page toward our target if it actually produced new content.
+                // This means an all-duplicate page is "skipped over" automatically.
+                if (stats.ingested > pageIngestedBefore) {
+                    newPagesIngested++;
+                } else {
+                    console.log(`[Jikan] Page ${page} was all duplicates – advancing without counting toward target.`);
+                }
+
+                page++;
+                stats.nextPage = page;
+
             } catch (err) {
                 console.error(`[Jikan] Page ${page} error:`, err.message);
+                page++;          // still advance so we don't loop forever on a bad page
+                stats.nextPage = page;
             }
-            // Wait between pages to stay within rate limits
+
             await sleep(1500);
         }
     }
 
     // ── TMDB multi-page discovery ──
-    async _discoverTmdb(category, mode, pages, query, stats) {
+    async _discoverTmdb(category, mode, targetNewPages, startPage, maxPages, query, stats) {
         const apiKey = process.env.TMDB_API_KEY;
         if (!apiKey) throw new Error("TMDB_API_KEY missing");
         const isTV = category === "TV";
         const type = isTV ? "tv" : "movie";
 
-        for (let page = 1; page <= pages; page++) {
+        let newPagesIngested = 0;
+        let page = startPage;
+        const absoluteMax = startPage + maxPages - 1;
+
+        while (newPagesIngested < targetNewPages && page <= absoluteMax) {
             try {
                 let url;
                 if (mode === "search" && query) {
@@ -411,10 +465,23 @@ class IngestionService {
 
                 console.log(`[TMDB] Fetching ${category} ${mode} page ${page}: ${url}`);
                 const resp = await fetch(url);
+
+                if (!resp.ok) {
+                    console.log(`[TMDB] Non-OK status ${resp.status} on page ${page} – stopping.`);
+                    break;
+                }
+
                 const json = await resp.json();
                 const items = json.results || [];
 
-                if (items.length === 0) break;
+                // TMDB returns an empty results array (not an error) past the last page
+                if (items.length === 0) {
+                    console.log(`[TMDB] No items on page ${page} – end of results.`);
+                    break;
+                }
+
+                stats.pagesScanned++;
+                const pageIngestedBefore = stats.ingested;
 
                 for (const item of items) {
                     stats.total++;
@@ -429,13 +496,26 @@ class IngestionService {
                     } catch { stats.failed++; }
                     await sleep(100);
                 }
+
+                // Same smart-skip logic: only credit the page if it yielded new items
+                if (stats.ingested > pageIngestedBefore) {
+                    newPagesIngested++;
+                } else {
+                    console.log(`[TMDB] Page ${page} was all duplicates – advancing without counting toward target.`);
+                }
+
+                page++;
+                stats.nextPage = page;
+
             } catch (err) {
                 console.error(`[TMDB] Page ${page} error:`, err.message);
+                page++;
+                stats.nextPage = page;
             }
+
             await sleep(500);
         }
     }
-
 
 
     // ── Legacy method kept for backward compatibility ──

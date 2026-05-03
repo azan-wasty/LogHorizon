@@ -105,6 +105,9 @@ export const admin = {
     return request(`/admin/discord-recommendations${qs ? `?${qs}` : ''}`);
   },
   updateDiscordRecommendation: (id, status) => request(`/admin/discord-recommendations/${id}`, { method: 'PUT', body: JSON.stringify({ status }) }),
+  // Events admin
+  listPendingEvents: () => request('/events/pending'),
+  approveEvent: (id, approval) => request(`/events/${id}/approve`, { method: 'PUT', body: JSON.stringify({ approval }) }),
 };
 
 // ── Library ──────────────────────────────────────
@@ -126,6 +129,7 @@ export const users = {
     return request(`/users/search${qs}`);
   },
   profile: (id) => request(`/users/${id}/profile`),
+  favourites: (id) => request(`/users/${id}/favourites`),
 };
 
 // ── Events (Community) ────────────────────────────
@@ -139,4 +143,11 @@ export const events = {
   delete: (id) => request(`/events/${id}`, { method: 'DELETE' }),
 };
 
-export default { auth, me, preferences, recommendations, content, tags, admin, library, discord, users, events };
+// ── Favourites ───────────────────────────────────
+export const favourites = {
+  get: () => request('/favourites'),
+  add: (contentId) => request('/favourites', { method: 'POST', body: JSON.stringify({ contentId }) }),
+  remove: (contentId) => request(`/favourites/${contentId}`, { method: 'DELETE' }),
+};
+
+export default { auth, me, preferences, recommendations, content, tags, admin, library, discord, users, events, favourites };

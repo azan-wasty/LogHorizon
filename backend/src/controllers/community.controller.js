@@ -1,4 +1,5 @@
 const prisma = require("../prismaClient");
+const achievementsService = require("../services/AchievementsService");
 
 /**
  * GET /api/users/search?q=username
@@ -59,6 +60,7 @@ async function searchUsers(req, res) {
 /**
  * GET /api/users/:id/profile
  * Public profile view — no auth required.
+ * Now includes achievements and favourites.
  */
 async function getUserProfile(req, res) {
     try {
@@ -90,6 +92,21 @@ async function getUserProfile(req, res) {
                         },
                     },
                 },
+                favourites: {
+                    select: {
+                        content: {
+                            select: {
+                                id: true,
+                                title: true,
+                                category: true,
+                                coverImage: true,
+                                rating: true,
+                            },
+                        },
+                    },
+                    orderBy: { createdAt: "desc" },
+                    take: 12,
+                },
             },
         });
 
@@ -97,6 +114,9 @@ async function getUserProfile(req, res) {
 
         const completed = user.library.filter(e => e.status === "COMPLETED");
         const current = user.library.filter(e => e.status === "CURRENT");
+
+        // Get achievements for this user
+        const achievements = await achievementsService.getUserAchievements(id);
 
         return res.status(200).json({
             ok: true,
@@ -113,6 +133,8 @@ async function getUserProfile(req, res) {
                 },
                 completed: completed.map(e => e.content),
                 current: current.map(e => e.content),
+                achievements,
+                favourites: user.favourites.map(f => f.content),
             },
         });
     } catch (err) {

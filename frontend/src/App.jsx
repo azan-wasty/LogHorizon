@@ -82,7 +82,7 @@ function App() {
       case 'profile':
         return <ProfilePage onNavigate={navigate} />;
       case 'community':
-        return <CommunityPage />;
+        return <CommunityPage onNavigate={navigate} />;
       case 'admin':
         return isAdmin ? <AdminPage /> : <DashboardPage onNavigate={navigate} />;
       default:
