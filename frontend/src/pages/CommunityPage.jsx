@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import Radar from '../components/Radar';
 import {
   Calendar, Users, MessageSquare, Plus, RefreshCw,
   Search, ExternalLink, X, ChevronRight, Loader2, Star,
@@ -744,7 +745,27 @@ export default function CommunityPage({ onNavigate }) {
   const [activeTab, setActiveTab] = useState('events');
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+    <div style={{ position: 'relative' }}>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.4 }}>
+        <Radar
+          speed={1}
+          scale={0.5}
+          ringCount={10}
+          spokeCount={10}
+          ringThickness={0.05}
+          spokeThickness={0.01}
+          sweepSpeed={1}
+          sweepWidth={2}
+          sweepLobes={1}
+          color="#9f29ff"
+          backgroundColor="#000000"
+          falloff={2}
+          brightness={1}
+          enableMouseInteraction={false}
+          mouseInfluence={0.1}
+        />
+      </div>
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 32 }}>
       <style>{`
         @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
@@ -804,6 +825,7 @@ export default function CommunityPage({ onNavigate }) {
         {activeTab === 'events' && <EventsSection currentUser={user} isAdmin={isAdmin} />}
         {activeTab === 'members' && <MembersSection currentUser={user} />}
         {activeTab === 'discord' && <DiscordHubSection onNavigate={onNavigate} />}
+      </div>
       </div>
     </div>
   );

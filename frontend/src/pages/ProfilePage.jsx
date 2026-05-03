@@ -527,7 +527,7 @@ export default function ProfilePage({ onNavigate }) {
       `}</style>
 
       <div className="profile-page" style={{ position: 'relative' }}>
-        <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.5 }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'all', opacity: 0.5 }}>
           <Galaxy
             mouseRepulsion
             mouseInteraction
@@ -543,7 +543,7 @@ export default function ProfilePage({ onNavigate }) {
             speed={1}
           />
         </div>
-        <div style={{ position: 'relative', zIndex: 1 }}>
+        <div style={{ position: 'relative', zIndex: 1, pointerEvents: 'all' }}>
 
         {/* ── HERO CARD ── */}
         <div style={{ position: 'relative', borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)' }}>
