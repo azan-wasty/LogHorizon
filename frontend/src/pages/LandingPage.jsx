@@ -53,7 +53,7 @@ export default function LandingPage({ onNavigate }) {
   ];
 
   const handleSearch = (e) => { e.preventDefault(); onNavigate('discover'); };
-  const handleAuthSuccess = (user) => { setAuthModal(null); onNavigate(user.newUser ? 'onboarding' : 'discover'); };
+  const handleAuthSuccess = (user) => { setAuthModal(null); onNavigate(user.newUser ? 'onboarding' : 'dashboard'); };
 
   return (
     <>

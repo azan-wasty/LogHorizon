@@ -353,7 +353,7 @@ export default function DashboardPage({ onNavigate }) {
 
     return (
         <div style={{ position: 'relative' }}>
-          <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.75 }}>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.35 }}>
             <Hyperspeed effectOptions={{
               distortion: 'turbulentDistortion', length: 400, roadWidth: 10, islandWidth: 2,
               lanesPerRoad: 4, fov: 90, fovSpeedUp: 150, speedUp: 2, carLightsFade: 0.4,

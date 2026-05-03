@@ -527,7 +527,7 @@ export default function ProfilePage({ onNavigate }) {
       `}</style>
 
       <div className="profile-page" style={{ position: 'relative' }}>
-        <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.8 }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.35 }}>
           <Hyperspeed effectOptions={{
             distortion: 'turbulentDistortion', length: 400, roadWidth: 10, islandWidth: 2,
             lanesPerRoad: 4, fov: 90, fovSpeedUp: 150, speedUp: 2, carLightsFade: 0.4,
@@ -739,7 +739,7 @@ export default function ProfilePage({ onNavigate }) {
                     key={fav.id}
                     onClick={() => onNavigate(`content/${item.id}`)}
                     style={{
-                      flexShrink: 0, width: 160, position: 'relative', cursor: 'pointer',
+                      flexShrink: 0, width: 200, position: 'relative', cursor: 'pointer',
                       borderRadius: 16, overflow: 'hidden',
                       background: '#121212', border: '1px solid rgba(255,255,255,0.08)',
                       animation: `fadeUp 0.4s ${i * 80}ms ease both`,

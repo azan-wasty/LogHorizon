@@ -746,7 +746,7 @@ export default function CommunityPage({ onNavigate }) {
 
   return (
     <div style={{ position: 'relative' }}>
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.4 }}>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.15 }}>
         <Radar
           speed={1}
           scale={0.5}

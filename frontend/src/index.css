@@ -93,6 +93,7 @@ h6 {
   font-family: var(--font-display);
   letter-spacing: -0.02em;
   line-height: 1.1;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 a {
