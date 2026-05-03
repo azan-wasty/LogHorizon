@@ -527,7 +527,7 @@ export default function ProfilePage({ onNavigate }) {
       `}</style>
 
       <div className="profile-page" style={{ position: 'relative' }}>
-        <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.35 }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.2 }}>
           <Hyperspeed effectOptions={{
             distortion: 'turbulentDistortion', length: 400, roadWidth: 10, islandWidth: 2,
             lanesPerRoad: 4, fov: 90, fovSpeedUp: 150, speedUp: 2, carLightsFade: 0.4,
@@ -675,7 +675,7 @@ export default function ProfilePage({ onNavigate }) {
         </div>
 
         {/* ── ACHIEVEMENTS ── always rendered, shows empty state if none */}
-        <div style={{ animation: 'fadeUp 0.5s 0.08s ease both' }}>
+        <div style={{ marginTop: 20, animation: 'fadeUp 0.5s 0.08s ease both' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
             <Award size={16} color="#fbbf24" fill="rgba(251,191,36,0.3)" />
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-muted)' }}>
@@ -720,7 +720,7 @@ export default function ProfilePage({ onNavigate }) {
         </div>
  
         {/* ── TOP PROTOCOL: FAVOURITES ── */}
-        <div style={{ animation: 'fadeUp 0.5s 0.1s ease both' }}>
+        <div style={{ marginTop: 20, animation: 'fadeUp 0.5s 0.1s ease both' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
             <Heart size={16} color="#ef4444" fill="rgba(239,68,68,0.3)" />
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-muted)' }}>
@@ -781,7 +781,7 @@ export default function ProfilePage({ onNavigate }) {
         </div>
 
         {/* ── LIBRARY SECTION ── */}
-        <div style={{ animation: 'fadeUp 0.5s 0.14s ease both' }}>
+        <div style={{ marginTop: 20, animation: 'fadeUp 0.5s 0.14s ease both' }}>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, flexWrap: 'wrap', gap: 12 }}>
             <div style={{ display: 'flex', gap: 4, padding: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 14, border: '1px solid rgba(255,255,255,0.06)' }}>
