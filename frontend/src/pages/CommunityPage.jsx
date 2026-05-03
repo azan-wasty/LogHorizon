@@ -609,7 +609,7 @@ function MembersSection({ currentUser }) {
 // ══════════════════════════════════════════════════
 // DISCORD HUB SECTION
 // ══════════════════════════════════════════════════
-function DiscordHubSection({ onNavigate }) {
+function SocialHubSection({ onNavigate }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('All');
