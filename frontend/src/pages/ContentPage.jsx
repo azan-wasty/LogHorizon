@@ -558,10 +558,31 @@ export default function ContentPage({ id, goBack }) {
           {/* ════════════════════════════════
               RIGHT COLUMN — CONTENT INFO
               ════════════════════════════════ */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0, paddingTop: 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0, paddingTop: 8, position: 'relative' }}>
+            
+            {/* Absolute Favourites Toggle */}
+            <div style={{ position: 'absolute', top: 0, right: 0, zIndex: 100 }}>
+              <button
+                onClick={handleToggleFavourite}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 56, height: 56, borderRadius: '50%', border: 'none', cursor: 'pointer',
+                  background: isFavourite ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.05)',
+                  color: isFavourite ? '#ef4444' : '#4b5563',
+                  border: isFavourite ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(255,255,255,0.1)',
+                  transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                  boxShadow: isFavourite ? '0 0 25px rgba(239,68,68,0.25)' : '0 8px 32px rgba(0,0,0,0.2)',
+                  backdropFilter: 'blur(8px)',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1) rotate(5deg)'; if (!isFavourite) e.currentTarget.style.color = '#fff'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; if (!isFavourite) e.currentTarget.style.color = '#4b5563'; }}
+              >
+                <Heart size={26} fill={isFavourite ? '#ef4444' : 'none'} />
+              </button>
+            </div>
 
             {/* Category label + title */}
-            <div style={{ marginBottom: 24, animation: 'slideInLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both' }}>
+            <div style={{ marginBottom: 24, paddingRight: 70, animation: 'slideInLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
                 <span style={{
                   padding: '4px 12px', borderRadius: 4,
@@ -583,36 +604,15 @@ export default function ContentPage({ id, goBack }) {
                 )}
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-                <h1 style={{
-                  fontFamily: 'var(--font-display)', fontWeight: 900,
-                  fontSize: 'clamp(2rem, 4vw, 3.5rem)',
-                  color: '#fff', lineHeight: 1.05,
-                  letterSpacing: '-0.03em',
-                  marginBottom: 0,
-                }}>
-                  {item.title}
-                </h1>
-
-                {/* Prominent Favourite Toggle */}
-                <button
-                  onClick={handleToggleFavourite}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    width: 52, height: 52, borderRadius: '50%', border: 'none', cursor: 'pointer',
-                    background: isFavourite ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.05)',
-                    color: isFavourite ? '#ef4444' : '#4b5563',
-                    border: isFavourite ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(255,255,255,0.1)',
-                    transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                    marginTop: 8,
-                    boxShadow: isFavourite ? '0 0 20px rgba(239,68,68,0.2)' : 'none',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1) rotate(5deg)'; if (!isFavourite) e.currentTarget.style.color = '#fff'; }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; if (!isFavourite) e.currentTarget.style.color = '#4b5563'; }}
-                >
-                  <Heart size={24} fill={isFavourite ? '#ef4444' : 'none'} />
-                </button>
-              </div>
+              <h1 style={{
+                fontFamily: 'var(--font-display)', fontWeight: 900,
+                fontSize: 'clamp(2rem, 4vw, 3.5rem)',
+                color: '#fff', lineHeight: 1.05,
+                letterSpacing: '-0.03em',
+                marginBottom: 0,
+              }}>
+                {item.title}
+              </h1>
 
               {/* Decorative line */}
               <div style={{
