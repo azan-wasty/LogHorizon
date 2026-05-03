@@ -411,30 +411,32 @@ export default function Layout({ children, currentPage, onNavigate }) {
           {!isCollapsed && <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.8rem' }}>Sign Out</span>}
         </button>
 
-        {/* Retract Toggle Button */}
+        {/* Retract Toggle symbol on the right edge */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           style={{
-            marginTop: 8,
-            width: '100%',
+            position: 'absolute',
+            right: -12,
+            top: 96,
+            width: 24,
+            height: 24,
+            borderRadius: '50%',
+            background: '#7C3AED',
+            border: '3px solid #0f0f16',
             display: 'flex',
             alignItems: 'center',
-            gap: isCollapsed ? 0 : 10,
-            padding: isCollapsed ? '9px 0' : '9px 14px',
-            justifyContent: isCollapsed ? 'center' : 'flex-start',
-            borderRadius: 10,
-            border: '1px solid rgba(255,255,255,0.04)',
-            background: 'rgba(255,255,255,0.02)',
+            justifyContent: 'center',
             cursor: 'pointer',
-            transition: 'all 0.2s',
-            color: '#4b5563',
+            zIndex: 1001,
+            boxShadow: '0 0 15px rgba(124,58,237,0.4)',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            padding: 0,
           }}
-          title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#9ca3af'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.color = '#4b5563'; }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.2)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(124,58,237,0.6)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 0 15px rgba(124,58,237,0.4)'; }}
+          title={isCollapsed ? 'Expand Navigation' : 'Collapse Navigation'}
         >
-          {isCollapsed ? <PanelLeftOpen size={15} color="currentColor" /> : <PanelLeftClose size={15} color="currentColor" />}
-          {!isCollapsed && <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.8rem' }}>Collapse</span>}
+          {isCollapsed ? <PanelLeftOpen size={10} color="#fff" /> : <PanelLeftClose size={10} color="#fff" />}
         </button>
 
         {!isCollapsed && (
