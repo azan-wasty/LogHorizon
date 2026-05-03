@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { content as contentApi, discord as discordApi, favourites as favouritesApi } from '../api/client';
+import { content as contentApi, discord as discordApi, subreddit as subredditApi, favourites as favouritesApi } from '../api/client';
 import { useLibrary } from '../hooks/useLibrary';
 import { useToast } from '../hooks/useToast';
 import {
   Star, Database, ExternalLink, Loader2, Bookmark,
   Check, Play, ArrowLeft, Layers, Activity, X,
-  MessageCircle, Zap, Hash, Clock, Eye, Heart
+  MessageCircle, Zap, Hash, Clock, Eye, Heart, Search
 } from 'lucide-react';
 
 const CAT_PALETTES = {
@@ -178,7 +178,7 @@ function LibraryButton({ status, label, icon: Icon, activeColor, currentStatus, 
       onMouseLeave={() => setHovered(false)}
       style={{
         display: 'flex', alignItems: 'center', gap: 9,
-        padding: '11px 20px', borderRadius: 12, border: 'none', cursor: 'pointer',
+        padding: '11px 20px', borderRadius: 12, cursor: 'pointer',
         fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.8rem',
         textTransform: 'uppercase', letterSpacing: '0.05em',
         transition: 'all 0.2s',
@@ -210,6 +210,9 @@ export default function ContentPage({ id, goBack }) {
   const [showDiscordForm, setShowDiscordForm] = useState(false);
   const [discordInvite, setDiscordInvite] = useState('');
   const [isSubmittingDiscord, setIsSubmittingDiscord] = useState(false);
+  const [showSubredditForm, setShowSubredditForm] = useState(false);
+  const [subredditName, setSubredditName] = useState('');
+  const [isSubmittingSubreddit, setIsSubmittingSubreddit] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isFavourite, setIsFavourite] = useState(false);
   const { updateItem, removeItem, isInLibrary } = useLibrary();
@@ -288,6 +291,22 @@ export default function ContentPage({ id, goBack }) {
       toast(err.message || 'Failed to submit', 'error');
     } finally {
       setIsSubmittingDiscord(false);
+    }
+  };
+
+  const handleSubredditSubmit = async (e) => {
+    e.preventDefault();
+    if (!subredditName) return;
+    try {
+      setIsSubmittingSubreddit(true);
+      await subredditApi.recommend({ contentId: item.id, subreddit: subredditName });
+      toast('Subreddit recommendation submitted!', 'success');
+      setShowSubredditForm(false);
+      setSubredditName('');
+    } catch (err) {
+      toast(err.message || 'Failed to submit', 'error');
+    } finally {
+      setIsSubmittingSubreddit(false);
     }
   };
 
@@ -490,8 +509,9 @@ export default function ContentPage({ id, goBack }) {
               )}
             </div>
 
-            {/* Discord section */}
-            <div style={{ animation: 'fadeUp 0.5s 0.35s ease both' }}>
+            {/* Social Links / Recommendations */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, animation: 'fadeUp 0.5s 0.35s ease both' }}>
+              {/* Discord */}
               {item.discordLink ? (
                 <a
                   href={item.discordLink}
@@ -510,7 +530,7 @@ export default function ContentPage({ id, goBack }) {
                   onMouseEnter={e => { e.currentTarget.style.background = '#5865F2'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(88,101,242,0.3)'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'rgba(88,101,242,0.1)'; e.currentTarget.style.color = '#5865F2'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
                 >
-                  <ExternalLink size={15} /> Join Community Server
+                  <ExternalLink size={15} /> Join Community Discord
                 </a>
               ) : showDiscordForm ? (
                 <form
@@ -539,28 +559,26 @@ export default function ContentPage({ id, goBack }) {
                     }}
                     required
                   />
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button
-                      type="submit" disabled={isSubmittingDiscord}
-                      style={{
-                        flex: 1, padding: '9px', borderRadius: 8, border: 'none',
-                        background: '#5865F2', color: '#fff', cursor: 'pointer',
-                        fontFamily: 'var(--font-display)', fontSize: '0.72rem', fontWeight: 700,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                        opacity: isSubmittingDiscord ? 0.6 : 1,
-                      }}
-                    >
-                      {isSubmittingDiscord ? <Loader2 size={12} style={{ animation: 'spin 0.8s linear infinite' }} /> : null}
-                      Submit
-                    </button>
-                  </div>
+                  <button
+                    type="submit" disabled={isSubmittingDiscord}
+                    style={{
+                      padding: '9px', borderRadius: 8, border: 'none',
+                      background: '#5865F2', color: '#fff', cursor: 'pointer',
+                      fontFamily: 'var(--font-display)', fontSize: '0.72rem', fontWeight: 700,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      opacity: isSubmittingDiscord ? 0.6 : 1,
+                    }}
+                  >
+                    {isSubmittingDiscord ? <Loader2 size={12} className="animate-spin" /> : null}
+                    Submit Invite
+                  </button>
                 </form>
               ) : (
                 <button
                   onClick={() => setShowDiscordForm(true)}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
-                    padding: '12px', borderRadius: 12, width: '100%', border: 'none', cursor: 'pointer',
+                    padding: '12px', borderRadius: 12, width: '100%', cursor: 'pointer',
                     background: 'rgba(255,255,255,0.03)',
                     border: '1px dashed rgba(88,101,242,0.2)',
                     color: '#4b5563',
@@ -570,7 +588,88 @@ export default function ContentPage({ id, goBack }) {
                   onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(88,101,242,0.4)'; e.currentTarget.style.color = '#5865F2'; e.currentTarget.style.background = 'rgba(88,101,242,0.06)'; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(88,101,242,0.2)'; e.currentTarget.style.color = '#4b5563'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
                 >
-                  <MessageCircle size={14} /> Recommend Discord Server
+                  <MessageCircle size={14} /> Recommend Discord
+                </button>
+              )}
+
+              {/* Reddit */}
+              {item.redditLink ? (
+                <a
+                  href={item.redditLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                    padding: '13px', borderRadius: 12,
+                    background: 'rgba(255,69,0,0.1)',
+                    border: '1px solid rgba(255,69,0,0.25)',
+                    color: '#FF4500', textDecoration: 'none',
+                    fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.8rem',
+                    textTransform: 'uppercase', letterSpacing: '0.05em',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#FF4500'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(255,69,0,0.3)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,69,0,0.1)'; e.currentTarget.style.color = '#FF4500'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
+                >
+                  <Zap size={15} /> Visit Subreddit
+                </a>
+              ) : showSubredditForm ? (
+                <form
+                  onSubmit={handleSubredditSubmit}
+                  style={{
+                    padding: '16px', borderRadius: 12,
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    display: 'flex', flexDirection: 'column', gap: 10,
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Submit Subreddit</span>
+                    <button type="button" onClick={() => setShowSubredditForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563' }}>
+                      <X size={14} />
+                    </button>
+                  </div>
+                  <input
+                    type="text" placeholder="e.g. evangelion"
+                    value={subredditName}
+                    onChange={e => setSubredditName(e.target.value)}
+                    style={{
+                      background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: 8, padding: '9px 12px',
+                      fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: '#fff', outline: 'none',
+                    }}
+                    required
+                  />
+                  <button
+                    type="submit" disabled={isSubmittingSubreddit}
+                    style={{
+                      padding: '9px', borderRadius: 8, border: 'none',
+                      background: '#FF4500', color: '#fff', cursor: 'pointer',
+                      fontFamily: 'var(--font-display)', fontSize: '0.72rem', fontWeight: 700,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                      opacity: isSubmittingSubreddit ? 0.6 : 1,
+                    }}
+                  >
+                    {isSubmittingSubreddit ? <Loader2 size={12} className="animate-spin" /> : null}
+                    Submit Reddit
+                  </button>
+                </form>
+              ) : (
+                <button
+                  onClick={() => setShowSubredditForm(true)}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
+                    padding: '12px', borderRadius: 12, width: '100%', cursor: 'pointer',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '1px dashed rgba(255,69,0,0.2)',
+                    color: '#4b5563',
+                    fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.75rem',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,69,0,0.4)'; e.currentTarget.style.color = '#FF4500'; e.currentTarget.style.background = 'rgba(255,69,0,0.06)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,69,0,0.2)'; e.currentTarget.style.color = '#4b5563'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+                >
+                  <Search size={14} /> Recommend Subreddit
                 </button>
               )}
             </div>

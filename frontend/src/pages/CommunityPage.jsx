@@ -614,10 +614,10 @@ function DiscordHubSection({ onNavigate }) {
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('All');
 
-  const fetchDiscord = useCallback(async () => {
+  const fetchSocial = useCallback(async () => {
     setLoading(true);
     try {
-      const params = { hasDiscord: 'true' };
+      const params = { hasSocial: 'true' };
       if (category !== 'All') params.category = category;
       const data = await contentApi.list(params);
       setItems(data.content || []);
@@ -628,7 +628,7 @@ function DiscordHubSection({ onNavigate }) {
     }
   }, [category]);
 
-  useEffect(() => { fetchDiscord(); }, [fetchDiscord]);
+  useEffect(() => { fetchSocial(); }, [fetchSocial]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -658,13 +658,13 @@ function DiscordHubSection({ onNavigate }) {
         </div>
       ) : items.length === 0 ? (
         <div style={{ padding: '64px 32px', textAlign: 'center', border: '1px dashed rgba(255,255,255,0.06)', borderRadius: 20 }}>
-          <MessageSquare size={40} color="#374151" style={{ margin: '0 auto 12px' }} />
-          <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem', color: '#fff', marginBottom: 6 }}>No Discord Servers Yet</h3>
+          <Radio size={40} color="#374151" style={{ margin: '0 auto 12px' }} />
+          <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem', color: '#fff', marginBottom: 6 }}>Social Nexus Empty</h3>
           <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: '#6b7280', fontStyle: 'italic', marginBottom: 16 }}>
-            Recommend a Discord server for your favourite series.
+            No Discord or Reddit communities have been linked yet.
           </p>
           {onNavigate && (
-            <button onClick={() => onNavigate('discover')} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#5865F2', textTransform: 'uppercase', letterSpacing: '0.1em', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+            <button onClick={() => onNavigate('discover')} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#7C3AED', textTransform: 'uppercase', letterSpacing: '0.1em', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
               Browse content to recommend →
             </button>
           )}
@@ -680,7 +680,7 @@ function DiscordHubSection({ onNavigate }) {
                 display: 'flex', flexDirection: 'column', transition: 'all 0.3s',
                 animation: `fadeUp 0.4s ${i * 30}ms ease both`,
               }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(88,101,242,0.3)'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(0,0,0,0.4)'; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(124,58,237,0.3)'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(0,0,0,0.4)'; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
               >
                 <div style={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden' }}>
@@ -705,22 +705,44 @@ function DiscordHubSection({ onNavigate }) {
                   <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.78rem', color: '#fff', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', minHeight: 34, lineHeight: 1.35 }}>
                     {item.title}
                   </h3>
-                  <a
-                    href={item.discordLink} target="_blank" rel="noopener noreferrer"
-                    onClick={e => e.stopPropagation()}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                      padding: '8px', borderRadius: 9, border: '1px solid rgba(88,101,242,0.25)',
-                      background: 'rgba(88,101,242,0.08)', color: '#5865F2',
-                      fontFamily: 'var(--font-display)', fontSize: '0.68rem', fontWeight: 700,
-                      textTransform: 'uppercase', letterSpacing: '0.05em', textDecoration: 'none',
-                      transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#5865F2'; e.currentTarget.style.color = '#fff'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(88,101,242,0.08)'; e.currentTarget.style.color = '#5865F2'; }}
-                  >
-                    <ExternalLink size={11} /> Join Server
-                  </a>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {item.discordLink && (
+                      <a
+                        href={item.discordLink} target="_blank" rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                          padding: '7px', borderRadius: 8, border: '1px solid rgba(88,101,242,0.25)',
+                          background: 'rgba(88,101,242,0.08)', color: '#5865F2',
+                          fontFamily: 'var(--font-display)', fontSize: '0.65rem', fontWeight: 700,
+                          textTransform: 'uppercase', letterSpacing: '0.05em', textDecoration: 'none',
+                          transition: 'all 0.2s',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#5865F2'; e.currentTarget.style.color = '#fff'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(88,101,242,0.08)'; e.currentTarget.style.color = '#5865F2'; }}
+                      >
+                        <MessageSquare size={11} /> Discord
+                      </a>
+                    )}
+                    {item.redditLink && (
+                      <a
+                        href={item.redditLink} target="_blank" rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                          padding: '7px', borderRadius: 8, border: '1px solid rgba(255,69,0,0.25)',
+                          background: 'rgba(255,69,0,0.08)', color: '#FF4500',
+                          fontFamily: 'var(--font-display)', fontSize: '0.65rem', fontWeight: 700,
+                          textTransform: 'uppercase', letterSpacing: '0.05em', textDecoration: 'none',
+                          transition: 'all 0.2s',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#FF4500'; e.currentTarget.style.color = '#fff'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,69,0,0.08)'; e.currentTarget.style.color = '#FF4500'; }}
+                      >
+                        <Radio size={11} /> Subreddit
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -737,7 +759,7 @@ function DiscordHubSection({ onNavigate }) {
 const TABS = [
   { id: 'events', label: 'Events', icon: Calendar },
   { id: 'members', label: 'Members', icon: Users },
-  { id: 'discord', label: 'Discord Hub', icon: MessageSquare },
+  { id: 'social', label: 'Social Hub', icon: Radio },
 ];
 
 export default function CommunityPage({ onNavigate }) {
@@ -824,7 +846,7 @@ export default function CommunityPage({ onNavigate }) {
       <div key={activeTab} style={{ animation: 'fadeUp 0.3s ease' }}>
         {activeTab === 'events' && <EventsSection currentUser={user} isAdmin={isAdmin} />}
         {activeTab === 'members' && <MembersSection currentUser={user} />}
-        {activeTab === 'discord' && <DiscordHubSection onNavigate={onNavigate} />}
+        {activeTab === 'social' && <SocialHubSection onNavigate={onNavigate} />}
       </div>
       </div>
     </div>

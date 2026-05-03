@@ -12,7 +12,7 @@ function formatContent(item) {
 // GET /api/content  — public list with optional ?category=, ?tagId=, ?hasDiscord= filters
 router.get("/", async (req, res) => {
     try {
-        const { category, tagId, hasDiscord } = req.query;
+        const { category, tagId, hasDiscord, hasReddit, hasSocial } = req.query;
 
         const where = {};
         if (category) where.category = category;
@@ -22,9 +22,18 @@ router.get("/", async (req, res) => {
                 where.tags = { some: { tagId: tid } };
             }
         }
-        // Filter only items with a Discord link when hasDiscord=true
+
         if (hasDiscord === "true") {
             where.discordLink = { not: null };
+        }
+        if (hasReddit === "true") {
+            where.redditLink = { not: null };
+        }
+        if (hasSocial === "true") {
+            where.OR = [
+                { discordLink: { not: null } },
+                { redditLink: { not: null } }
+            ];
         }
 
         const content = await prisma.content.findMany({

@@ -22,7 +22,8 @@ model User {
   achievements           UserAchievement[]
   discordRecommendations DiscordRecommendation[]
   events                 Event[]
-  favourites             Favourite[]
+  favourites               Favourite[]
+  subredditRecommendations SubredditRecommendation[]
 }
 
 model Content {
@@ -31,6 +32,7 @@ model Content {
   category               String
   description            String
   discordLink            String?
+  redditLink             String?
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
   coverImage             String?
@@ -44,6 +46,7 @@ model Content {
   library                UserLibrary[]
   discordRecommendations DiscordRecommendation[]
   favourites             Favourite[]
+  subredditRecommendations SubredditRecommendation[]
 
   @@unique([source, externalId])
 }
@@ -150,6 +153,21 @@ model Favourite {
   userId    Int
   contentId Int
   createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId])
+}
+
+model SubredditRecommendation {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  contentId Int
+  subreddit String
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)

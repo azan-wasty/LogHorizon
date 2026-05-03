@@ -29,7 +29,7 @@ import {
 const CATEGORIES = ['Anime', 'Manga', 'Movie', 'TV'];
 
 const EMPTY_FORM = {
-  title: '', category: 'Anime', description: '', discordLink: '',
+  title: '', category: 'Anime', description: '', discordLink: '', redditLink: '',
   externalId: '', source: '', coverImage: '', rating: '',
   tagIds: [],
   isSuggested: false,
@@ -42,6 +42,7 @@ export default function ContentStudio() {
   const [tags, setTags] = useState([]);
   const [users, setUsers] = useState([]);
   const [discordApprovals, setDiscordApprovals] = useState([]);
+  const [subredditApprovals, setSubredditApprovals] = useState([]);
   const [pendingEvents, setPendingEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -66,17 +67,19 @@ export default function ContentStudio() {
   const refresh = async () => {
     setLoading(true);
     try {
-      const [cd, td, ud, dd, ed] = await Promise.all([
+      const [cd, td, ud, dd, sd, ed] = await Promise.all([
         adminApi.listContent(),
         adminApi.listTags(),
         adminApi.listUsers(),
         adminApi.listDiscordRecommendations({ status: 'PENDING' }),
+        adminApi.listSubredditRecommendations({ status: 'PENDING' }),
         adminApi.listPendingEvents().catch(() => ({ events: [] })),
       ]);
       setContent(cd.content || []);
       setTags(td.tags || []);
       setUsers(ud.users || []);
       setDiscordApprovals(dd.recommendations || []);
+      setSubredditApprovals(sd.recommendations || []);
       setPendingEvents(ed.events || []);
     } catch {
       toast('Failed to load data', 'error');
@@ -102,6 +105,16 @@ export default function ContentStudio() {
     try {
       await adminApi.updateDiscordRecommendation(id, status);
       toast(`Discord recommendation ${status.toLowerCase()}`, 'success');
+      refresh();
+    } catch (err) {
+      toast(err.message || 'Failed to update recommendation', 'error');
+    }
+  };
+
+  const handleSubredditApproval = async (id, status) => {
+    try {
+      await adminApi.updateSubredditRecommendation(id, status);
+      toast(`Subreddit recommendation ${status.toLowerCase()}`, 'success');
       refresh();
     } catch (err) {
       toast(err.message || 'Failed to update recommendation', 'error');
@@ -256,6 +269,7 @@ export default function ContentStudio() {
           { label: 'Active Tags', value: tags.length, icon: TagIcon, color: 'text-cyan-400', bg: 'bg-cyan-400/10' },
           { label: 'Ingested', value: content.filter(c => c.externalId).length, icon: Zap, color: 'text-spotify-green', bg: 'bg-spotify-green/10' },
           { label: 'Discord Linked', value: content.filter(c => c.discordLink).length, icon: ExternalLink, color: 'text-discord-blue', bg: 'bg-discord-blue/10' },
+          { label: 'Reddit Linked', value: content.filter(c => c.redditLink).length, icon: Search, color: 'text-orange-500', bg: 'bg-orange-500/10' },
         ].map((stat, i) => (
           <div key={i} className="premium-card p-6 flex items-center gap-5">
             <div className={`p-4 rounded-2xl ${stat.bg} ${stat.color}`}>
@@ -408,14 +422,14 @@ export default function ContentStudio() {
       {/* Tabs / Management Section */}
       <section className="space-y-6">
         <div className="flex border-b border-white/5 overflow-x-auto">
-          {['content', 'tags', 'users', 'discord', 'events'].map(t => (
+          {['content', 'tags', 'users', 'discord', 'subreddit', 'events'].map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
               className={`px-8 py-4 font-display text-sm font-bold uppercase tracking-widest transition-all relative whitespace-nowrap ${tab === t ? 'text-electric-purple' : 'text-gray-500 hover:text-gray-300'
                 }`}
             >
-              {t === 'discord' ? 'Discord Links' : t === 'events' ? `Events (${pendingEvents.length})` : t}
+              {t === 'discord' ? 'Discord Links' : t === 'subreddit' ? 'Subreddit Links' : t === 'events' ? `Events (${pendingEvents.length})` : t}
               {tab === t && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-electric-purple shadow-[0_0_10px_rgba(124,58,237,0.5)]" />}
             </button>
           ))}
@@ -495,6 +509,7 @@ export default function ContentStudio() {
                               category: item.category,
                               description: item.description,
                               discordLink: item.discordLink || '',
+                              redditLink: item.redditLink || '',
                               externalId: item.externalId || '',
                               source: item.source || '',
                               coverImage: item.coverImage || '',
@@ -709,7 +724,64 @@ export default function ContentStudio() {
             {discordApprovals.length === 0 && (
               <div className="py-20 text-center">
                 <CheckCircle2 className="w-12 h-12 text-gray-700 mx-auto mb-4" />
-                <p className="text-gray-500 font-mono text-xs uppercase tracking-widest">No pending recommendations.</p>
+                <p className="text-gray-500 font-mono text-xs uppercase tracking-widest">No pending discord recommendations.</p>
+              </div>
+            )}
+          </div>
+        ) : tab === 'subreddit' ? (
+          <div className="glass-panel overflow-hidden">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-white/5 bg-white/[0.02]">
+                  <th className="px-6 py-4 font-display text-[10px] uppercase tracking-widest text-gray-500">User</th>
+                  <th className="px-6 py-4 font-display text-[10px] uppercase tracking-widest text-gray-500">Content</th>
+                  <th className="px-6 py-4 font-display text-[10px] uppercase tracking-widest text-gray-500">Subreddit</th>
+                  <th className="px-6 py-4 font-display text-[10px] uppercase tracking-widest text-gray-500">Date Submitted</th>
+                  <th className="px-6 py-4 font-display text-[10px] uppercase tracking-widest text-gray-500 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {subredditApprovals.map(req => (
+                  <tr key={req.id} className="hover:bg-white/[0.02] transition-colors group">
+                    <td className="px-6 py-4">
+                      <p className="text-sm font-semibold text-white">{req.user.username}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-gray-300">{req.content.title}</p>
+                      <p className="text-[10px] font-mono text-gray-500">{req.content.category}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-mono text-orange-500">r/{req.subreddit}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-[10px] font-mono text-gray-500 uppercase">
+                        {new Date(req.createdAt).toLocaleDateString()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => handleSubredditApproval(req.id, 'APPROVED')}
+                          className="px-3 py-1.5 rounded-lg font-display text-[10px] font-bold uppercase tracking-wider transition-all border text-spotify-green border-spotify-green/10 hover:bg-spotify-green/10"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleSubredditApproval(req.id, 'REJECTED')}
+                          className="px-3 py-1.5 rounded-lg font-display text-[10px] font-bold uppercase tracking-wider transition-all border text-red-400 border-red-400/10 hover:bg-red-400/10"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {subredditApprovals.length === 0 && (
+              <div className="py-20 text-center">
+                <CheckCircle2 className="w-12 h-12 text-gray-700 mx-auto mb-4" />
+                <p className="text-gray-500 font-mono text-xs uppercase tracking-widest">No pending subreddit recommendations.</p>
               </div>
             )}
           </div>
@@ -828,11 +900,21 @@ export default function ContentStudio() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-500 mb-2">Discord ID</label>
+                  <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-500 mb-2">Discord Link</label>
                   <input
                     className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-sm text-white outline-none"
+                    placeholder="Invite URL"
                     value={form.discordLink}
                     onChange={(e) => setForm(f => ({ ...f, discordLink: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-500 mb-2">Reddit Link</label>
+                  <input
+                    className="w-full bg-white/5 border border-white/5 rounded-xl px-4 py-3 text-sm text-white outline-none"
+                    placeholder="Subreddit URL"
+                    value={form.redditLink}
+                    onChange={(e) => setForm(f => ({ ...f, redditLink: e.target.value }))}
                   />
                 </div>
               </div>

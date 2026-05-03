@@ -123,7 +123,7 @@ async function getContent(req, res) {
  */
 async function createContent(req, res) {
     try {
-        const { title, category, description, discordLink, tagIds,
+        const { title, category, description, discordLink, redditLink, tagIds,
             externalId, source, coverImage, rating, status, externalUrl, isSuggested } = req.body || {};
 
         const errors = validateContentBody({ title, category, description });
@@ -140,6 +140,7 @@ async function createContent(req, res) {
                 category: category.trim(),
                 description: description.trim(),
                 discordLink: discordLink?.trim() || null,
+                redditLink: redditLink?.trim() || null,
                 externalId: externalId?.trim() || null,
                 source: source?.trim() || null,
                 coverImage: coverImage?.trim() || null,
@@ -176,7 +177,7 @@ async function updateContent(req, res) {
         const existing = await prisma.content.findUnique({ where: { id } });
         if (!existing) return res.status(404).json({ ok: false, message: "content not found" });
 
-        const { title, category, description, discordLink, tagIds,
+        const { title, category, description, discordLink, redditLink, tagIds,
             externalId, source, coverImage, rating, status, externalUrl, isSuggested } = req.body || {};
 
         const dataUpdate = {};
@@ -196,6 +197,7 @@ async function updateContent(req, res) {
             dataUpdate.description = description.trim();
         }
         if (discordLink !== undefined) dataUpdate.discordLink = discordLink?.trim() || null;
+        if (redditLink !== undefined) dataUpdate.redditLink = redditLink?.trim() || null;
         if (externalId !== undefined) dataUpdate.externalId = externalId?.trim() || null;
         if (source !== undefined) dataUpdate.source = source?.trim() || null;
         if (coverImage !== undefined) dataUpdate.coverImage = coverImage?.trim() || null;

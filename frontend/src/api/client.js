@@ -108,6 +108,11 @@ export const admin = {
   // Events admin
   listPendingEvents: () => request('/events/pending'),
   approveEvent: (id, approval) => request(`/events/${id}/approve`, { method: 'PUT', body: JSON.stringify({ approval }) }),
+  listSubredditRecommendations: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/subreddit-recommendations/admin${qs ? `?${qs}` : ''}`);
+  },
+  updateSubredditRecommendation: (id, status) => request(`/subreddit-recommendations/admin/${id}`, { method: 'PUT', body: JSON.stringify({ status }) }),
 };
 
 // ── Library ──────────────────────────────────────
@@ -117,9 +122,13 @@ export const library = {
   remove: (contentId) => request(`/library/${contentId}`, { method: 'DELETE' }),
 };
 
-// ── Discord ──────────────────────────────────────
 export const discord = {
   recommend: (body) => request('/discord-recommendations', { method: 'POST', body: JSON.stringify(body) }),
+};
+
+// ── Subreddit ────────────────────────────────────
+export const subreddit = {
+  recommend: (body) => request('/subreddit-recommendations', { method: 'POST', body: JSON.stringify(body) }),
 };
 
 // ── Users (Community) ─────────────────────────────
@@ -150,4 +159,4 @@ export const favourites = {
   remove: (contentId) => request(`/favourites/${contentId}`, { method: 'DELETE' }),
 };
 
-export default { auth, me, preferences, recommendations, content, tags, admin, library, discord, users, events, favourites };
+export default { auth, me, preferences, recommendations, content, tags, admin, library, discord, subreddit, users, events, favourites };
