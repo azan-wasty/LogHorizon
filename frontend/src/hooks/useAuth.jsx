@@ -6,6 +6,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [achievements, setAchievements] = useState([]);
+  const [favourites, setFavourites] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchMe = useCallback(async () => {
@@ -15,6 +16,7 @@ export function AuthProvider({ children }) {
       const data = await meApi.get();
       setUser(data.user);
       setAchievements(data.achievements || []);
+      setFavourites(data.favourites || []);
     } catch {
       localStorage.removeItem('lh_token');
     } finally {
@@ -49,7 +51,7 @@ export function AuthProvider({ children }) {
   const isAuthenticated = !!user;
 
   return (
-    <AuthContext.Provider value={{ user, achievements, loading, isAuthenticated, isAdmin, login, register, logout, refetch: fetchMe }}>
+    <AuthContext.Provider value={{ user, achievements, favourites, loading, isAuthenticated, isAdmin, login, register, logout, refetch: fetchMe }}>
       {children}
     </AuthContext.Provider>
   );

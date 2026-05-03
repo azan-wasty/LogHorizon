@@ -20,7 +20,23 @@ async function getMe(req, res) {
 
     const achievements = await achievementsService.getUserAchievements(Number(userId));
 
-    return res.status(200).json({ ok: true, user: safeUser(user), achievements });
+    const favourites = await prisma.favourite.findMany({
+      where: { userId: Number(userId) },
+      include: {
+        content: {
+          select: {
+            id: true,
+            title: true,
+            category: true,
+            coverImage: true,
+            rating: true,
+          }
+        }
+      },
+      orderBy: { createdAt: "desc" }
+    });
+
+    return res.status(200).json({ ok: true, user: safeUser(user), achievements, favourites });
   } catch (err) {
     console.error("getMe error:", err);
     return res.status(500).json({ ok: false, message: "internal server error" });

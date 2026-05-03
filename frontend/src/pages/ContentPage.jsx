@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { content as contentApi, discord as discordApi } from '../api/client';
+import { content as contentApi, discord as discordApi, favourites as favouritesApi } from '../api/client';
 import { useLibrary } from '../hooks/useLibrary';
 import { useToast } from '../hooks/useToast';
 import {
   Star, Database, ExternalLink, Loader2, Bookmark,
   Check, Play, ArrowLeft, Layers, Activity, X,
-  MessageCircle, Zap, Hash, Clock, Eye
+  MessageCircle, Zap, Hash, Clock, Eye, Heart
 } from 'lucide-react';
 
 const CAT_PALETTES = {
@@ -211,13 +211,17 @@ export default function ContentPage({ id, goBack }) {
   const [discordInvite, setDiscordInvite] = useState('');
   const [isSubmittingDiscord, setIsSubmittingDiscord] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isFavourite, setIsFavourite] = useState(false);
   const { updateItem, removeItem, isInLibrary } = useLibrary();
   const toast = useToast();
   const heroRef = useRef(null);
 
   useEffect(() => {
     contentApi.get(id)
-      .then(res => setItem(res.content))
+      .then(res => {
+        setItem(res.content);
+        setIsFavourite(res.content.isFavourite || false);
+      })
       .catch(() => toast('Content unavailable.', 'error'))
       .finally(() => setLoading(false));
   }, [id]);
@@ -248,6 +252,22 @@ export default function ContentPage({ id, goBack }) {
   const handleAction = async (status) => {
     if (entry?.status === status) await removeItem(item.id);
     else await updateItem(item.id, status, entry?.rating || null);
+  };
+
+  const handleToggleFavourite = async () => {
+    try {
+      if (isFavourite) {
+        await favouritesApi.remove(item.id);
+        setIsFavourite(false);
+        toast('Removed from favourites', 'info');
+      } else {
+        await favouritesApi.add(item.id);
+        setIsFavourite(true);
+        toast('Added to favourites!', 'success');
+      }
+    } catch (err) {
+      toast('Failed to update favourites', 'error');
+    }
   };
 
   const handleRate = async (newRating) => {
@@ -694,6 +714,23 @@ export default function ContentPage({ id, goBack }) {
                     activeColor="#34d399" currentStatus={entry?.status}
                     onClick={() => handleAction('COMPLETED')}
                   />
+
+                  {/* Favourite Toggle */}
+                  <button
+                    onClick={handleToggleFavourite}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      width: 44, height: 44, borderRadius: 12, border: 'none', cursor: 'pointer',
+                      background: isFavourite ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.04)',
+                      color: isFavourite ? '#ef4444' : '#4b5563',
+                      border: isFavourite ? '1px solid rgba(239,68,68,0.2)' : '1px solid rgba(255,255,255,0.08)',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={e => { if (!isFavourite) e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'scale(1.05)'; }}
+                    onMouseLeave={e => { if (!isFavourite) e.currentTarget.style.color = '#4b5563'; e.currentTarget.style.transform = 'none'; }}
+                  >
+                    <Heart size={20} fill={isFavourite ? '#ef4444' : 'none'} />
+                  </button>
                 </div>
 
                 {/* Personal Rating */}

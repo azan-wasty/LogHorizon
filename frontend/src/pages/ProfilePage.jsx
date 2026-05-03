@@ -7,7 +7,7 @@ import {
   Edit3, Bookmark, PlayCircle, CheckCircle2,
   Star, Zap, Loader2, Camera, X, Check,
   Award, Film, BookOpen, Monitor, LayoutGrid,
-  List, Compass, Settings
+  List, Compass, Settings, Heart
 } from 'lucide-react';
 
 // ── Category config ──────────────────────────────────────────
@@ -366,7 +366,7 @@ function EditModal({ user, onSave, onClose }) {
 
 // ── Main ProfilePage ──────────────────────────────────────────
 export default function ProfilePage({ onNavigate }) {
-  const { user, achievements, refetch } = useAuth();
+  const { user, achievements, favourites, refetch } = useAuth();
   const { library, loading: libLoading, removeItem } = useLibrary();
   const toast = useToast();
   const [isEditing, setIsEditing] = useState(false);
@@ -592,6 +592,67 @@ export default function ProfilePage({ onNavigate }) {
                   Complete entries, rate content, and build your library to unlock badges
                 </p>
               </div>
+            </div>
+          )}
+        </div>
+ 
+        {/* ── TOP PROTOCOL: FAVOURITES ── */}
+        <div style={{ animation: 'fadeUp 0.5s 0.1s ease both' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+            <Heart size={16} color="#ef4444" fill="rgba(239,68,68,0.3)" />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-muted)' }}>
+              Top Protocol: Favourites
+            </span>
+            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.05)' }} />
+          </div>
+ 
+          {favourites?.length > 0 ? (
+            <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 10, scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              {favourites.map((fav, i) => {
+                const item = fav.content;
+                const p = CAT[item.category] || fallbackPalette;
+                return (
+                  <div
+                    key={fav.id}
+                    onClick={() => onNavigate(`content/${item.id}`)}
+                    style={{
+                      flexShrink: 0, width: 160, position: 'relative', cursor: 'pointer',
+                      borderRadius: 16, overflow: 'hidden',
+                      background: '#121212', border: '1px solid rgba(255,255,255,0.08)',
+                      animation: `fadeUp 0.4s ${i * 80}ms ease both`,
+                      transition: 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03) translateY(-4px)'; e.currentTarget.style.borderColor = p.color; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+                  >
+                    <div style={{ aspectRatio: '2/3', position: 'relative' }}>
+                      <img src={item.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
+                      <div style={{ position: 'absolute', top: 8, right: 8, width: 22, height: 22, borderRadius: '50%', background: 'rgba(239,68,68,0.2)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Heart size={10} color="#ef4444" fill="#ef4444" />
+                      </div>
+                    </div>
+                    <div style={{ padding: 12 }}>
+                      <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.72rem', color: '#fff', marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {item.title}
+                      </p>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: p.color, textTransform: 'uppercase' }}>{item.category}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                          <Star size={8} color="#fbbf24" fill="#fbbf24" />
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#fbbf24', fontWeight: 700 }}>{item.rating || '—'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.06)', borderRadius: 16, textAlign: 'center' }}>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                Your top protocol remains empty. Heart your favorite titles to see them here.
+              </p>
             </div>
           )}
         </div>
