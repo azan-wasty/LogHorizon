@@ -215,6 +215,7 @@ export default function ContentPage({ id, goBack }) {
   const [isSubmittingSubreddit, setIsSubmittingSubreddit] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isFavourite, setIsFavourite] = useState(false);
+  const { user, favourites, refetch } = useAuth();
   const { updateItem, removeItem, isInLibrary } = useLibrary();
   const toast = useToast();
   const heroRef = useRef(null);
@@ -223,11 +224,13 @@ export default function ContentPage({ id, goBack }) {
     contentApi.get(id)
       .then(res => {
         setItem(res.content);
-        setIsFavourite(res.content.isFavourite || false);
+        // Check if item is in global favourites list
+        const fav = favourites.some(f => f.contentId === Number(id));
+        setIsFavourite(fav);
       })
       .catch(() => toast('Content unavailable.', 'error'))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, favourites]);
 
   if (loading) {
     return (
@@ -258,6 +261,7 @@ export default function ContentPage({ id, goBack }) {
   };
 
   const handleToggleFavourite = async () => {
+    if (!user) return toast('Please sign in to save favourites.', 'info');
     try {
       if (isFavourite) {
         await favouritesApi.remove(item.id);
@@ -268,6 +272,8 @@ export default function ContentPage({ id, goBack }) {
         setIsFavourite(true);
         toast('Added to favourites!', 'success');
       }
+      // Refresh global state so other pages reflect change
+      refetch();
     } catch (err) {
       toast('Failed to update favourites', 'error');
     }

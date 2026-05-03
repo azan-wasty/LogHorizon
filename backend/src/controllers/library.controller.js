@@ -61,10 +61,8 @@ async function removeFromLibrary(req, res) {
         const userId = req.user.id;
         const contentId = parseInt(req.params.contentId);
 
-        await prisma.userLibrary.delete({
-            where: {
-                userId_contentId: { userId, contentId }
-            }
+        await prisma.userLibrary.deleteMany({
+            where: { userId, contentId }
         });
 
         return res.json({ ok: true, message: "Removed from library" });

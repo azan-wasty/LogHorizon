@@ -99,8 +99,8 @@ async function removeFavourite(req, res) {
             return res.status(400).json({ ok: false, message: "invalid contentId" });
         }
 
-        await prisma.favourite.delete({
-            where: { userId_contentId: { userId, contentId } },
+        await prisma.favourite.deleteMany({
+            where: { userId, contentId },
         });
 
         return res.status(200).json({ ok: true, message: "removed from favourites" });
