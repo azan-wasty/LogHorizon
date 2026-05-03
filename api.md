@@ -339,10 +339,10 @@ Returns statistics on recommendations matching the user's preferences, combined 
 
 ---
 
-## Admin — Content 
+## Admin Content Management
 
-> All `/admin/*` routes require a valid JWT **and** `role: "Admin"`.  
-> Returns `403` if role is not Admin.
+> All /admin/* routes require a valid JWT and role: "Admin".  
+> Returns 403 if role is not Admin.
 
 ### List Content
 `GET /admin/content`
@@ -372,19 +372,19 @@ Returns statistics on recommendations matching the user's preferences, combined 
 
 | Field | Required | Notes |
 |-------|----------|-------|
-| title | ✅ | |
-| category | ✅ | |
-| description | ✅ | |
-| discordLink | ❌ | nullable |
-| tagIds | ❌ | array of existing Tag IDs |
-| externalId | ❌ | ID from source API |
-| source | ❌ | `"MAL"` / `"AniList"` / `"Kitsu"` / `"Manual"` |
-| coverImage | ❌ | poster URL |
-| status | ❌ | `"Airing"` / `"Finished"` / `"Upcoming"` / `"Hiatus"` |
-| rating | ❌ | float e.g. `8.7` |
-| externalUrl | ❌ | link to source page |
+| title | Yes | |
+| category | Yes | |
+| description | Yes | |
+| discordLink | No | nullable |
+| tagIds | No | array of existing Tag IDs |
+| externalId | No | ID from source API |
+| source | No | "MAL" / "AniList" / "Kitsu" / "Manual" |
+| coverImage | No | poster URL |
+| status | No | "Airing" / "Finished" / "Upcoming" / "Hiatus" |
+| rating | No | float e.g. 8.7 |
+| externalUrl | No | link to source page |
 
-**Response:** `201` with created content object.
+**Response:** 201 with created content object.
 
 ---
 
@@ -402,8 +402,8 @@ Scans external APIs (Jikan/MAL, TMDB) and automatically creates a new content re
 
 | Field | Required | Notes |
 |-------|----------|-------|
-| title | ✅ | Exact title preferred |
-| category | ✅ | `"Anime"` / `"Manga"` / `"Movie"` / `"TV"` |
+| title | Yes | Exact title preferred |
+| category | Yes | "Anime" / "Manga" / "Movie" / "TV" |
 
 **Responses**
 | Status | Meaning |
@@ -432,7 +432,7 @@ Scans external APIs (Jikan/MAL, TMDB) and automatically creates a new content re
 ### Update Content
 `PUT /admin/content/:id`
 
-Same body as create but all fields optional. If `tagIds` is provided, **replaces** all tags on that content.
+Same body as create but all fields optional. If `tagIds` is provided, replaces all tags on that content.
 
 ```json
 { "discordLink": "https://discord.gg/new-link", "tagIds": [1, 2, 3] }
@@ -449,7 +449,7 @@ Same body as create but all fields optional. If `tagIds` is provided, **replaces
 
 ---
 
-## Admin — Tags 
+## Admin Tag Management
 
 ### List Tags
 `GET /admin/tags`
@@ -546,11 +546,11 @@ All errors follow this shape:
 ## Auth Flow Summary
 
 ```
-1. POST /register        → creates account
-2. POST /login           → returns { token, user }
-3. Store token           → localStorage / memory
-4. All 🔒 requests      → Authorization: Bearer <token>
-5. GET /me               → verify token, get user info
+1. POST /register        -> creates account
+2. POST /login           -> returns { token, user }
+3. Store token           -> localStorage / memory
+4. All protected requests -> Authorization: Bearer <token>
+5. GET /me               -> verify token, get user info
 ```
 
 ---
@@ -559,7 +559,5 @@ All errors follow this shape:
 
 | Role | Access |
 |------|--------|
-| `User` | Public endpoints + own preferences + `/me` |
-| `Admin` | Everything above + all `/admin/*` endpoints |
-
-
+| User | Public endpoints + own preferences + /me |
+| Admin | Everything above + all /admin/* endpoints |
