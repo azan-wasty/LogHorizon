@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import Galaxy from '../components/Galaxy';
+import Hyperspeed from '../components/Hyperspeed';
 import { me as meApi } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
 import { useLibrary } from '../hooks/useLibrary';
@@ -527,21 +527,25 @@ export default function ProfilePage({ onNavigate }) {
       `}</style>
 
       <div className="profile-page" style={{ position: 'relative' }}>
-        <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'all', opacity: 0.5 }}>
-          <Galaxy
-            mouseRepulsion
-            mouseInteraction
-            density={1}
-            glowIntensity={0.3}
-            saturation={0}
-            hueShift={140}
-            twinkleIntensity={0.3}
-            rotationSpeed={0.1}
-            repulsionStrength={2}
-            autoCenterRepulsion={0}
-            starSpeed={0.5}
-            speed={1}
-          />
+        <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.8 }}>
+          <Hyperspeed effectOptions={{
+            distortion: 'turbulentDistortion', length: 400, roadWidth: 10, islandWidth: 2,
+            lanesPerRoad: 4, fov: 90, fovSpeedUp: 150, speedUp: 2, carLightsFade: 0.4,
+            totalSideLightSticks: 20, lightPairsPerRoadWay: 40,
+            shoulderLinesWidthPercentage: 0.05, brokenLinesWidthPercentage: 0.1,
+            brokenLinesLengthPercentage: 0.5, lightStickWidth: [0.12, 0.5],
+            lightStickHeight: [1.3, 1.7], movingAwaySpeed: [60, 80],
+            movingCloserSpeed: [-120, -160], carLightsLength: [12, 80],
+            carLightsRadius: [0.05, 0.14], carWidthPercentage: [0.3, 0.5],
+            carShiftX: [-0.8, 0.8], carFloorSeparation: [0, 5],
+            colors: {
+              roadColor: 0x080808, islandColor: 0x0a0a0a, background: 0x000000,
+              shoulderLines: 0x131318, brokenLines: 0x131318,
+              leftCars: [0x8B5CF6, 0x7C3AED, 0xA78BFA],
+              rightCars: [0x06b6d4, 0x0891b2, 0x22d3ee],
+              sticks: 0x06b6d4,
+            }
+          }} />
         </div>
         <div style={{ position: 'relative', zIndex: 1, pointerEvents: 'all' }}>
 
