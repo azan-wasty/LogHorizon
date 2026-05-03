@@ -121,6 +121,16 @@ export default function ContentStudio() {
     }
   };
 
+  const handleEventApproval = async (id, approval) => {
+    try {
+      await adminApi.approveEvent(id, approval);
+      toast(`Event ${approval.toLowerCase()}`, 'success');
+      refresh();
+    } catch (err) {
+      toast(err.message || 'Failed to update event', 'error');
+    }
+  };
+
   useEffect(() => { refresh(); }, []);
 
   const handleRapidIngest = async (e) => {
