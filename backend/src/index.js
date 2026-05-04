@@ -48,6 +48,7 @@ app.use("/api/subreddit-recommendations", require("./routes/subreddit.routes"));
 app.use("/api/events", require("./routes/events.routes"));
 app.use("/api/users", require("./routes/community.routes"));
 app.use("/api/favourites", require("./routes/favourites.routes"));
+app.use("/api/reviews", require("./routes/review.routes"));
 
 app.get("/api/health", (req, res) => {
   res.json({ ok: true, message: "LogHorizon backend is up" });

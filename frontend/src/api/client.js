@@ -78,6 +78,13 @@ export const content = {
     return request(`/content${qs ? `?${qs}` : ''}`);
   },
   get: (id) => request(`/content/${id}`),
+  getSources: (id) => request(`/content/${id}/sources`),
+};
+
+// ── Reviews ──────────────────────────────────────
+export const reviews = {
+  get: (contentId) => request(`/reviews/content/${contentId}`),
+  add: (body) => request('/reviews', { method: 'POST', body: JSON.stringify(body) }),
 };
 
 // ── Tags (public) ────────────────────────────────
@@ -119,6 +126,7 @@ export const admin = {
 export const library = {
   get: () => request('/library'),
   update: (body) => request('/library/update', { method: 'POST', body: JSON.stringify(body) }),
+  markAllCompleted: (contentId) => request('/library/mark-all-completed', { method: 'POST', body: JSON.stringify({ contentId }) }),
   remove: (contentId) => request(`/library/${contentId}`, { method: 'DELETE' }),
 };
 
@@ -159,4 +167,4 @@ export const favourites = {
   remove: (contentId) => request(`/favourites/${contentId}`, { method: 'DELETE' }),
 };
 
-export default { auth, me, preferences, recommendations, content, tags, admin, library, discord, subreddit, users, events, favourites };
+export default { auth, me, preferences, recommendations, content, tags, admin, library, discord, subreddit, users, events, favourites, reviews };

@@ -24,6 +24,7 @@ model User {
   events                 Event[]
   favourites               Favourite[]
   subredditRecommendations SubredditRecommendation[]
+  reviews                Review[]
 }
 
 model Content {
@@ -47,6 +48,11 @@ model Content {
   discordRecommendations DiscordRecommendation[]
   favourites             Favourite[]
   subredditRecommendations SubredditRecommendation[]
+  reviews                Review[]
+
+  parentId               Int?
+  parent                 Content?                @relation("ContentToContent", fields: [parentId], references: [id])
+  children               Content[]               @relation("ContentToContent")
 
   @@unique([source, externalId])
 }
@@ -96,6 +102,21 @@ model UserLibrary {
   contentId Int
   status    String
   rating    Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  contentId Int
+  rating    Int
+  comment   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

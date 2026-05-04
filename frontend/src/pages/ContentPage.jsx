@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import { content as contentApi, discord as discordApi, subreddit as subredditApi, favourites as favouritesApi } from '../api/client';
+import { content as contentApi, discord as discordApi, subreddit as subredditApi, favourites as favouritesApi, reviews as reviewsApi, library as libraryApi } from '../api/client';
 import { useLibrary } from '../hooks/useLibrary';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import {
   Star, Database, ExternalLink, Loader2, Bookmark,
   Check, Play, ArrowLeft, Layers, Activity, X,
-  MessageCircle, Zap, Hash, Clock, Eye, Heart, Search
+  MessageCircle, Zap, Hash, Clock, Eye, Heart, Search,
+  BookOpen, Tv, Film, Plus
 } from 'lucide-react';
 
 const CAT_PALETTES = {
@@ -216,6 +217,13 @@ export default function ContentPage({ id, goBack }) {
   const [isSubmittingSubreddit, setIsSubmittingSubreddit] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isFavourite, setIsFavourite] = useState(false);
+  const [platformReviews, setPlatformReviews] = useState([]);
+  const [platformStats, setPlatformStats] = useState({ average: 0, count: 0 });
+  const [watchSource, setWatchSource] = useState(null);
+  const [newReview, setNewReview] = useState({ rating: 10, comment: '' });
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [isLoadingSources, setIsLoadingSources] = useState(false);
+
   const { user, favourites, refetch } = useAuth();
   const { updateItem, removeItem, isInLibrary } = useLibrary();
   const toast = useToast();
@@ -225,12 +233,34 @@ export default function ContentPage({ id, goBack }) {
     contentApi.get(id)
       .then(res => {
         setItem(res.content);
+        setPlatformStats({
+          average: res.content.platformAverage || 0,
+          count: res.content.platformReviewCount || 0
+        });
         // Check if item is in global favourites list
         const fav = favourites.some(f => f.contentId === Number(id));
         setIsFavourite(fav);
       })
       .catch(() => toast('Content unavailable.', 'error'))
       .finally(() => setLoading(false));
+
+    // Fetch reviews
+    reviewsApi.get(id)
+      .then(res => {
+        if (res.ok) {
+          setPlatformReviews(res.reviews);
+        }
+      })
+      .catch(console.error);
+
+    // Fetch sources
+    setIsLoadingSources(true);
+    contentApi.getSources(id)
+      .then(res => {
+        if (res.ok) setWatchSource(res.sources);
+      })
+      .catch(console.error)
+      .finally(() => setIsLoadingSources(false));
   }, [id, favourites]);
 
   if (loading) {
@@ -315,6 +345,58 @@ export default function ContentPage({ id, goBack }) {
     } finally {
       setIsSubmittingSubreddit(false);
     }
+  };
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    if (!user) return toast('Sign in to leave a review.', 'info');
+    if (!newReview.comment.trim()) return toast('Please enter a comment.', 'info');
+
+    try {
+      setIsSubmittingReview(true);
+      await reviewsApi.add({
+        contentId: item.id,
+        rating: newReview.rating,
+        comment: newReview.comment
+      });
+      toast('Review posted!', 'success');
+      setNewReview({ rating: 10, comment: '' });
+      // Refresh reviews
+      const res = await reviewsApi.get(item.id);
+      if (res.ok) {
+        setPlatformReviews(res.reviews);
+        setPlatformStats({ average: res.averageRating, count: res.reviewCount });
+      }
+    } catch (err) {
+      toast('Failed to post review', 'error');
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
+  const handleMarkAllCompleted = async () => {
+    if (!user) return toast('Sign in to use this feature.', 'info');
+    try {
+      setLoading(true);
+      const res = await libraryApi.markAllCompleted(item.id);
+      toast(res.message, 'success');
+      // Refresh library state
+      refetch();
+      // Reload item to see updated status if needed (though local library state handles most of it)
+      const contentRes = await contentApi.get(id);
+      setItem(contentRes.content);
+    } catch (err) {
+      toast('Failed to mark all completed', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getWatchUrl = () => {
+    if (watchSource) return watchSource;
+    if (item.category === 'Anime') return `https://www.crunchyroll.com/search?q=${encodeURIComponent(item.title)}`;
+    if (item.category === 'Manga') return `https://www.viz.com/search?query=${encodeURIComponent(item.title)}`;
+    return null;
   };
 
   return (
@@ -482,6 +564,51 @@ export default function ContentPage({ id, goBack }) {
                 </div>
               )}
             </div>
+
+            {/* Watch / Read Now Button */}
+            <div style={{ animation: 'fadeUp 0.5s 0.2s ease both' }}>
+              <a
+                href={getWatchUrl()}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
+                  width: '100%', padding: '16px', borderRadius: 14,
+                  background: palette.primary, color: '#000',
+                  textDecoration: 'none', fontFamily: 'var(--font-display)', fontWeight: 900,
+                  fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em',
+                  boxShadow: `0 12px 32px ${palette.glow}`,
+                  transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02) translateY(-2px)'; e.currentTarget.style.boxShadow = `0 16px 40px ${palette.glow}`; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1) translateY(0)'; e.currentTarget.style.boxShadow = `0 12px 32px ${palette.glow}`; }}
+              >
+                {item.category === 'Manga' ? <BookOpen size={18} /> : item.category === 'Movie' ? <Film size={18} /> : <Play size={18} fill="currentColor" />}
+                {item.category === 'Manga' ? 'Read Now' : 'Watch Now'}
+              </a>
+            </div>
+
+            {/* Mark All Completed (if series/seasons exist) */}
+            {(item.children?.length > 0 || item.parentId) && (
+              <button
+                onClick={handleMarkAllCompleted}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
+                  width: '100%', padding: '13px', borderRadius: 12,
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  color: '#9ca3af', cursor: 'pointer',
+                  fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.75rem',
+                  textTransform: 'uppercase', letterSpacing: '0.05em',
+                  transition: 'all 0.2s',
+                  animation: 'fadeUp 0.5s 0.22s ease both',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#fff'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#9ca3af'; }}
+              >
+                <Check size={14} /> Mark All Completed
+              </button>
+            )}
 
             {/* Quick meta info */}
             <div style={{
@@ -738,34 +865,61 @@ export default function ContentPage({ id, goBack }) {
             </div>
 
             {/* Rating display */}
-            {item.rating && (
+            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 28 }}>
+              {item.rating && (
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 14,
+                  padding: '12px 20px', borderRadius: 12,
+                  background: 'rgba(251,191,36,0.05)',
+                  border: '1px solid rgba(251,191,36,0.15)',
+                  animation: 'fadeUp 0.5s 0.2s ease both',
+                }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4 }}>
+                      Global Score
+                    </span>
+                    <StarRating value={item.rating} max={10} />
+                  </div>
+                  <div style={{ width: 1, height: 36, background: 'rgba(255,255,255,0.08)' }} />
+                  <div>
+                    <span style={{
+                      fontFamily: 'var(--font-display)', fontWeight: 900,
+                      fontSize: '2rem', color: '#fbbf24', lineHeight: 1,
+                      filter: 'drop-shadow(0 0 12px rgba(251,191,36,0.4))',
+                    }}>
+                      {Number(item.rating).toFixed(1)}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: '#4b5563', marginLeft: 4 }}>/10</span>
+                  </div>
+                </div>
+              )}
+
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: 14,
-                padding: '12px 20px', borderRadius: 12, marginBottom: 28,
-                background: 'rgba(251,191,36,0.05)',
-                border: '1px solid rgba(251,191,36,0.15)',
-                width: 'fit-content',
-                animation: 'fadeUp 0.5s 0.2s ease both',
+                padding: '12px 20px', borderRadius: 12,
+                background: 'rgba(124,58,237,0.05)',
+                border: '1px solid rgba(124,58,237,0.15)',
+                animation: 'fadeUp 0.5s 0.22s ease both',
               }}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 4 }}>
-                    Global Score
+                    Platform Avg
                   </span>
-                  <StarRating value={item.rating} max={10} />
+                  <StarRating value={platformStats.average} max={10} />
                 </div>
                 <div style={{ width: 1, height: 36, background: 'rgba(255,255,255,0.08)' }} />
                 <div>
                   <span style={{
                     fontFamily: 'var(--font-display)', fontWeight: 900,
-                    fontSize: '2rem', color: '#fbbf24', lineHeight: 1,
-                    filter: 'drop-shadow(0 0 12px rgba(251,191,36,0.4))',
+                    fontSize: '2rem', color: '#7C3AED', lineHeight: 1,
+                    filter: 'drop-shadow(0 0 12px rgba(124,58,237,0.4))',
                   }}>
-                    {Number(item.rating).toFixed(1)}
+                    {Number(platformStats.average).toFixed(1)}
                   </span>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: '#4b5563', marginLeft: 4 }}>/10</span>
                 </div>
               </div>
-            )}
+            </div>
 
             {/* Tags */}
             {item.tags?.length > 0 && (
@@ -903,6 +1057,136 @@ export default function ContentPage({ id, goBack }) {
                 </span>
               </div>
             )}
+
+            <div className="section-divider" />
+
+            {/* Platform Reviews Section */}
+            <div style={{ marginBottom: 80, animation: 'fadeUp 0.5s 0.45s ease both' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <MessageCircle size={16} color={palette.primary} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 800 }}>
+                    Platform Reviews ({platformStats.count})
+                  </span>
+                </div>
+              </div>
+
+              {/* Review Form */}
+              {user ? (
+                <div style={{
+                  padding: '24px', borderRadius: 24,
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  marginBottom: 40,
+                  backdropFilter: 'blur(10px)',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      {user.avatarUrl ? <img src={user.avatarUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : null}
+                    </div>
+                    <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', color: '#fff', fontWeight: 600 }}>Share your perspective</span>
+                  </div>
+                  
+                  <form onSubmit={handleReviewSubmit}>
+                    <div style={{ marginBottom: 18 }}>
+                      <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Rating</span>
+                      <StarRating value={newReview.rating} interactive onRate={(r) => setNewReview(prev => ({ ...prev, rating: r }))} />
+                    </div>
+                    
+                    <textarea
+                      placeholder="What did you think of this title? (Writing a review is highly encouraged!)"
+                      value={newReview.comment}
+                      onChange={e => setNewReview(prev => ({ ...prev, comment: e.target.value }))}
+                      style={{
+                        width: '100%', minHeight: 120, padding: '16px', borderRadius: 14,
+                        background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+                        color: '#fff', fontFamily: 'inherit', fontSize: '0.92rem', outline: 'none',
+                        resize: 'vertical', marginBottom: 18, transition: 'all 0.2s',
+                        lineHeight: 1.6,
+                      }}
+                      onFocus={e => { e.target.style.borderColor = palette.primary; e.target.style.background = 'rgba(255,255,255,0.05)'; }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.08)'; e.target.style.background = 'rgba(255,255,255,0.03)'; }}
+                    />
+                    
+                    <button
+                      type="submit"
+                      disabled={isSubmittingReview}
+                      style={{
+                        padding: '12px 28px', borderRadius: 12, border: 'none',
+                        background: palette.primary, color: '#000', cursor: 'pointer',
+                        fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '0.75rem',
+                        textTransform: 'uppercase', letterSpacing: '0.05em',
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        transition: 'all 0.3s',
+                        opacity: isSubmittingReview ? 0.7 : 1,
+                        boxShadow: `0 8px 24px ${palette.glow}`,
+                      }}
+                      onMouseEnter={e => { if (!isSubmittingReview) e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 12px 28px ${palette.glow}`; }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 8px 24px ${palette.glow}`; }}
+                    >
+                      {isSubmittingReview ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />}
+                      Publish Review
+                    </button>
+                  </form>
+                </div>
+              ) : (
+                <div style={{
+                  padding: '40px', borderRadius: 24, textAlign: 'center',
+                  background: 'rgba(255,255,255,0.015)', border: '1px dashed rgba(255,255,255,0.08)',
+                  marginBottom: 40,
+                }}>
+                  <p style={{ color: '#4b5563', fontSize: '0.88rem', margin: 0 }}>Sign in to leave a review and contribute to the platform score.</p>
+                </div>
+              )}
+
+              {/* Reviews List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                {platformReviews.length > 0 ? platformReviews.map((rev, idx) => (
+                  <div key={rev.id} style={{
+                    padding: '28px', borderRadius: 24,
+                    background: 'rgba(255,255,255,0.015)',
+                    border: '1px solid rgba(255,255,255,0.04)',
+                    transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                    animation: `fadeUp 0.6s ${0.5 + idx * 0.05}s ease both`,
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.015)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)'; e.currentTarget.style.transform = 'none'; }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}>
+                          {rev.user.avatarUrl ? <img src={rev.user.avatarUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : null}
+                        </div>
+                        <div>
+                          <h4 style={{ margin: 0, color: '#fff', fontSize: '0.95rem', fontWeight: 800, letterSpacing: '-0.01em' }}>{rev.user.username}</h4>
+                          <span style={{ color: '#4b5563', fontSize: '0.65rem', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            {new Date(rev.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                          </span>
+                        </div>
+                      </div>
+                      <div style={{ 
+                        display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px', 
+                        background: 'rgba(124,58,237,0.08)', borderRadius: 10, 
+                        border: '1px solid rgba(124,58,237,0.25)',
+                        boxShadow: '0 4px 12px rgba(124,58,237,0.1)',
+                      }}>
+                        <Star size={13} fill="#7C3AED" color="#7C3AED" />
+                        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 900, color: '#a78bfa', fontSize: '1rem' }}>{rev.rating}</span>
+                        <span style={{ color: '#4c1d95', fontSize: '0.65rem', fontWeight: 800, marginLeft: -2 }}>/10</span>
+                      </div>
+                    </div>
+                    <p style={{ color: '#d1d5db', lineHeight: 1.8, fontSize: '1rem', margin: 0, fontWeight: 400 }}>
+                      {rev.comment}
+                    </p>
+                  </div>
+                )) : (
+                  <div style={{ textAlign: 'center', padding: '60px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+                    <MessageCircle size={32} color="#1f1f2e" />
+                    <p style={{ color: '#374151', fontSize: '0.9rem', fontStyle: 'italic', margin: 0 }}>No reviews yet. Be the first to share your thoughts!</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
