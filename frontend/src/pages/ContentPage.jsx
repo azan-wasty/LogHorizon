@@ -249,6 +249,10 @@ export default function ContentPage({ id, goBack }) {
       .then(res => {
         if (res.ok) {
           setPlatformReviews(res.reviews);
+          setPlatformStats({
+            average: res.averageRating || 0,
+            count: res.reviewCount || 0
+          });
         }
       })
       .catch(console.error);
@@ -589,7 +593,7 @@ export default function ContentPage({ id, goBack }) {
             </div>
 
             {/* Mark All Completed (if series/seasons exist) */}
-            {(item.children?.length > 0 || item.parentId) && (
+            {(item.category === 'Anime' || item.category === 'TV' || item.category === 'Manga' || item.children?.length > 0 || item.parentId) && (
               <button
                 onClick={handleMarkAllCompleted}
                 style={{
