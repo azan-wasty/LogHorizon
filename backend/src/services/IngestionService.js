@@ -146,11 +146,16 @@ class IngestionService {
     // ── Anime / Manga via Jikan ──
     async ingestAnime(title, category = "Anime") {
         try {
-            const type = category === "Manga" ? "manga" : "anime";
+            // FIX: Prevent TMDB categories from being sent to Jikan API[cite: 1]
+            if (category !== "Anime" && category !== "Manga") {
+                return { ok: false, message: `Jikan ingestion does not support category: ${category}` };
+            }
+
+            const type = category.toLowerCase(); // "manga" or "anime"
             const resp = await fetch(
                 `https://api.jikan.moe/v4/${type}?q=${encodeURIComponent(title)}&limit=1`
             );
-            
+
             if (!resp.ok) {
                 return { ok: false, message: `Jikan API error (${resp.status}). They might be rate-limiting requests.` };
             }
@@ -193,7 +198,6 @@ class IngestionService {
         }
     }
 
-    // ── Anime/Manga directly from Jikan data object (no second search) ──
     async ingestJikanDirect(data, category = "Anime") {
         try {
             const existing = await prisma.content.findFirst({
@@ -280,7 +284,6 @@ class IngestionService {
         }
     }
 
-    // ── TMDB direct from data object (no second search) ──
     async ingestTmdbDirect(data, isTV = false) {
         try {
             const externalId = String(data.id);
@@ -318,25 +321,6 @@ class IngestionService {
     // ADVANCED DISCOVERY
     // ─────────────────────────────────────────────────────────────────────────
 
-    /**
-     * Discover and ingest content for a category.
-     *
-     * @param {string} category  - "Anime" | "Manga" | "Movie" | "TV"
-     * @param {object} options
-     * @param {string}  options.mode       - "popular" | "top_rated" | "trending" | "upcoming" | "search"
-     * @param {number}  options.pages      - how many NEW pages to actually ingest (default 3)
-     * @param {number}  options.startPage  - which API page to begin from (default 1).
-     *                                       Pass the `nextPage` value returned by a previous run
-     *                                       to continue where you left off.
-     * @param {number}  options.maxPages   - hard ceiling on total pages fetched, including
-     *                                       all-duplicate pages that are skipped over (default 20).
-     * @param {string}  options.query      - search query (only for mode "search")
-     *
-     * @returns {{ ok, stats }}
-     *   stats includes: total, ingested, skipped, failed, pagesScanned, nextPage
-     *   → store `nextPage` and pass it as `startPage` on the next discovery run
-     *     so you never re-scan the same pages.
-     */
     async discoverAndIngest(category, options = {}) {
         const {
             mode = "popular",
@@ -352,10 +336,11 @@ class IngestionService {
             skipped: 0,
             failed: 0,
             pagesScanned: 0,
-            nextPage: startPage,   // caller should persist this and pass it back next time
+            nextPage: startPage,
         };
 
         try {
+            // FIX: Added strict routing validation[cite: 1]
             if (category === "Anime" || category === "Manga") {
                 await this._discoverJikan(category, mode, pages, startPage, maxPages, query, stats);
             } else if (category === "Movie" || category === "TV") {
@@ -370,9 +355,9 @@ class IngestionService {
         }
     }
 
-    // ── Jikan multi-page discovery ──
     async _discoverJikan(category, mode, targetNewPages, startPage, maxPages, query, stats) {
-        const type = category.toLowerCase(); // "anime" or "manga"
+        // FIX: Enforce correct Jikan type based on verified category[cite: 1]
+        const type = category === "Manga" ? "manga" : "anime";
 
         let baseUrl;
         if (mode === "search" && query) {
@@ -399,7 +384,6 @@ class IngestionService {
                     headers: { 'User-Agent': 'LogHorizon/1.0.0 (Research Project)' }
                 });
 
-                // Jikan returns 404 / empty data past the last page
                 if (!resp.ok) {
                     console.log(`[Jikan] Non-OK status ${resp.status} on page ${page} – stopping.`);
                     break;
@@ -434,8 +418,6 @@ class IngestionService {
                     await sleep(400);
                 }
 
-                // Only count a page toward our target if it actually produced new content.
-                // This means an all-duplicate page is "skipped over" automatically.
                 if (stats.ingested > pageIngestedBefore) {
                     newPagesIngested++;
                 } else {
@@ -447,7 +429,7 @@ class IngestionService {
 
             } catch (err) {
                 console.error(`[Jikan] Page ${page} error:`, err.message);
-                page++;          // still advance so we don't loop forever on a bad page
+                page++;
                 stats.nextPage = page;
             }
 
@@ -455,7 +437,6 @@ class IngestionService {
         }
     }
 
-    // ── TMDB multi-page discovery ──
     async _discoverTmdb(category, mode, targetNewPages, startPage, maxPages, query, stats) {
         const apiKey = process.env.TMDB_API_KEY;
         if (!apiKey) throw new Error("TMDB_API_KEY missing");
@@ -496,7 +477,6 @@ class IngestionService {
                 }
                 const items = json.results || [];
 
-                // TMDB returns an empty results array (not an error) past the last page
                 if (items.length === 0) {
                     console.log(`[TMDB] No items on page ${page} – end of results.`);
                     break;
@@ -519,7 +499,6 @@ class IngestionService {
                     await sleep(100);
                 }
 
-                // Same smart-skip logic: only credit the page if it yielded new items
                 if (stats.ingested > pageIngestedBefore) {
                     newPagesIngested++;
                 } else {
@@ -539,8 +518,6 @@ class IngestionService {
         }
     }
 
-
-    // ── Legacy method kept for backward compatibility ──
     async discoverAndIngestTop(category) {
         return this.discoverAndIngest(category, { mode: "popular", pages: 1 });
     }
