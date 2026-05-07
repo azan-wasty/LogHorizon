@@ -89,6 +89,8 @@ function RecCard({ item, index, onNavigate }) {
                     <img
                         src={item.coverImage}
                         alt={item.title}
+                        loading="lazy"
+                        decoding="async"
                         style={{
                             width: '100%', height: '100%', objectFit: 'cover',
                             transition: 'transform 0.6s',
@@ -225,7 +227,7 @@ function ExploreCard({ item, index, onNavigate }) {
                     </div>
                 )}
                 {item.coverImage
-                    ? <img src={item.coverImage} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s', transform: hovered ? 'scale(1.08)' : 'scale(1)' }} alt="" />
+                    ? <img src={item.coverImage} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s', transform: hovered ? 'scale(1.08)' : 'scale(1)' }} alt="" />
                     : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Database size={18} color="#374151" /></div>
                 }
             </div>
@@ -310,36 +312,58 @@ export default function DashboardPage({ onNavigate }) {
     const [explore, setExplore] = useState([]);
     const [stats, setStats] = useState(null);
     const [prefs, setPrefs] = useState({});
-    const [loading, setLoading] = useState(true);
+    const [loadingRecs, setLoadingRecs] = useState(true);
+    const [loadingStats, setLoadingStats] = useState(true);
+    const [loadingPrefs, setLoadingPrefs] = useState(true);
     const [hasPrefs, setHasPrefs] = useState(true);
 
     useEffect(() => {
         (async () => {
             try {
-                const [recsData, statsData, prefsData] = await Promise.all([
-                    recsApi.get({ limit: 20 }),
-                    recsApi.stats(),
-                    prefApi.getMine(),
-                ]);
+                const recsData = await recsApi.get({ limit: 12, offset: 0 });
                 setRecs(recsData.recommendations || []);
                 setExplore(recsData.explore || []);
                 setHasPrefs(recsData.hasPreferences ?? true);
-                setStats(statsData);
-                setPrefs(prefsData.preferences || {});
             } catch {
-                toast('Failed to load your dashboard', 'error');
+                toast('Failed to load recommendations', 'error');
             } finally {
-                setLoading(false);
+                setLoadingRecs(false);
             }
         })();
-    }, []);
+    }, [toast]);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const statsData = await recsApi.stats();
+                setStats(statsData);
+            } catch {
+                toast('Failed to load dashboard stats', 'error');
+            } finally {
+                setLoadingStats(false);
+            }
+        })();
+    }, [toast]);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const prefsData = await prefApi.getMine();
+                setPrefs(prefsData.preferences || {});
+            } catch {
+                toast('Failed to load preferences', 'error');
+            } finally {
+                setLoadingPrefs(false);
+            }
+        })();
+    }, [toast]);
 
     const handle = user?.username || 'User';
     const totalRecs = recs.length;
     const matchRate = stats?.matchRate ?? 0;
     const topGenre = stats?.topGenres?.[0] || '—';
 
-    if (loading) {
+    if (loadingRecs) {
         return (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: 16 }}>
                 <Loader2 size={36} color="#7C3AED" style={{ animation: 'spin 0.8s linear infinite' }} />
@@ -492,9 +516,9 @@ export default function DashboardPage({ onNavigate }) {
             {/* ── Stats row ───────────────────────────────── */}
             <div className="dashboard-grid">
                 <StatCard label="Matched Titles" value={<AnimNum target={totalRecs} />} icon={Sparkles} color="#7C3AED" dim="rgba(124,58,237,0.12)" />
-                <StatCard label="Index Match Rate" value={<><AnimNum target={matchRate} />%</>} sub="of total library" icon={BarChart3} color="#22d3ee" dim="rgba(34,211,238,0.12)" />
+                <StatCard label="Index Match Rate" value={loadingStats ? '...' : <><AnimNum target={matchRate} />%</>} sub="of total library" icon={BarChart3} color="#22d3ee" dim="rgba(34,211,238,0.12)" />
                 <StatCard label="Top Genre" value={topGenre} icon={TrendingUp} color="#f59e0b" dim="rgba(245,158,11,0.12)" />
-                <StatCard label="Preference Nodes" value={<AnimNum target={Object.values(prefs).flat().length} />} icon={Hash} color="#f472b6" dim="rgba(244,114,182,0.12)" />
+                <StatCard label="Preference Nodes" value={loadingPrefs ? '...' : <AnimNum target={Object.values(prefs).flat().length} />} icon={Hash} color="#f472b6" dim="rgba(244,114,182,0.12)" />
             </div>
 
             {/* ── No Preferences ──────────────────────────── */}

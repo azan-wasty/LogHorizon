@@ -21,6 +21,7 @@ const CAT = {
   TV: { color: '#34d399', dim: 'rgba(52,211,153,0.1)', border: 'rgba(52,211,153,0.2)' },
 };
 const fallbackCat = { color: '#7C3AED', dim: 'rgba(124,58,237,0.1)', border: 'rgba(124,58,237,0.2)' };
+const PAGE_SIZE = 24;
 
 function useDebounce(value, delay) {
   const [d, setD] = useState(value);
@@ -79,6 +80,8 @@ function ContentCard({ item, index, onNavigate }) {
         {item.coverImage ? (
           <img
             src={item.coverImage} alt={item.title}
+            loading="lazy"
+            decoding="async"
             style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s', transform: hovered ? 'scale(1.08)' : 'scale(1)' }}
           />
         ) : (
@@ -201,13 +204,17 @@ export default function DiscoverPage({ onNavigate }) {
   const [allTags, setAllTags] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
   const [selectedTags, setSelectedTags] = useState([]);
   const [sort, setSort] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
   const debouncedSearch = useDebounce(search, 350);
   const firstLoad = useRef(true);
+  const offsetRef = useRef(0);
 
   useEffect(() => {
     tagsApi.list()
@@ -215,41 +222,44 @@ export default function DiscoverPage({ onNavigate }) {
       .catch(() => { });
   }, []);
 
-  const fetchContent = useCallback(async () => {
+  const fetchContent = useCallback(async ({ reset = false } = {}) => {
+    const requestOffset = reset ? 0 : offsetRef.current;
     if (firstLoad.current) { setLoading(true); firstLoad.current = false; }
-    else setSearching(true);
+    else if (reset) setSearching(true);
+    else setLoadingMore(true);
     try {
-      const params = {};
+      const params = { limit: PAGE_SIZE, offset: requestOffset };
       if (category !== 'All') params.category = category;
-      if (selectedTags.length > 0) params.tagId = selectedTags[0];
+      if (selectedTags.length > 0) params.tagIds = selectedTags.join(',');
+      if (debouncedSearch.trim()) params.q = debouncedSearch.trim();
+      if (sort) params.sort = sort;
       const data = await contentApi.list(params);
-      let results = data.content || [];
-      if (debouncedSearch.trim()) {
-        const q = debouncedSearch.toLowerCase();
-        results = results.filter(item =>
-          item.title.toLowerCase().includes(q) || item.description?.toLowerCase().includes(q)
-        );
+      const nextItems = data.content || [];
+      setTotal(data.total ?? nextItems.length);
+      setHasMore(Boolean(data.hasMore));
+      if (reset) {
+        setItems(nextItems);
+        offsetRef.current = nextItems.length;
+      } else {
+        setItems(prev => [...prev, ...nextItems]);
+        offsetRef.current = requestOffset + nextItems.length;
       }
-      if (selectedTags.length > 1) {
-        results = results.filter(item =>
-          selectedTags.every(tid => item.tags?.some(t => t.id === tid))
-        );
-      }
-      results = [...results].sort((a, b) => {
-        if (sort === 'rating') return (b.rating ?? 0) - (a.rating ?? 0);
-        if (sort === 'title') return a.title.localeCompare(b.title);
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      });
-      setItems(results);
     } catch {
       toast('Failed to load content index', 'error');
+      if (reset) {
+        setItems([]);
+        setTotal(0);
+        setHasMore(false);
+        offsetRef.current = 0;
+      }
     } finally {
       setLoading(false);
       setSearching(false);
+      setLoadingMore(false);
     }
-  }, [category, selectedTags, debouncedSearch, sort]);
+  }, [category, selectedTags, debouncedSearch, sort, toast]);
 
-  useEffect(() => { fetchContent(); }, [fetchContent]);
+  useEffect(() => { fetchContent({ reset: true }); }, [fetchContent]);
 
   const toggleTag = id => setSelectedTags(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
   const clearFilters = () => { setCategory('All'); setSearch(''); setSelectedTags([]); setSort('newest'); };
@@ -301,7 +311,7 @@ export default function DiscoverPage({ onNavigate }) {
               fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#374151',
               textTransform: 'uppercase', letterSpacing: '0.1em',
             }}>
-              {items.length} nodes
+              {total || items.length} nodes
             </span>
           )}
         </div>
@@ -487,7 +497,7 @@ export default function DiscoverPage({ onNavigate }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <div style={{ height: 1, flex: 1, background: 'rgba(255,255,255,0.05)' }} />
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.2em', flexShrink: 0 }}>
-          {loading ? 'Scanning index...' : `${items.length} node${items.length !== 1 ? 's' : ''} resolved`}
+          {loading ? 'Scanning index...' : `Showing ${items.length} of ${total || items.length} nodes`}
         </span>
         <div style={{ height: 1, flex: 1, background: 'rgba(255,255,255,0.05)' }} />
       </div>
@@ -524,10 +534,33 @@ export default function DiscoverPage({ onNavigate }) {
           )}
         </div>
       ) : (
-        <div className="discover-grid">
-          {items.map((item, i) => (
-            <ContentCard key={item.id} item={item} index={i} onNavigate={onNavigate} />
-          ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div className="discover-grid">
+            {items.map((item, i) => (
+              <ContentCard key={item.id} item={item} index={i} onNavigate={onNavigate} />
+            ))}
+          </div>
+          {hasMore && (
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <button
+                onClick={() => fetchContent({ reset: false })}
+                disabled={loadingMore}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '10px 18px', borderRadius: 12,
+                  background: 'rgba(124,58,237,0.1)',
+                  border: '1px solid rgba(124,58,237,0.25)',
+                  color: '#a78bfa',
+                  fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.8rem',
+                  cursor: loadingMore ? 'not-allowed' : 'pointer',
+                  opacity: loadingMore ? 0.7 : 1,
+                }}
+              >
+                {loadingMore ? <Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> : <ChevronDown size={14} />}
+                {loadingMore ? 'Loading more...' : 'Load more'}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

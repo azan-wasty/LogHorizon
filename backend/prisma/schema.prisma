@@ -55,6 +55,9 @@ model Content {
   children               Content[]               @relation("ContentToContent")
 
   @@unique([source, externalId])
+  @@index([createdAt])
+  @@index([category, createdAt])
+  @@index([rating])
 }
 
 model Tag {
@@ -74,6 +77,7 @@ model ContentTag {
   tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([contentId, tagId])
+  @@index([tagId, contentId])
 }
 
 model UserPreference {
@@ -109,6 +113,8 @@ model UserLibrary {
   content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 
   @@unique([userId, contentId])
+  @@index([userId, status])
+  @@index([userId, updatedAt])
 }
 
 model Review {
@@ -179,6 +185,7 @@ model Favourite {
   content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 
   @@unique([userId, contentId])
+  @@index([userId, createdAt])
 }
 
 model SubredditRecommendation {

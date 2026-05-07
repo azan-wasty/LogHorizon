@@ -12,15 +12,37 @@ function formatContent(item) {
 // GET /api/content  — public list with optional ?category=, ?tagId=, ?hasDiscord= filters
 router.get("/", async (req, res) => {
     try {
-        const { category, tagId, hasDiscord, hasReddit, hasSocial } = req.query;
+        const {
+            category,
+            tagId,
+            tagIds,
+            hasDiscord,
+            hasReddit,
+            hasSocial,
+            q,
+            sort,
+            limit,
+            offset
+        } = req.query;
 
         const where = {};
         if (category) where.category = category;
+        const parsedTagIds = [];
         if (tagId) {
             const tid = Number(tagId);
             if (Number.isInteger(tid) && tid > 0) {
-                where.tags = { some: { tagId: tid } };
+                parsedTagIds.push(tid);
             }
+        }
+        if (tagIds) {
+            String(tagIds)
+                .split(",")
+                .map((v) => Number(v.trim()))
+                .filter((v) => Number.isInteger(v) && v > 0)
+                .forEach((v) => parsedTagIds.push(v));
+        }
+        if (parsedTagIds.length > 0) {
+            where.AND = parsedTagIds.map((tid) => ({ tags: { some: { tagId: tid } } }));
         }
 
         if (hasDiscord === "true") {
@@ -35,14 +57,60 @@ router.get("/", async (req, res) => {
                 { redditLink: { not: null } }
             ];
         }
+        if (q && String(q).trim()) {
+            const query = String(q).trim();
+            where.AND = [
+                ...(where.AND || []),
+                {
+                    OR: [
+                        { title: { contains: query, mode: "insensitive" } },
+                        { description: { contains: query, mode: "insensitive" } }
+                    ]
+                }
+            ];
+        }
 
-        const content = await prisma.content.findMany({
+        const parsedLimit = Number(limit);
+        const parsedOffset = Number(offset);
+        const usePagination =
+            Number.isInteger(parsedLimit) &&
+            parsedLimit > 0 &&
+            Number.isInteger(parsedOffset) &&
+            parsedOffset >= 0;
+
+        let orderBy = { createdAt: "desc" };
+        if (sort === "rating") orderBy = { rating: "desc" };
+        if (sort === "title") orderBy = { title: "asc" };
+
+        const queryArgs = {
             where,
-            orderBy: { createdAt: "desc" },
+            orderBy,
             include: { tags: { include: { tag: true } } },
-        });
+        };
+        if (usePagination) {
+            queryArgs.take = parsedLimit;
+            queryArgs.skip = parsedOffset;
+        }
 
-        return res.status(200).json({ ok: true, content: content.map(formatContent) });
+        const [content, total] = await Promise.all([
+            prisma.content.findMany(queryArgs),
+            usePagination ? prisma.content.count({ where }) : Promise.resolve(null)
+        ]);
+
+        const formatted = content.map(formatContent);
+
+        if (!usePagination) {
+            return res.status(200).json({ ok: true, content: formatted });
+        }
+
+        return res.status(200).json({
+            ok: true,
+            content: formatted,
+            total,
+            limit: parsedLimit,
+            offset: parsedOffset,
+            hasMore: parsedOffset + formatted.length < total
+        });
     } catch (err) {
         console.error("listContent public error:", err);
         return res.status(500).json({ ok: false, message: "internal server error" });
