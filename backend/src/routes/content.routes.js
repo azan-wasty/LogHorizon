@@ -1,5 +1,6 @@
 const express = require("express");
 const prisma = require("../prismaClient");
+const { makeCacheKey, getOrSet } = require("../services/responseCache");
 const router = express.Router();
 
 function formatContent(item) {
@@ -12,6 +13,7 @@ function formatContent(item) {
 // GET /api/content  — public list with optional ?category=, ?tagId=, ?hasDiscord= filters
 router.get("/", async (req, res) => {
     try {
+        res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
         const {
             category,
             tagId,
@@ -92,25 +94,44 @@ router.get("/", async (req, res) => {
             queryArgs.skip = parsedOffset;
         }
 
-        const [content, total] = await Promise.all([
-            prisma.content.findMany(queryArgs),
-            usePagination ? prisma.content.count({ where }) : Promise.resolve(null)
-        ]);
-
-        const formatted = content.map(formatContent);
-
-        if (!usePagination) {
-            return res.status(200).json({ ok: true, content: formatted });
-        }
-
-        return res.status(200).json({
-            ok: true,
-            content: formatted,
-            total,
+        const cacheKey = makeCacheKey("content:list", {
+            category,
+            tagId,
+            tagIds,
+            hasDiscord,
+            hasReddit,
+            hasSocial,
+            q,
+            sort,
             limit: parsedLimit,
             offset: parsedOffset,
-            hasMore: parsedOffset + formatted.length < total
         });
+        const payload = await getOrSet({
+            key: cacheKey,
+            ttlMs: 60_000,
+            producer: async () => {
+                const [content, total] = await Promise.all([
+                    prisma.content.findMany(queryArgs),
+                    usePagination ? prisma.content.count({ where }) : Promise.resolve(null)
+                ]);
+
+                const formatted = content.map(formatContent);
+                if (!usePagination) {
+                    return { ok: true, content: formatted };
+                }
+
+                return {
+                    ok: true,
+                    content: formatted,
+                    total,
+                    limit: parsedLimit,
+                    offset: parsedOffset,
+                    hasMore: parsedOffset + formatted.length < total
+                };
+            }
+        });
+
+        return res.status(200).json(payload);
     } catch (err) {
         console.error("listContent public error:", err);
         return res.status(500).json({ ok: false, message: "internal server error" });
@@ -120,6 +141,7 @@ router.get("/", async (req, res) => {
 // GET /api/content/:id  — public single item
 router.get("/:id", async (req, res) => {
     try {
+        res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
         const id = Number(req.params.id);
         if (!Number.isInteger(id) || id <= 0) {
             return res.status(400).json({ ok: false, message: "invalid id" });

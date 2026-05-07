@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
+import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import DashboardPage from './pages/DashboardPage';
 import DiscoverPage from './pages/DiscoverPage';
@@ -47,34 +48,71 @@ const HYPERSPEED_OPTIONS = {
   }
 };
 
+function pageToPath(page) {
+  if (page.startsWith('content/')) {
+    const id = page.split('/')[1];
+    return `/content/${id}`;
+  }
+  const map = {
+    landing: '/',
+    onboarding: '/onboarding',
+    dashboard: '/dashboard',
+    discover: '/discover',
+    profile: '/profile',
+    community: '/community',
+    admin: '/admin',
+  };
+  return map[page] || '/';
+}
+
+function useLegacyNavigate() {
+  const navigate = useNavigate();
+  return (page) => navigate(pageToPath(page));
+}
+
+function pathToPage(pathname) {
+  if (pathname.startsWith('/dashboard')) return 'dashboard';
+  if (pathname.startsWith('/discover')) return 'discover';
+  if (pathname.startsWith('/profile')) return 'profile';
+  if (pathname.startsWith('/community')) return 'community';
+  if (pathname.startsWith('/admin')) return 'admin';
+  if (pathname.startsWith('/onboarding')) return 'onboarding';
+  if (pathname.startsWith('/content/')) return 'content';
+  return 'landing';
+}
+
+function RequireAuth({ children }) {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/" replace />;
+  return children;
+}
+
+function RequireAdmin({ children }) {
+  const { isAdmin } = useAuth();
+  if (!isAdmin) return <Navigate to="/dashboard" replace />;
+  return children;
+}
+
+function ContentRoute() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  return <ContentPage id={Number(id)} goBack={() => navigate(-1)} />;
+}
+
+function AppShell({ children }) {
+  const location = useLocation();
+  const legacyNavigate = useLegacyNavigate();
+  const currentPage = useMemo(() => pathToPage(location.pathname), [location.pathname]);
+  return (
+    <Layout currentPage={currentPage} onNavigate={legacyNavigate}>
+      {children}
+    </Layout>
+  );
+}
+
 function App() {
-  const { user, loading, isAdmin } = useAuth();
-  const [currentPage, setCurrentPage] = useState('landing');
-  const [historyStack, setHistoryStack] = useState([]);
-
-  const navigate = (page) => {
-    setHistoryStack(prev => [...prev, currentPage]);
-    setCurrentPage(page);
-  };
-
-  const goBack = () => {
-    setHistoryStack(prev => {
-      if (prev.length === 0) return prev;
-      const lastPage = prev[prev.length - 1];
-      setCurrentPage(lastPage);
-      return prev.slice(0, -1);
-    });
-  };
-
-  useEffect(() => {
-    if (!loading) {
-      if (user) {
-        if (currentPage === 'landing') setCurrentPage('dashboard');
-      } else {
-        setCurrentPage('landing');
-      }
-    }
-  }, [user, loading]);
+  const { user, loading } = useAuth();
+  const legacyNavigate = useLegacyNavigate();
 
   if (loading) {
     return (
@@ -84,30 +122,84 @@ function App() {
     );
   }
 
-  const renderPage = () => {
-    if (currentPage.startsWith('content/')) {
-      const id = parseInt(currentPage.split('/')[1]);
-      return <ContentPage id={id} goBack={goBack} />;
-    }
-    switch (currentPage) {
-      case 'landing': return <LandingPage onNavigate={navigate} />;
-      case 'onboarding': return <OnboardingPage onComplete={() => navigate('dashboard')} />;
-      case 'dashboard': return <DashboardPage onNavigate={navigate} />;
-      case 'discover': return <DiscoverPage onNavigate={navigate} />;
-      case 'profile': return <ProfilePage onNavigate={navigate} />;
-      case 'community': return <CommunityPage onNavigate={navigate} />;
-      case 'admin': return isAdmin ? <AdminPage /> : <DashboardPage onNavigate={navigate} />;
-      default: return <LandingPage onNavigate={navigate} />;
-    }
-  };
-
-  const isFullPage = ['landing', 'onboarding'].includes(currentPage);
-  if (isFullPage) return renderPage();
-
   return (
-    <Layout currentPage={currentPage} onNavigate={navigate}>
-      {renderPage()}
-    </Layout>
+    <Routes>
+      <Route
+        path="/"
+        element={user ? <Navigate to="/dashboard" replace /> : <LandingPage onNavigate={legacyNavigate} />}
+      />
+      <Route
+        path="/onboarding"
+        element={
+          <RequireAuth>
+            <OnboardingPage onComplete={() => legacyNavigate('dashboard')} />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/dashboard"
+        element={
+          <RequireAuth>
+            <AppShell>
+              <DashboardPage onNavigate={legacyNavigate} />
+            </AppShell>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/discover"
+        element={
+          <RequireAuth>
+            <AppShell>
+              <DiscoverPage onNavigate={legacyNavigate} />
+            </AppShell>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <RequireAuth>
+            <AppShell>
+              <ProfilePage onNavigate={legacyNavigate} />
+            </AppShell>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/community"
+        element={
+          <RequireAuth>
+            <AppShell>
+              <CommunityPage onNavigate={legacyNavigate} />
+            </AppShell>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <RequireAuth>
+            <RequireAdmin>
+              <AppShell>
+                <AdminPage />
+              </AppShell>
+            </RequireAdmin>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/content/:id"
+        element={
+          <RequireAuth>
+            <AppShell>
+              <ContentRoute />
+            </AppShell>
+          </RequireAuth>
+        }
+      />
+      <Route path="*" element={<Navigate to={user ? '/dashboard' : '/'} replace />} />
+    </Routes>
   );
 }
 

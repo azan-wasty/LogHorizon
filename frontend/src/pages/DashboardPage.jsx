@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Hyperspeed from '../components/Hyperspeed';
-import { recommendations as recsApi, preferences as prefApi } from '../api/client';
+import { recommendations as recsApi, preferences as prefApi, content as contentApi } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import {
@@ -307,56 +308,67 @@ function StatCard({ label, value, sub, icon: Icon, color, dim }) {
 export default function DashboardPage({ onNavigate }) {
     const { user, achievements } = useAuth();
     const toast = useToast();
+    const queryClient = useQueryClient();
 
-    const [recs, setRecs] = useState([]);
-    const [explore, setExplore] = useState([]);
-    const [stats, setStats] = useState(null);
-    const [prefs, setPrefs] = useState({});
-    const [loadingRecs, setLoadingRecs] = useState(true);
-    const [loadingStats, setLoadingStats] = useState(true);
-    const [loadingPrefs, setLoadingPrefs] = useState(true);
     const [hasPrefs, setHasPrefs] = useState(true);
 
-    useEffect(() => {
-        (async () => {
-            try {
-                const recsData = await recsApi.get({ limit: 12, offset: 0 });
-                setRecs(recsData.recommendations || []);
-                setExplore(recsData.explore || []);
-                setHasPrefs(recsData.hasPreferences ?? true);
-            } catch {
-                toast('Failed to load recommendations', 'error');
-            } finally {
-                setLoadingRecs(false);
-            }
-        })();
-    }, [toast]);
+    const {
+        data: recsData,
+        isLoading: loadingRecs,
+        isError: recsError,
+    } = useQuery({
+        queryKey: ['dashboard', 'recommendations'],
+        queryFn: () => recsApi.get({ limit: 12, offset: 0 }),
+        staleTime: 60_000,
+    });
+
+    const {
+        data: stats,
+        isLoading: loadingStats,
+        isError: statsError,
+    } = useQuery({
+        queryKey: ['dashboard', 'stats'],
+        queryFn: () => recsApi.stats(),
+        staleTime: 45_000,
+    });
+
+    const {
+        data: prefsData,
+        isLoading: loadingPrefs,
+        isError: prefsError,
+    } = useQuery({
+        queryKey: ['dashboard', 'preferences'],
+        queryFn: () => prefApi.getMine(),
+        staleTime: 120_000,
+    });
 
     useEffect(() => {
-        (async () => {
-            try {
-                const statsData = await recsApi.stats();
-                setStats(statsData);
-            } catch {
-                toast('Failed to load dashboard stats', 'error');
-            } finally {
-                setLoadingStats(false);
-            }
-        })();
-    }, [toast]);
+        if (recsError) toast('Failed to load recommendations', 'error');
+    }, [recsError, toast]);
 
     useEffect(() => {
-        (async () => {
-            try {
-                const prefsData = await prefApi.getMine();
-                setPrefs(prefsData.preferences || {});
-            } catch {
-                toast('Failed to load preferences', 'error');
-            } finally {
-                setLoadingPrefs(false);
-            }
-        })();
-    }, [toast]);
+        if (statsError) toast('Failed to load dashboard stats', 'error');
+    }, [statsError, toast]);
+
+    useEffect(() => {
+        if (prefsError) toast('Failed to load preferences', 'error');
+    }, [prefsError, toast]);
+
+    useEffect(() => {
+        if (recsData) setHasPrefs(recsData.hasPreferences ?? true);
+    }, [recsData]);
+
+    useEffect(() => {
+        queryClient.prefetchQuery({
+            queryKey: ['discover', { category: 'All', tagIds: '', q: '', sort: 'newest', limit: 24, offset: 0 }],
+            queryFn: () => contentApi.list({ limit: 24, offset: 0, sort: 'newest' }),
+            staleTime: 30_000,
+        });
+    }, [queryClient]);
+
+    const recs = recsData?.recommendations || [];
+    const explore = recsData?.explore || [];
+    const prefs = prefsData?.preferences || {};
 
     const handle = user?.username || 'User';
     const totalRecs = recs.length;

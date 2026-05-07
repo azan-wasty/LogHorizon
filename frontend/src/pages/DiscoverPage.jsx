@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { content as contentApi, tags as tagsApi } from '../api/client';
 import { useToast } from '../hooks/useToast';
 import {
@@ -200,21 +201,13 @@ function ContentCard({ item, index, onNavigate }) {
 // ── Main Page ──────────────────────────────────────
 export default function DiscoverPage({ onNavigate }) {
   const toast = useToast();
-  const [items, setItems] = useState([]);
   const [allTags, setAllTags] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searching, setSearching] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
   const [selectedTags, setSelectedTags] = useState([]);
   const [sort, setSort] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
-  const [total, setTotal] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
   const debouncedSearch = useDebounce(search, 350);
-  const firstLoad = useRef(true);
-  const offsetRef = useRef(0);
 
   useEffect(() => {
     tagsApi.list()
@@ -222,44 +215,49 @@ export default function DiscoverPage({ onNavigate }) {
       .catch(() => { });
   }, []);
 
-  const fetchContent = useCallback(async ({ reset = false } = {}) => {
-    const requestOffset = reset ? 0 : offsetRef.current;
-    if (firstLoad.current) { setLoading(true); firstLoad.current = false; }
-    else if (reset) setSearching(true);
-    else setLoadingMore(true);
-    try {
-      const params = { limit: PAGE_SIZE, offset: requestOffset };
+  const queryFilters = {
+    category,
+    tagIds: selectedTags.join(','),
+    q: debouncedSearch.trim(),
+    sort,
+  };
+
+  const {
+    data,
+    isLoading,
+    isError,
+    isFetching,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['discover', { ...queryFilters, limit: PAGE_SIZE }],
+    queryFn: ({ pageParam = 0 }) => {
+      const params = { limit: PAGE_SIZE, offset: pageParam, sort };
       if (category !== 'All') params.category = category;
       if (selectedTags.length > 0) params.tagIds = selectedTags.join(',');
       if (debouncedSearch.trim()) params.q = debouncedSearch.trim();
-      if (sort) params.sort = sort;
-      const data = await contentApi.list(params);
-      const nextItems = data.content || [];
-      setTotal(data.total ?? nextItems.length);
-      setHasMore(Boolean(data.hasMore));
-      if (reset) {
-        setItems(nextItems);
-        offsetRef.current = nextItems.length;
-      } else {
-        setItems(prev => [...prev, ...nextItems]);
-        offsetRef.current = requestOffset + nextItems.length;
-      }
-    } catch {
-      toast('Failed to load content index', 'error');
-      if (reset) {
-        setItems([]);
-        setTotal(0);
-        setHasMore(false);
-        offsetRef.current = 0;
-      }
-    } finally {
-      setLoading(false);
-      setSearching(false);
-      setLoadingMore(false);
-    }
-  }, [category, selectedTags, debouncedSearch, sort, toast]);
+      return contentApi.list(params);
+    },
+    getNextPageParam: (lastPage) => {
+      if (!lastPage?.hasMore) return undefined;
+      return (lastPage.offset || 0) + (lastPage.content?.length || 0);
+    },
+    staleTime: 60_000,
+    initialPageParam: 0,
+  });
 
-  useEffect(() => { fetchContent({ reset: true }); }, [fetchContent]);
+  useEffect(() => {
+    if (isError) toast('Failed to load content index', 'error');
+  }, [isError, toast]);
+
+  const pages = data?.pages || [];
+  const items = pages.flatMap(page => page.content || []);
+  const total = pages[0]?.total ?? items.length;
+  const loading = isLoading;
+  const searching = isFetching && !isFetchingNextPage;
+  const loadingMore = isFetchingNextPage;
+  const hasMore = Boolean(hasNextPage);
 
   const toggleTag = id => setSelectedTags(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
   const clearFilters = () => { setCategory('All'); setSearch(''); setSelectedTags([]); setSort('newest'); };
@@ -543,7 +541,7 @@ export default function DiscoverPage({ onNavigate }) {
           {hasMore && (
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <button
-                onClick={() => fetchContent({ reset: false })}
+                onClick={() => fetchNextPage()}
                 disabled={loadingMore}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
