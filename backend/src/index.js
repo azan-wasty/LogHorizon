@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const serverless = require("serverless-http");
 require("dotenv").config();
 
 const app = express();
@@ -67,10 +68,19 @@ const PORT = process.env.PORT || 6767;
 
 // Listen on the provided port (Render/Local)
 // We only skip listen if we are explicitly told we are in a serverless environment (like Vercel)
-if (process.env.VERCEL !== '1') {
+if (process.env.VERCEL !== '1' && process.env.CLOUDFLARE_WORKER !== 'true') {
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
 }
 
+// Wrap express app
+const handler = serverless(app);
+
+// Fallback for Vercel/Local Node.js
 module.exports = app;
+
+// Export CommonJS fetch handler for Cloudflare Workers
+module.exports.fetch = async (request, env, ctx) => {
+  return handler(request, env, ctx);
+};
