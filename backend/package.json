@@ -4,9 +4,9 @@
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
-    "dev": "nodemon src/index.js",
+    "dev": "nodemon src/server.js",
     "vercel-build": "prisma generate",
-    "start": "node src/index.js",
+    "start": "node src/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"

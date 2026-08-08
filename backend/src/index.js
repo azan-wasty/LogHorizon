@@ -64,14 +64,4 @@ app.use((err, req, res, next) => {
   res.status(500).json({ ok: false, message: "Internal server error" });
 });
 
-const PORT = process.env.PORT || 6767;
-
-// Listen on the provided port (Render/Local)
-// We only skip listen if we are explicitly told we are in a serverless environment (like Vercel)
-if (process.env.VERCEL !== '1' && process.env.CLOUDFLARE_WORKER !== 'true') {
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
-}
-
 module.exports = app;
