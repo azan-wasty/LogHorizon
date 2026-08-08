@@ -74,12 +74,4 @@ if (process.env.VERCEL !== '1' && process.env.CLOUDFLARE_WORKER !== 'true') {
   });
 }
 
-// Wrap express app
-const handler = serverless(app);
-
-// Export object with fetch handler for Cloudflare Workers (ES Module format interop)
-module.exports = {
-  fetch: async (request, env, ctx) => {
-    return handler(request, env, ctx);
-  }
-};
+module.exports = app;
