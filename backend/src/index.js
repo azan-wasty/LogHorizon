@@ -77,10 +77,9 @@ if (process.env.VERCEL !== '1' && process.env.CLOUDFLARE_WORKER !== 'true') {
 // Wrap express app
 const handler = serverless(app);
 
-// Fallback for Vercel/Local Node.js
-module.exports = app;
-
-// Export CommonJS fetch handler for Cloudflare Workers
-module.exports.fetch = async (request, env, ctx) => {
-  return handler(request, env, ctx);
+// Export object with fetch handler for Cloudflare Workers (ES Module format interop)
+module.exports = {
+  fetch: async (request, env, ctx) => {
+    return handler(request, env, ctx);
+  }
 };
