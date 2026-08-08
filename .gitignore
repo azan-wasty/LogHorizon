@@ -1,11 +1,11 @@
 # ── Environment & Secrets ─────────────────────────
 .env
-.env.*
-.env.example
+.env.production
+.env.local
+.env.development
+.env.test
 backend/.env
 frontend/.env
-.env.production
-
 # ── Node ──────────────────────────────────────────
 node_modules/
 npm-debug.log*
