@@ -20,7 +20,7 @@ model User {
   updatedAt              DateTime                @updatedAt
   preferences            UserPreference[]
   library                UserLibrary[]
-  activities             Activity[]              @relation("UserActivities")
+  activities             Activity[]
   following              Friendship[]            @relation("Follower")
   followedBy             Friendship[]            @relation("Following")
   achievements           UserAchievement[]
@@ -55,7 +55,9 @@ model Content {
   discordRecommendations DiscordRecommendation[]
   favourites             Favourite[]
   subredditRecommendations SubredditRecommendation[]
-  reviews                Review[]
+reviews                Review[]
+  activity               Activity?  @relation("ActivityContent", fields: [activityId], references: [id])
+  activityId             Int?
 
   parentId               Int?
   parent                 Content?                @relation("ContentToContent", fields: [parentId], references: [id])
@@ -203,7 +205,7 @@ model SubredditRecommendation {
   contentId Int
   subreddit String
   status    String   @default("PENDING")
-  createdAt DateTime @default(now__)
+createdAt   DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -233,7 +235,7 @@ model Friendship {
   id          Int      @id @default(autoincrement())
   followerId  Int
   followingId Int
-  createdAt   DateTime @default(now__)
+  createdAt   DateTime @default(now())
 
   follower  User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
   following User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
