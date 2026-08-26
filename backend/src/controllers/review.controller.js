@@ -1,8 +1,8 @@
 const prisma = require("../prismaClient");
+const activityService = require("../services/ActivityService");
 
 /**
  * POST /api/reviews
- * Body: { contentId, rating, comment }
  */
 async function addReview(req, res) {
     try {
@@ -13,15 +13,24 @@ async function addReview(req, res) {
             return res.status(400).json({ ok: false, message: "contentId and rating required" });
         }
 
-        const review = await prisma.review.upsert({
-            where: {
-                userId_contentId: { userId, contentId }
-            },
-            update: { rating: parseInt(rating), comment },
-            create: { userId, contentId, rating: parseInt(rating), comment }
-        });
+        const existing = await prisma.review.findUnique({
+        where: { userId_contentId: { userId, contentId } }
+    });
 
-        return res.json({ ok: true, review });
+    const review = await prisma.review.upsert({
+        where: {
+            userId_contentId: { userId, contentId }
+        },
+        update: { rating: parseInt(rating), comment },
+        create: { userId, contentId, rating: parseInt(rating), comment }
+    });
+
+    // Only log a fresh REVIEWED activity for new reviews, not every edit.
+    if (!existing) {
+        await activityService.log(userId, "REVIEWED", contentId, parseInt(rating));
+    }
+
+    return res.json({ ok: true, review });
     } catch (err) {
         console.error("addReview error:", err);
         return res.status(500).json({ ok: false, message: "internal server error" });

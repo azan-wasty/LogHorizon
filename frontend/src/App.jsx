@@ -4,6 +4,7 @@ import LandingPage from './pages/LandingPage';
 import DashboardPage from './pages/DashboardPage';
 import DiscoverPage from './pages/DiscoverPage';
 import ProfilePage from './pages/ProfilePage';
+import AchievementsPage from './pages/AchievementsPage';
 import CommunityPage from './pages/CommunityPage';
 import OnboardingPage from './pages/OnboardingPage';
 import AdminPage from './pages/AdminPage';
@@ -56,12 +57,13 @@ function pageToPath(page) {
   const map = {
     landing: '/',
     onboarding: '/onboarding',
-    dashboard: '/dashboard',
-    discover: '/discover',
-    profile: '/profile',
-    community: '/community',
-    admin: '/admin',
-  };
+dashboard: '/dashboard',
+      discover: '/discover',
+      profile: '/profile',
+    achievements: '/profile/achievements',
+      community: '/community',
+      admin: '/admin',
+    };
   return map[page] || '/';
 }
 
@@ -71,9 +73,10 @@ function useLegacyNavigate() {
 }
 
 function pathToPage(pathname) {
-  if (pathname.startsWith('/dashboard')) return 'dashboard';
-  if (pathname.startsWith('/discover')) return 'discover';
-  if (pathname.startsWith('/profile')) return 'profile';
+if (pathname.startsWith('/dashboard')) return 'dashboard';
+    if (pathname.startsWith('/discover')) return 'discover';
+  if (pathname.startsWith('/profile/achievements')) return 'achievements';
+    if (pathname.startsWith('/profile')) return 'profile';
   if (pathname.startsWith('/community')) return 'community';
   if (pathname.startsWith('/admin')) return 'admin';
   if (pathname.startsWith('/onboarding')) return 'onboarding';
@@ -162,6 +165,16 @@ function App() {
           <RequireAuth>
             <AppShell>
               <ProfilePage onNavigate={legacyNavigate} />
+            </AppShell>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/profile/achievements"
+        element={
+          <RequireAuth>
+            <AppShell>
+              <AchievementsPage onNavigate={legacyNavigate} />
             </AppShell>
           </RequireAuth>
         }

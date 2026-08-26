@@ -1,5 +1,13 @@
 const prisma = require("../prismaClient");
 const achievementsService = require("../services/AchievementsService");
+const activityService = require("../services/ActivityService");
+
+const ACTIVITY_TYPE_BY_STATUS = {
+    CURRENT: "WATCHING",
+    COMPLETED: "COMPLETED",
+    PLANNING: "PLANNING",
+    DROPPED: "DROPPED",
+};
 
 /**
  * GET /api/library
@@ -39,6 +47,24 @@ async function updateLibrary(req, res) {
             parsedProgress = 0;
         }
 
+        // Fetch the previous entry (to detect real transitions) and the content
+        // (to auto-fill progress to "all episodes/chapters watched" on completion).
+        const [existingEntry, contentItem] = await Promise.all([
+            prisma.userLibrary.findUnique({ where: { userId_contentId: { userId, contentId: cid } } }),
+            prisma.content.findUnique({ where: { id: cid }, select: { category: true, totalEpisodes: true, totalChapters: true } }),
+        ]);
+
+        // Marking something COMPLETED implies every episode/chapter has been watched/read,
+        // so fill progress up to the total unless the caller explicitly sent a higher value.
+        if (status === "COMPLETED" && contentItem) {
+            const total = contentItem.category === "Manga" || contentItem.category === "LightNovel"
+                ? contentItem.totalChapters
+                : contentItem.totalEpisodes;
+            if (total && (parsedProgress === undefined || parsedProgress < total)) {
+                parsedProgress = total;
+            }
+        }
+
         const updateData = {
             status,
             rating: rating !== undefined && rating !== null ? parseInt(rating, 10) : null
@@ -63,6 +89,16 @@ async function updateLibrary(req, res) {
             create: createData,
             include: { content: true }
         });
+
+        // Log activity only on real transitions, not on every +1 progress tick.
+        if (!existingEntry || existingEntry.status !== status) {
+            const activityType = ACTIVITY_TYPE_BY_STATUS[status];
+            if (activityType) await activityService.log(userId, activityType, cid);
+        }
+        const newRating = updateData.rating;
+        if (newRating !== null && newRating !== undefined && (!existingEntry || existingEntry.rating !== newRating)) {
+            await activityService.log(userId, "RATED", cid, newRating);
+        }
 
         // Check and assign any newly unlocked achievements
         const newUnlocks = await achievementsService.checkAchievements(userId);
@@ -118,31 +154,35 @@ async function markAllCompleted(req, res) {
         // 2. Determine all related content to mark completed
         // If it has children, mark all children + self.
         // If it has a parent, mark the parent + all its children.
-        let contentIds = new Set();
-        contentIds.add(item.id);
+        let contentMap = new Map();
+        contentMap.set(item.id, item);
 
         if (item.children.length > 0) {
-            item.children.forEach(c => contentIds.add(c.id));
+            item.children.forEach(c => contentMap.set(c.id, c));
         }
 
         if (item.parent) {
-            contentIds.add(item.parent.id);
-            item.parent.children.forEach(c => contentIds.add(c.id));
+            contentMap.set(item.parent.id, item.parent);
+            item.parent.children.forEach(c => contentMap.set(c.id, c));
         }
 
-        const idsArray = Array.from(contentIds);
+        const idsArray = Array.from(contentMap.keys());
 
-        // 3. Perform bulk upsert (Prisma doesn't have bulk upsert, so we use a loop or delete and create)
-        // But for library, it's safer to loop or use updateMany if we don't care about create.
-        // Actually, many might not exist in library yet.
-        
-        await Promise.all(idsArray.map(cid => 
-            prisma.userLibrary.upsert({
+        // Every episode/chapter counts as watched when a series is marked completed, so
+        // fill progress to the content's total instead of leaving it at 0.
+        await Promise.all(idsArray.map(cid => {
+            const c = contentMap.get(cid);
+            const total = c.category === "Manga" || c.category === "LightNovel" ? c.totalChapters : c.totalEpisodes;
+            const progress = total || 0;
+            return prisma.userLibrary.upsert({
                 where: { userId_contentId: { userId, contentId: cid } },
-                update: { status: "COMPLETED" },
-                create: { userId, contentId: cid, status: "COMPLETED" }
-            })
-        ));
+                update: { status: "COMPLETED", progress },
+                create: { userId, contentId: cid, status: "COMPLETED", progress }
+            });
+        }));
+
+        // Log a single activity entry for the item the user actually acted on.
+        await activityService.log(userId, "COMPLETED", item.id);
 
         // 4. Trigger achievements check
         const newUnlocks = await achievementsService.checkAchievements(userId);

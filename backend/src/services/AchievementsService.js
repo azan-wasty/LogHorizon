@@ -124,8 +124,44 @@ class AchievementsService {
         });
         return userAch.map(a => ({
             ...ACHIEVEMENTS[a.key],
+            key: a.key,
+            pinned: a.pinned,
             unlockedAt: a.unlockedAt
-        })).filter(a => a.title); 
+        })).filter(a => a.title);
+    }
+
+    async getPinnedAchievements(userId) {
+        const userAch = await prisma.userAchievement.findMany({
+            where: { userId, pinned: true },
+            orderBy: { unlockedAt: "desc" }
+        });
+        return userAch.map(a => ({
+            ...ACHIEVEMENTS[a.key],
+            key: a.key,
+            pinned: true,
+            unlockedAt: a.unlockedAt
+        })).filter(a => a.title);
+    }
+
+    async setPinned(userId, key, pinned) {
+        if (!ACHIEVEMENTS[key]) return null;
+        const existing = await prisma.userAchievement.findUnique({ where: { userId_key: { userId, key } } });
+        if (!existing) return null;
+
+        if (pinned) {
+            const pinnedCount = await prisma.userAchievement.count({ where: { userId, pinned: true } });
+            if (pinnedCount >= 6) {
+                const err = new Error("You can only pin up to 6 achievements");
+                err.code = "PIN_LIMIT";
+                throw err;
+            }
+        }
+
+        const updated = await prisma.userAchievement.update({
+            where: { userId_key: { userId, key } },
+            data: { pinned },
+        });
+        return { ...ACHIEVEMENTS[key], key, pinned: updated.pinned, unlockedAt: updated.unlockedAt };
     }
 
     getAllAchievements() {

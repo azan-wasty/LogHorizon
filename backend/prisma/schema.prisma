@@ -20,6 +20,9 @@ model User {
   updatedAt              DateTime                @updatedAt
   preferences            UserPreference[]
   library                UserLibrary[]
+  activities             Activity[]              @relation("UserActivities")
+  following              Friendship[]            @relation("Follower")
+  followedBy             Friendship[]            @relation("Following")
   achievements           UserAchievement[]
   discordRecommendations DiscordRecommendation[]
   events                 Event[]
@@ -142,6 +145,7 @@ model UserAchievement {
   userId     Int
   key        String
   unlockedAt DateTime @default(now())
+  pinned     Boolean  @default(false)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -199,11 +203,41 @@ model SubredditRecommendation {
   contentId Int
   subreddit String
   status    String   @default("PENDING")
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now__)
   updatedAt DateTime @updatedAt
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 
   @@unique([userId, contentId])
+}
+
+// Activity feed entries — logged whenever a user watches/favourites/rates/reviews something.
+model Activity {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  contentId Int?
+  type      String   // "WATCHING" | "COMPLETED" | "PLANNING" | "FAVOURITED" | "RATED" | "REVIEWED"
+  rating    Int?
+  createdAt DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content Content? @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+}
+
+// Simple one-directional "follow" relationship — no mutual social graph, just an add.
+model Friendship {
+  id          Int      @id @default(autoincrement())
+  followerId  Int
+  followingId Int
+  createdAt   DateTime @default(now__)
+
+  follower  User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
 }

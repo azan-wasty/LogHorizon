@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import Radar from '../components/Radar';
 import {
-  Calendar, Users, MessageSquare, Plus, RefreshCw,
-  Search, ExternalLink, X, ChevronRight, Loader2, Star,
-  Database, ShieldCheck, Clock, CheckCircle, Activity,
-  Radio, Heart, Award,
-} from 'lucide-react';
-import { events as eventsApi, users as usersApi, content as contentApi } from '../api/client';
+   Calendar, Users, MessageSquare, Plus, RefreshCw,
+   Search, ExternalLink, X, ChevronRight, Loader2, Star,
+   Database, ShieldCheck, Clock, CheckCircle, Activity,
+   UserPlus, UserCheck,
+ } from 'lucide-react';
+import { events as eventsApi, users as usersApi, content as contentApi, friends as friendsApi } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 
@@ -346,7 +346,10 @@ function MembersSection({ currentUser }) {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [friendIds, setFriendIds] = useState(new Set());
+  const [pendingFriendId, setPendingFriendId] = useState(null);
   const debouncedQuery = useDebounce(query, 350);
+  const toast = useToast();
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -362,6 +365,17 @@ function MembersSection({ currentUser }) {
   }, [debouncedQuery]);
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
+  const fetchFriends = useCallback(async () => {
+    try {
+      const data = await friendsApi.list();
+      if (data.ok) setFriendIds(new Set(data.friends.map(f => f.id)));
+    } catch {
+      // non-critical
+    }
+  }, []);
+
+  useEffect(() => { fetchFriends(); }, [fetchFriends]);
 
   const openProfile = async (user) => {
     if (currentUser && user.id === currentUser.id) return;

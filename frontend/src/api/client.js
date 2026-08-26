@@ -168,4 +168,23 @@ export const favourites = {
   remove: (contentId) => request(`/favourites/${contentId}`, { method: 'DELETE' }),
 };
 
-export default { auth, me, preferences, recommendations, content, tags, admin, library, discord, subreddit, users, events, favourites, reviews };
+export const friends = {
+  list: () => request('/friends'),
+  add: (userId) => request(`/friends/${userId}`, { method: 'POST' }),
+  remove: (userId) => request(`/friends/${userId}`, { method: 'DELETE' }),
+};
+
+// ── Activity feed ─────────────────────────────────
+export const activity = {
+  feed: (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return request(`/activity/feed${qs ? `?${qs}` : ''}`);
+  },
+};
+
+// ── Achievements (pinning) ────────────────────────
+export const achievementsApi = {
+  setPinned: (key, pinned) => request(`/me/achievements/${key}/pin`, { method: 'PUT', body: JSON.stringify({ pinned }) }),
+};
+
+export default { auth, me, preferences, recommendations, content, tags, admin, library, discord, subreddit, users, events, favourites, reviews, friends, activity, achievementsApi };

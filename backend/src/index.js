@@ -38,6 +38,7 @@ app.use(express.json());
 // ---- Routes ----
 app.use("/api", require("./routes/auth.routes"));
 app.use("/api", require("./routes/me.routes"));
+app.use("/api", require("./routes/upload.routes"));
 app.use("/api/preferences", require("./routes/preferences.routes"));
 app.use("/api/recommendations", require("./routes/recommendations.routes"));
 app.use("/api/tags", require("./routes/tags.routes"));
@@ -50,6 +51,8 @@ app.use("/api/events", require("./routes/events.routes"));
 app.use("/api/users", require("./routes/community.routes"));
 app.use("/api/favourites", require("./routes/favourites.routes"));
 app.use("/api/reviews", require("./routes/review.routes"));
+app.use("/api/friends", require("./routes/friends.routes"));
+app.use("/api/activity", require("./routes/activity.routes"));
 
 app.get("/api/health", (req, res) => {
   res.json({ ok: true, message: "LogHorizon backend is up" });

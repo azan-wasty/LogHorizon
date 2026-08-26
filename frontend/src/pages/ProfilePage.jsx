@@ -497,14 +497,9 @@ export default function ProfilePage({ onNavigate }) {
   const { user, achievements, favourites, refetch } = useAuth();
   const { library, loading: libLoading, removeItem } = useLibrary();
   const toast = useToast();
-  const [isEditing, setIsEditing] = useState(false);
+const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('COMPLETED');
   const [viewMode, setViewMode] = useState('grid');
-
-  // ✅ FIX: Always refetch on mount so achievements are up-to-date
-  useEffect(() => {
-    refetch();
-  }, []);
 
   const handleSave = async (data) => {
     try {

@@ -9,7 +9,7 @@ const LibraryContext = createContext(null);
 export function LibraryProvider({ children }) {
   // 2. DEPENDENCY HOOKS: Consume other custom hooks within this provider.
   // user: we need the current user to know whether to fetch/reset the library list.
-  const { user } = useAuth();
+  const { user, refetch: refetchAuth } = useAuth();
   // toast: triggers custom notifications on success or failure of library actions.
   const toast = useToast();
 
@@ -75,10 +75,13 @@ export function LibraryProvider({ children }) {
 
       // Side Effect: Trigger Toast notifications if the backend rewards new achievements
       if (res.newUnlocks && res.newUnlocks.length > 0) {
-        res.newUnlocks.forEach(ach => {
-          toast(`Achievement Unlocked: ${ach.title}`, 'success');
+res.newUnlocks.forEach(ach => {
+            toast(`Achievement Unlocked: ${ach.title}`, 'success');
         });
-      }
+        // Keep the global achievements list (used on the Profile page) in sync
+        // without making every page do its own refetch-on-mount.
+        refetchAuth?.();
+        }
       return { ok: true, entry: res.entry };
     } catch (err) {
       toast(err.message || 'Transmission failed', 'error');

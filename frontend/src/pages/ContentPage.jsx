@@ -277,6 +277,7 @@ function EpisodeTracker({ item, entry, palette, onUpdateProgress }) {
             <button
               onClick={() => onUpdateProgress(total > 0 ? Math.min(total, currentProgress + 1) : currentProgress + 1)}
               title="Increase 1"
+              disabled={total <= 0}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 padding: '8px 16px', borderRadius: 10,
@@ -614,11 +615,11 @@ export default function ContentPage({ id, goBack }) {
 
   const handleProgressUpdate = async (newProgress, forcedStatus = null) => {
     if (!user) return toast('Please sign in to track progress.', 'info');
-    const total = item.totalEpisodes || (item.category === 'Manga' ? item.totalChapters : null);
+    const total = item.totalEpisodes || (item.category === 'Manga' ? item.totalChapters : null) || 0;
     let status = entry?.status || 'CURRENT';
     if (forcedStatus) {
       status = forcedStatus;
-    } else if (total && newProgress >= total && total > 0) {
+    } else if (total > 0 && newProgress >= total) {
       status = 'COMPLETED';
     } else if (!entry || status === 'PLANNING') {
       status = 'CURRENT';
