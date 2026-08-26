@@ -38,11 +38,14 @@ model Content {
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
   coverImage             String?
+  bannerImage            String?
   externalId             String?
   externalUrl            String?
   rating                 Float?
   source                 String?
   status                 String?
+  totalEpisodes          Int?
+  totalChapters          Int?
   isSuggested            Boolean                 @default(false)
   tags                   ContentTag[]
   library                UserLibrary[]
@@ -107,6 +110,7 @@ model UserLibrary {
   contentId Int
   status    String
   rating    Int?
+  progress  Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

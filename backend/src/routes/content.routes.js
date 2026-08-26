@@ -138,6 +138,8 @@ router.get("/", async (req, res) => {
     }
 });
 
+const { AniListService } = require("../services/AniListService");
+
 // GET /api/content/:id  — public single item
 router.get("/:id", async (req, res) => {
     try {
@@ -147,12 +149,12 @@ router.get("/:id", async (req, res) => {
             return res.status(400).json({ ok: false, message: "invalid id" });
         }
 
-        const item = await prisma.content.findUnique({
+        let item = await prisma.content.findUnique({
             where: { id },
             include: { 
                 tags: { include: { tag: true } },
                 children: {
-                    select: { id: true, title: true, coverImage: true, category: true, status: true }
+                    select: { id: true, title: true, coverImage: true, category: true, status: true, totalEpisodes: true }
                 },
                 parent: {
                     select: { id: true, title: true }
@@ -161,6 +163,46 @@ router.get("/:id", async (req, res) => {
         });
 
         if (!item) return res.status(404).json({ ok: false, message: "content not found" });
+
+        // On-demand enrichment for Anime / Manga missing episodes or banner
+        if ((item.category === "Anime" && !item.totalEpisodes) || (item.category === "Manga" && !item.totalChapters) || !item.bannerImage) {
+            try {
+                let media = null;
+                if (item.source === "AniList" && item.externalId) {
+                    media = await AniListService.getMediaById(item.externalId, item.category);
+                } else if ((item.source === "Jikan" || item.source === "MAL") && item.externalId) {
+                    media = await AniListService.getMediaByMalId(item.externalId, item.category);
+                }
+                if (!media && (item.category === "Anime" || item.category === "Manga")) {
+                    media = await AniListService.searchMedia(item.title, item.category);
+                }
+
+                if (media) {
+                    const updateData = {};
+                    if (!item.totalEpisodes && media.episodes) updateData.totalEpisodes = media.episodes;
+                    if (!item.totalChapters && media.chapters) updateData.totalChapters = media.chapters;
+                    if (!item.bannerImage && media.bannerImage) updateData.bannerImage = media.bannerImage;
+
+                    if (Object.keys(updateData).length > 0) {
+                        item = await prisma.content.update({
+                            where: { id },
+                            data: updateData,
+                            include: { 
+                                tags: { include: { tag: true } },
+                                children: {
+                                    select: { id: true, title: true, coverImage: true, category: true, status: true, totalEpisodes: true }
+                                },
+                                parent: {
+                                    select: { id: true, title: true }
+                                }
+                            },
+                        });
+                    }
+                }
+            } catch (enrichErr) {
+                console.warn(`[Enrichment] Failed to auto-enrich content ${id}:`, enrichErr.message);
+            }
+        }
 
         // Calculate platform average rating
         const aggregate = await prisma.review.aggregate({
@@ -176,6 +218,141 @@ router.get("/:id", async (req, res) => {
         return res.status(200).json({ ok: true, content: formatted });
     } catch (err) {
         console.error("getContent public error:", err);
+        return res.status(500).json({ ok: false, message: "internal server error" });
+    }
+});
+
+// GET /api/content/:id/episodes — fetch episode details and list
+router.get("/:id/episodes", async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+        if (!Number.isInteger(id) || id <= 0) {
+            return res.status(400).json({ ok: false, message: "invalid id" });
+        }
+
+        const item = await prisma.content.findUnique({ where: { id } });
+        if (!item) return res.status(404).json({ ok: false, message: "content not found" });
+
+        const isAnime = item.category === "Anime";
+        const isTV = item.category === "TV";
+        const isManga = item.category === "Manga";
+
+        if (isManga) {
+            // For manga, return chapters count
+            const chaptersCount = item.totalChapters || 1;
+            const chapters = [];
+            for (let i = 1; i <= chaptersCount; i++) {
+                chapters.push({
+                    episodeNumber: i,
+                    title: `Chapter ${i}`,
+                    thumbnail: item.coverImage || null,
+                });
+            }
+            return res.json({
+                ok: true,
+                totalEpisodes: chaptersCount,
+                type: "chapter",
+                episodes: chapters,
+            });
+        }
+
+        let episodes = [];
+        let totalEpisodes = item.totalEpisodes || null;
+
+        // 1. If Anime: try AniList
+        if (isAnime) {
+            try {
+                let media = null;
+                if (item.source === "AniList" && item.externalId) {
+                    media = await AniListService.getMediaById(item.externalId, "Anime");
+                } else if ((item.source === "Jikan" || item.source === "MAL") && item.externalId) {
+                    media = await AniListService.getMediaByMalId(item.externalId, "Anime");
+                }
+                if (!media) {
+                    media = await AniListService.searchMedia(item.title, "Anime");
+                }
+
+                if (media) {
+                    totalEpisodes = media.episodes || totalEpisodes;
+                    const streaming = media.streamingEpisodes || [];
+                    const count = totalEpisodes || streaming.length || 0;
+
+                    for (let i = 1; i <= count; i++) {
+                        const stream = streaming[i - 1];
+                        episodes.push({
+                            episodeNumber: i,
+                            title: stream?.title || `Episode ${i}`,
+                            thumbnail: stream?.thumbnail || item.coverImage || null,
+                            url: stream?.url || null,
+                            site: stream?.site || null,
+                        });
+                    }
+
+                    if (media.episodes && !item.totalEpisodes) {
+                        await prisma.content.update({
+                            where: { id: item.id },
+                            data: { totalEpisodes: media.episodes }
+                        }).catch(() => {});
+                    }
+                }
+            } catch (err) {
+                console.warn(`[Episodes] AniList episode fetch error for #${id}:`, err.message);
+            }
+        }
+
+        // 2. If TV from TMDB
+        if (isTV && item.source === "TMDB" && item.externalId && process.env.TMDB_API_KEY) {
+            try {
+                const resp = await fetch(
+                    `https://api.themoviedb.org/3/tv/${item.externalId}/season/1?api_key=${process.env.TMDB_API_KEY}&language=en-US`
+                );
+                if (resp.ok) {
+                    const tmdbData = await resp.json();
+                    if (tmdbData.episodes && Array.isArray(tmdbData.episodes)) {
+                        episodes = tmdbData.episodes.map(ep => ({
+                            episodeNumber: ep.episode_number,
+                            title: ep.name ? `Ep ${ep.episode_number}: ${ep.name}` : `Episode ${ep.episode_number}`,
+                            overview: ep.overview || null,
+                            thumbnail: ep.still_path ? `https://image.tmdb.org/t/p/w500${ep.still_path}` : item.coverImage || null,
+                            airDate: ep.air_date || null,
+                            rating: ep.vote_average || null,
+                        }));
+                        totalEpisodes = episodes.length;
+                    }
+                }
+            } catch (err) {
+                console.warn(`[Episodes] TMDB episode fetch error for #${id}:`, err.message);
+            }
+        }
+
+        // 3. Fallback: generate default episodes if none found but totalEpisodes exists
+        if (episodes.length === 0 && totalEpisodes && totalEpisodes > 0) {
+            for (let i = 1; i <= totalEpisodes; i++) {
+                episodes.push({
+                    episodeNumber: i,
+                    title: `Episode ${i}`,
+                    thumbnail: item.coverImage || null,
+                });
+            }
+        } else if (episodes.length === 0) {
+            // Default 12 episodes if unknown
+            for (let i = 1; i <= 12; i++) {
+                episodes.push({
+                    episodeNumber: i,
+                    title: `Episode ${i}`,
+                    thumbnail: item.coverImage || null,
+                });
+            }
+        }
+
+        return res.json({
+            ok: true,
+            totalEpisodes: totalEpisodes || episodes.length,
+            type: "episode",
+            episodes,
+        });
+    } catch (err) {
+        console.error("getContentEpisodes error:", err);
         return res.status(500).json({ ok: false, message: "internal server error" });
     }
 });

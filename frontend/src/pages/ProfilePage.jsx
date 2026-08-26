@@ -111,6 +111,11 @@ function GridCard({ entry, onNavigate, onRemove }) {
   const sc = STATUS_CFG[entry.status] || STATUS_CFG.COMPLETED;
   const StatusIcon = sc.icon;
 
+  const isManga = item?.category === 'Manga';
+  const total = item?.totalEpisodes || (isManga ? item?.totalChapters : null) || 0;
+  const progress = entry.progress || 0;
+  const percent = total > 0 ? Math.min(100, Math.round((progress / total) * 100)) : 0;
+
   return (
     <div
       style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.25s, box-shadow 0.25s', transform: hovered ? 'translateY(-4px)' : 'none', boxShadow: hovered ? `0 16px 40px rgba(0,0,0,0.5), 0 0 0 1px ${cfg.color}30` : '0 4px 16px rgba(0,0,0,0.3)' }}
@@ -125,10 +130,15 @@ function GridCard({ entry, onNavigate, onRemove }) {
         }
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)' }} />
 
-        <div style={{ position: 'absolute', top: 8, left: 8 }}>
+        <div style={{ position: 'absolute', top: 8, left: 8, display: 'flex', gap: 4 }}>
           <span style={{ padding: '2px 7px', borderRadius: 6, background: cfg.dim, border: `1px solid ${cfg.color}40`, fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: cfg.color, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
             {item?.category}
           </span>
+          {(progress > 0 || total > 0) && (
+            <span style={{ padding: '2px 6px', borderRadius: 6, background: 'rgba(0,0,0,0.75)', border: '1px solid rgba(255,255,255,0.15)', fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#fff', fontWeight: 700 }}>
+              {isManga ? 'Ch' : 'Ep'} {progress}{total > 0 ? `/${total}` : ''}
+            </span>
+          )}
         </div>
 
         {item?.rating && (
@@ -138,7 +148,7 @@ function GridCard({ entry, onNavigate, onRemove }) {
           </div>
         )}
 
-        <div style={{ position: 'absolute', bottom: 8, right: 8 }}>
+        <div style={{ position: 'absolute', bottom: 12, right: 8 }}>
           <div style={{ width: 24, height: 24, borderRadius: '50%', background: sc.accent, border: `1px solid ${sc.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <StatusIcon size={12} color={sc.color} />
           </div>
@@ -149,6 +159,13 @@ function GridCard({ entry, onNavigate, onRemove }) {
             {item?.title}
           </p>
         </div>
+
+        {/* Progress bar line on card bottom */}
+        {total > 0 && (
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, background: 'rgba(255,255,255,0.1)' }}>
+            <div style={{ height: '100%', width: `${percent}%`, background: cfg.color }} />
+          </div>
+        )}
 
         {hovered && (
           <button
@@ -169,6 +186,10 @@ function ListRow({ entry, index, onNavigate, onRemove }) {
   const [hovered, setHovered] = useState(false);
   const cfg = CAT[item?.category] || { color: '#7C3AED', dim: 'rgba(124,58,237,0.12)' };
 
+  const isManga = item?.category === 'Manga';
+  const total = item?.totalEpisodes || (isManga ? item?.totalChapters : null) || 0;
+  const progress = entry.progress || 0;
+
   return (
     <div
       onClick={() => onNavigate(`content/${item.id}`)}
@@ -176,7 +197,7 @@ function ListRow({ entry, index, onNavigate, onRemove }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         display: 'grid',
-        gridTemplateColumns: '24px 52px 1fr auto auto',
+        gridTemplateColumns: '24px 52px 1fr auto auto auto',
         alignItems: 'center',
         gap: 14,
         padding: '10px 16px',
@@ -211,6 +232,11 @@ function ListRow({ entry, index, onNavigate, onRemove }) {
             </span>
           )}
         </div>
+      </div>
+
+      {/* Progress Badge */}
+      <div style={{ padding: '3px 8px', borderRadius: 6, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#d1d5db', whiteSpace: 'nowrap' }}>
+        {isManga ? 'Ch' : 'Ep'} {progress}{total > 0 ? ` / ${total}` : ''}
       </div>
 
       {entry.rating ? (

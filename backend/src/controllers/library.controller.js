@@ -27,18 +27,40 @@ async function getMyLibrary(req, res) {
 async function updateLibrary(req, res) {
     try {
         const userId = req.user.id;
-        const { contentId, status, rating } = req.body;
+        const { contentId, status, rating, progress } = req.body;
 
         if (!contentId || !status) {
             return res.status(400).json({ ok: false, message: "contentId and status required" });
         }
 
+        const cid = parseInt(contentId, 10);
+        let parsedProgress = progress !== undefined && progress !== null ? parseInt(progress, 10) : undefined;
+        if (parsedProgress !== undefined && (isNaN(parsedProgress) || parsedProgress < 0)) {
+            parsedProgress = 0;
+        }
+
+        const updateData = {
+            status,
+            rating: rating !== undefined && rating !== null ? parseInt(rating, 10) : null
+        };
+        if (parsedProgress !== undefined) {
+            updateData.progress = parsedProgress;
+        }
+
+        const createData = {
+            userId,
+            contentId: cid,
+            status,
+            rating: rating !== undefined && rating !== null ? parseInt(rating, 10) : null,
+            progress: parsedProgress !== undefined ? parsedProgress : 0
+        };
+
         const libraryEntry = await prisma.userLibrary.upsert({
             where: {
-                userId_contentId: { userId, contentId }
+                userId_contentId: { userId, contentId: cid }
             },
-            update: { status, rating: rating ? parseInt(rating) : null },
-            create: { userId, contentId, status, rating: rating ? parseInt(rating) : null },
+            update: updateData,
+            create: createData,
             include: { content: true }
         });
 

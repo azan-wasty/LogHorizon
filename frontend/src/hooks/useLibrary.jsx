@@ -45,10 +45,14 @@ export function LibraryProvider({ children }) {
 
   // 6. COMPLEX STATE UPDATE ACTION (updateItem):
   // Updates or appends a library item.
-  const updateItem = async (contentId, status, rating = null) => {
+  const updateItem = async (contentId, status, rating = null, progress = undefined) => {
     try {
       // Send changes to backend
-      const res = await libraryApi.update({ contentId, status, rating });
+      const payload = { contentId, status };
+      if (rating !== null && rating !== undefined) payload.rating = rating;
+      if (progress !== undefined && progress !== null) payload.progress = progress;
+
+      const res = await libraryApi.update(payload);
       
       // FUNCTIONAL STATE UPDATE:
       // Passing a callback `prev => ...` ensures we are modifying the most recent state snapshot
@@ -75,7 +79,7 @@ export function LibraryProvider({ children }) {
           toast(`Achievement Unlocked: ${ach.title}`, 'success');
         });
       }
-      return { ok: true };
+      return { ok: true, entry: res.entry };
     } catch (err) {
       toast(err.message || 'Transmission failed', 'error');
       return { ok: false };

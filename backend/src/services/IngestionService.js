@@ -1,7 +1,8 @@
 const prisma = require("../prismaClient");
+const { AniListService, mapAniListTags, mapAniListStatus, cleanHtml } = require("./AniListService");
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TAG NORMALISATION MAPS
+// TAG NORMALISATION MAPS (LEGACY JIKAN + TMDB)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const JIKAN_GENRE_MAP = {
@@ -78,7 +79,6 @@ const TMDB_GENRE_MAP = {
     10768: { type: "Genre", name: "Action" },
 };
 
-
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
@@ -136,68 +136,103 @@ function mapTmdbTags(genreIds = []) {
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-
 // ─────────────────────────────────────────────────────────────────────────────
 // INGESTION METHODS
 // ─────────────────────────────────────────────────────────────────────────────
 
 class IngestionService {
 
-    // ── Anime / Manga via Jikan ──
+    // ── Anime / Manga via AniList Wrapper (with fallback & legacy support) ──
     async ingestAnime(title, category = "Anime") {
         try {
-            // FIX: Prevent TMDB categories from being sent to Jikan API[cite: 1]
             if (category !== "Anime" && category !== "Manga") {
-                return { ok: false, message: `Jikan ingestion does not support category: ${category}` };
+                return { ok: false, message: `Anime/Manga ingestion does not support category: ${category}` };
             }
 
-            const type = category.toLowerCase(); // "manga" or "anime"
-            const resp = await fetch(
-                `https://api.jikan.moe/v4/${type}?q=${encodeURIComponent(title)}&limit=1`
-            );
-
-            if (!resp.ok) {
-                return { ok: false, message: `Jikan API error (${resp.status}). They might be rate-limiting requests.` };
+            const data = await AniListService.searchMedia(title, category);
+            if (!data) {
+                return { ok: false, message: `No ${category.toLowerCase()} found matching: "${title}"` };
             }
 
-            const json = await resp.json().catch(() => null);
-            if (!json || !json.data || !json.data[0]) {
-                return { ok: false, message: `No ${type} found matching: "${title}"` };
-            }
-            const data = json.data[0];
+            return await this.ingestAniListDirect(data, category);
+        } catch (err) {
+            console.error("ingestAnime (AniList) error:", err);
+            return { ok: false, message: err.message };
+        }
+    }
 
+    async ingestAniListDirect(data, category = "Anime") {
+        try {
+            const externalId = String(data.id);
+            const malId = data.idMal ? String(data.idMal) : null;
+
+            // Check if already in database (either as AniList or legacy Jikan/MAL)
             const existing = await prisma.content.findFirst({
-                where: { externalId: String(data.mal_id), source: "Jikan" },
+                where: {
+                    OR: [
+                        { externalId, source: "AniList" },
+                        ...(malId ? [
+                            { externalId: malId, source: "Jikan" },
+                            { externalId: malId, source: "MAL" },
+                        ] : []),
+                        { title: data.title?.english || data.title?.romaji || data.title?.native, category }
+                    ]
+                },
             });
-            if (existing) return { ok: true, content: existing, skipped: true };
 
-            const rawTags = mapJikanTags(data.genres || [], data.themes || []);
+            if (existing) {
+                // Enrich existing item if missing totalEpisodes or bannerImage
+                const needsUpdate = (!existing.totalEpisodes && data.episodes) ||
+                                    (!existing.totalChapters && data.chapters) ||
+                                    (!existing.bannerImage && data.bannerImage);
+                if (needsUpdate) {
+                    await prisma.content.update({
+                        where: { id: existing.id },
+                        data: {
+                            totalEpisodes: existing.totalEpisodes || data.episodes || null,
+                            totalChapters: existing.totalChapters || data.chapters || null,
+                            bannerImage: existing.bannerImage || data.bannerImage || null,
+                        }
+                    });
+                }
+                return { ok: true, content: existing, skipped: true };
+            }
+
+            const rawTags = mapAniListTags(data.genres || [], data.tags || []);
+            const cleanDesc = cleanHtml(data.description || "No description available.");
+            const titleDisplay = data.title?.english || data.title?.romaji || data.title?.native || "Untitled";
 
             const content = await prisma.$transaction(async (tx) => {
                 const tagIds = await upsertTags(tx, rawTags);
                 await syncTagsToPreferenceOptions(tx, rawTags);
                 return tx.content.create({
                     data: {
-                        title: data.title_english || data.title,
+                        title: titleDisplay,
                         category,
-                        description: (data.synopsis || "No description available.").substring(0, 1000),
-                        coverImage: data.images?.jpg?.large_image_url?.substring(0, 1000) || data.images?.webp?.large_image_url?.substring(0, 1000) || null,
-                        externalId: String(data.mal_id),
-                        source: "Jikan",
-                        rating: data.score || null,
-                        status: data.status || null,
+                        description: cleanDesc.substring(0, 1000),
+                        coverImage: (data.coverImage?.extraLarge || data.coverImage?.large || "").substring(0, 1000) || null,
+                        bannerImage: (data.bannerImage || "").substring(0, 1000) || null,
+                        externalId,
+                        externalUrl: data.siteUrl || null,
+                        source: "AniList",
+                        rating: data.averageScore ? Math.round(data.averageScore / 10 * 10) / 10 : null,
+                        status: mapAniListStatus(data.status),
+                        totalEpisodes: data.episodes || null,
+                        totalChapters: data.chapters || null,
                         tags: { create: tagIds.map(tid => ({ tagId: tid })) },
                     },
                     include: { tags: { include: { tag: true } } },
                 });
             }, { timeout: 30000 });
+
             return { ok: true, content };
         } catch (err) {
-            console.error("ingestAnime error:", err);
+            console.error("ingestAniListDirect error:", err);
             return { ok: false, message: err.message };
         }
     }
 
+    // Legacy Jikan ingestion helper (for backward compatibility)
     async ingestJikanDirect(data, category = "Anime") {
         try {
             const existing = await prisma.content.findFirst({
@@ -220,6 +255,8 @@ class IngestionService {
                         source: "Jikan",
                         rating: data.score || null,
                         status: data.status || null,
+                        totalEpisodes: data.episodes || null,
+                        totalChapters: data.chapters || null,
                         tags: { create: tagIds.map(tid => ({ tagId: tid })) },
                     },
                     include: { tags: { include: { tag: true } } },
@@ -253,31 +290,7 @@ class IngestionService {
             }
             const data = json.results[0];
 
-            const externalId = String(data.id);
-            const source = "TMDB";
-
-            const existing = await prisma.content.findFirst({ where: { externalId, source } });
-            if (existing) return { ok: true, content: existing, skipped: true };
-
-            const rawTags = mapTmdbTags(data.genre_ids || []);
-
-            const content = await prisma.$transaction(async (tx) => {
-                const tagIds = await upsertTags(tx, rawTags);
-                await syncTagsToPreferenceOptions(tx, rawTags);
-                return tx.content.create({
-                    data: {
-                        title: data.title || data.name,
-                        category: isTV ? "TV" : "Movie",
-                        description: (data.overview || "No description available.").substring(0, 1000),
-                        coverImage: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}`.substring(0, 1000) : null,
-                        externalId, source,
-                        rating: data.vote_average ? Math.round(data.vote_average * 10) / 10 : null,
-                        tags: { create: tagIds.map(tid => ({ tagId: tid })) },
-                    },
-                    include: { tags: { include: { tag: true } } },
-                });
-            }, { timeout: 30000 });
-            return { ok: true, content };
+            return await this.ingestTmdbDirect(data, isTV);
         } catch (err) {
             console.error("ingestMovie error:", err);
             return { ok: false, message: err.message };
@@ -291,6 +304,19 @@ class IngestionService {
             const existing = await prisma.content.findFirst({ where: { externalId, source } });
             if (existing) return { ok: true, content: existing, skipped: true };
 
+            let totalEpisodes = null;
+            if (isTV && process.env.TMDB_API_KEY) {
+                try {
+                    const tvResp = await fetch(`https://api.themoviedb.org/3/tv/${externalId}?api_key=${process.env.TMDB_API_KEY}`);
+                    if (tvResp.ok) {
+                        const tvData = await tvResp.json();
+                        totalEpisodes = tvData.number_of_episodes || null;
+                    }
+                } catch {
+                    // non-fatal
+                }
+            }
+
             const rawTags = mapTmdbTags(data.genre_ids || []);
 
             const content = await prisma.$transaction(async (tx) => {
@@ -302,13 +328,15 @@ class IngestionService {
                         category: isTV ? "TV" : "Movie",
                         description: (data.overview || "No description available.").substring(0, 1000),
                         coverImage: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}`.substring(0, 1000) : null,
+                        bannerImage: data.backdrop_path ? `https://image.tmdb.org/t/p/w1280${data.backdrop_path}`.substring(0, 1000) : null,
                         externalId, source,
                         rating: data.vote_average ? Math.round(data.vote_average * 10) / 10 : null,
+                        totalEpisodes,
                         tags: { create: tagIds.map(tid => ({ tagId: tid })) },
                     },
                     include: { tags: { include: { tag: true } } },
                 });
-            });
+            }, { timeout: 30000 });
             return { ok: true, content };
         } catch (err) {
             console.error("ingestTmdbDirect error:", err);
@@ -340,9 +368,8 @@ class IngestionService {
         };
 
         try {
-            // FIX: Added strict routing validation[cite: 1]
             if (category === "Anime" || category === "Manga") {
-                await this._discoverJikan(category, mode, pages, startPage, maxPages, query, stats);
+                await this._discoverAniList(category, mode, pages, startPage, maxPages, query, stats);
             } else if (category === "Movie" || category === "TV") {
                 await this._discoverTmdb(category, mode, pages, startPage, maxPages, query, stats);
             } else {
@@ -355,49 +382,24 @@ class IngestionService {
         }
     }
 
-    async _discoverJikan(category, mode, targetNewPages, startPage, maxPages, query, stats) {
-        // FIX: Enforce correct Jikan type based on verified category[cite: 1]
-        const type = category === "Manga" ? "manga" : "anime";
-
-        let baseUrl;
-        if (mode === "search" && query) {
-            baseUrl = `https://api.jikan.moe/v4/${type}?q=${encodeURIComponent(query)}&order_by=members&sort=desc`;
-        } else if (mode === "top_rated") {
-            baseUrl = `https://api.jikan.moe/v4/top/${type}?filter=score`;
-        } else if (mode === "upcoming") {
-            baseUrl = `https://api.jikan.moe/v4/top/${type}?filter=upcoming`;
-        } else if (mode === "trending" && type === "anime") {
-            baseUrl = `https://api.jikan.moe/v4/seasons/now`;
-        } else {
-            baseUrl = `https://api.jikan.moe/v4/top/${type}?filter=bypopularity`;
-        }
-
+    async _discoverAniList(category, mode, targetNewPages, startPage, maxPages, query, stats) {
         let newPagesIngested = 0;
         let page = startPage;
         const absoluteMax = startPage + maxPages - 1;
 
         while (newPagesIngested < targetNewPages && page <= absoluteMax) {
             try {
-                const url = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}page=${page}&limit=25`;
-                console.log(`[Jikan] Fetching ${category} ${mode} page ${page}: ${url}`);
-                const resp = await fetch(url, {
-                    headers: { 'User-Agent': 'LogHorizon/1.0.0 (Research Project)' }
+                console.log(`[AniList] Fetching ${category} ${mode} page ${page}`);
+                const { items, pageInfo } = await AniListService.discoverMedia({
+                    category,
+                    mode,
+                    page,
+                    perPage: 25,
+                    query,
                 });
 
-                if (!resp.ok) {
-                    console.log(`[Jikan] Non-OK status ${resp.status} on page ${page} – stopping.`);
-                    break;
-                }
-
-                const json = await resp.json().catch(() => null);
-                if (!json) {
-                    console.log(`[Jikan] Invalid JSON on page ${page} – stopping.`);
-                    break;
-                }
-                const items = json.data || [];
-
-                if (items.length === 0) {
-                    console.log(`[Jikan] No items on page ${page} – end of results.`);
+                if (!items || items.length === 0) {
+                    console.log(`[AniList] No items on page ${page} – end of results.`);
                     break;
                 }
 
@@ -407,33 +409,36 @@ class IngestionService {
                 for (const item of items) {
                     stats.total++;
                     try {
-                        const res = await this.ingestJikanDirect(item, category);
+                        const res = await this.ingestAniListDirect(item, category);
                         if (res?.ok) {
                             if (res.skipped) stats.skipped++;
                             else stats.ingested++;
                         } else {
                             stats.failed++;
                         }
-                    } catch { stats.failed++; }
-                    await sleep(400);
+                    } catch {
+                        stats.failed++;
+                    }
+                    await sleep(50);
                 }
 
                 if (stats.ingested > pageIngestedBefore) {
                     newPagesIngested++;
                 } else {
-                    console.log(`[Jikan] Page ${page} was all duplicates – advancing without counting toward target.`);
+                    console.log(`[AniList] Page ${page} was mostly duplicates – advancing.`);
                 }
 
                 page++;
                 stats.nextPage = page;
 
+                if (!pageInfo.hasNextPage) break;
             } catch (err) {
-                console.error(`[Jikan] Page ${page} error:`, err.message);
+                console.error(`[AniList] Page ${page} error:`, err.message);
                 page++;
                 stats.nextPage = page;
             }
 
-            await sleep(1500);
+            await sleep(200);
         }
     }
 
@@ -467,12 +472,14 @@ class IngestionService {
 
                 if (!resp.ok) {
                     console.log(`[TMDB] Non-OK status ${resp.status} on page ${page} – stopping.`);
+                    if (stats.total === 0) throw new Error(`TMDB API error ${resp.status}.`);
                     break;
                 }
 
                 const json = await resp.json().catch(() => null);
                 if (!json) {
                     console.log(`[TMDB] Invalid JSON on page ${page} – stopping.`);
+                    if (stats.total === 0) throw new Error(`TMDB API returned invalid JSON.`);
                     break;
                 }
                 const items = json.results || [];

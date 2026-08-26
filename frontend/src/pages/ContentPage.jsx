@@ -7,7 +7,8 @@ import {
   Star, Database, ExternalLink, Loader2, Bookmark,
   Check, Play, ArrowLeft, Layers, Activity, X,
   MessageCircle, Zap, Hash, Clock, Eye, Heart, Search,
-  BookOpen, Tv, Film, Plus
+  BookOpen, Tv, Film, Plus, Minus, CheckCircle2, ListFilter,
+  Sparkles, CheckCheck
 } from 'lucide-react';
 
 const CAT_PALETTES = {
@@ -169,6 +170,322 @@ function TagPill({ tag, palette }) {
   );
 }
 
+function EpisodeTracker({ item, entry, palette, onUpdateProgress }) {
+  const [episodesData, setEpisodesData] = useState(null);
+  const [loadingEps, setLoadingEps] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+  const [hoveredEp, setHoveredEp] = useState(null);
+
+  const isManga = item.category === 'Manga';
+  const isMovie = item.category === 'Movie';
+  const unitName = isManga ? 'Chapter' : 'Episode';
+  const unitPlural = isManga ? 'Chapters' : 'Episodes';
+
+  useEffect(() => {
+    if (isMovie) return;
+    setLoadingEps(true);
+    contentApi.getEpisodes(item.id)
+      .then(res => {
+        if (res.ok) setEpisodesData(res);
+      })
+      .catch(console.error)
+      .finally(() => setLoadingEps(false));
+  }, [item.id, isMovie]);
+
+  if (isMovie) return null;
+
+  const total = episodesData?.totalEpisodes || item.totalEpisodes || (isManga ? item.totalChapters : null) || (episodesData?.episodes?.length) || 0;
+  const currentProgress = entry?.progress || 0;
+  const percent = total > 0 ? Math.min(100, Math.round((currentProgress / total) * 100)) : 0;
+  const episodesList = episodesData?.episodes || [];
+
+  const chunkSize = 50;
+  const totalItems = Math.max(total, episodesList.length, 1);
+  const totalChunks = Math.ceil(totalItems / chunkSize);
+  const startIdx = activeTab * chunkSize;
+  const endIdx = Math.min(totalItems, (activeTab + 1) * chunkSize);
+
+  // Generate slice of episodes for active chunk
+  const displayEpisodes = [];
+  for (let i = startIdx + 1; i <= endIdx; i++) {
+    const existingMeta = episodesList[i - 1];
+    displayEpisodes.push(existingMeta || {
+      episodeNumber: i,
+      title: `${unitName} ${i}`,
+      thumbnail: null,
+    });
+  }
+
+  return (
+    <div style={{
+      padding: '28px 32px',
+      background: 'rgba(255,255,255,0.02)',
+      border: '1px solid rgba(255,255,255,0.06)',
+      borderRadius: 20,
+      position: 'relative', overflow: 'hidden',
+      marginBottom: 32,
+      animation: 'fadeUp 0.5s 0.38s ease both',
+    }}>
+      {/* Background glow */}
+      <div style={{
+        position: 'absolute', top: -30, left: -30, width: 220, height: 220,
+        background: `radial-gradient(circle, ${palette.glow} 0%, transparent 70%)`,
+        opacity: 0.25, pointerEvents: 'none',
+      }} />
+
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        {/* Header with Title & Stats */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Tv size={16} color={palette.primary} />
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1rem', color: '#fff', letterSpacing: '-0.01em' }}>
+              {isManga ? 'Chapter Tracker' : 'Episode Tracker'}
+            </span>
+            {total > 0 && (
+              <span style={{
+                padding: '3px 10px', borderRadius: 99,
+                background: palette.dim, border: `1px solid ${palette.border}`,
+                fontFamily: 'var(--font-mono)', fontSize: '0.62rem', fontWeight: 700,
+                color: palette.primary, textTransform: 'uppercase', letterSpacing: '0.08em',
+              }}>
+                {total} {total === 1 ? unitName : unitPlural}
+              </span>
+            )}
+          </div>
+
+          {/* Quick Step Buttons */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              onClick={() => onUpdateProgress(Math.max(0, currentProgress - 1))}
+              disabled={currentProgress <= 0}
+              title="Decrease 1"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+                padding: '8px 14px', borderRadius: 10,
+                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                color: currentProgress <= 0 ? '#374151' : '#d1d5db',
+                cursor: currentProgress <= 0 ? 'default' : 'pointer',
+                fontFamily: 'var(--font-mono)', fontSize: '0.72rem', fontWeight: 700,
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={e => { if (currentProgress > 0) e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+            >
+              <Minus size={13} /> 1
+            </button>
+
+            <button
+              onClick={() => onUpdateProgress(total > 0 ? Math.min(total, currentProgress + 1) : currentProgress + 1)}
+              title="Increase 1"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                padding: '8px 16px', borderRadius: 10,
+                background: palette.primary, border: 'none',
+                color: '#000', cursor: 'pointer',
+                fontFamily: 'var(--font-display)', fontSize: '0.75rem', fontWeight: 900,
+                textTransform: 'uppercase', letterSpacing: '0.04em',
+                boxShadow: `0 4px 16px ${palette.glow}`,
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+            >
+              <Plus size={14} /> +1 {unitName}
+            </button>
+
+            {total > 0 && currentProgress < total && (
+              <button
+                onClick={() => onUpdateProgress(total, 'COMPLETED')}
+                title="Mark All Completed"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                  padding: '8px 14px', borderRadius: 10,
+                  background: 'rgba(52, 211, 153, 0.1)', border: '1px solid rgba(52, 211, 153, 0.25)',
+                  color: '#34d399', cursor: 'pointer',
+                  fontFamily: 'var(--font-display)', fontSize: '0.72rem', fontWeight: 700,
+                  transition: 'all 0.15s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(52, 211, 153, 0.2)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(52, 211, 153, 0.1)'; }}
+              >
+                <CheckCheck size={14} /> All
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Progress Bar & Status Text */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: '#9ca3af' }}>
+              Progress: <strong style={{ color: '#fff', fontWeight: 800 }}>{currentProgress}</strong> {total > 0 ? `/ ${total} ${unitPlural.toLowerCase()}` : `${unitPlural.toLowerCase()}`}
+            </span>
+            {total > 0 && (
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 900, color: palette.primary }}>
+                {percent}%
+              </span>
+            )}
+          </div>
+
+          <div style={{
+            width: '100%', height: 8, borderRadius: 99,
+            background: 'rgba(255,255,255,0.06)',
+            overflow: 'hidden', position: 'relative',
+          }}>
+            <div style={{
+              height: '100%', width: `${percent}%`,
+              background: `linear-gradient(90deg, ${palette.secondary}, ${palette.primary})`,
+              borderRadius: 99,
+              boxShadow: `0 0 12px ${palette.glow}`,
+              transition: 'width 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+            }} />
+          </div>
+        </div>
+
+        {/* Tab pagination if > 50 episodes */}
+        {totalChunks > 1 && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
+            {Array.from({ length: totalChunks }).map((_, idx) => {
+              const start = idx * chunkSize + 1;
+              const end = Math.min(totalItems, (idx + 1) * chunkSize);
+              const isTabActive = activeTab === idx;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => setActiveTab(idx)}
+                  style={{
+                    padding: '5px 12px', borderRadius: 8,
+                    background: isTabActive ? palette.primary : 'rgba(255,255,255,0.04)',
+                    color: isTabActive ? '#000' : '#9ca3af',
+                    border: isTabActive ? 'none' : '1px solid rgba(255,255,255,0.08)',
+                    fontFamily: 'var(--font-mono)', fontSize: '0.62rem', fontWeight: 700,
+                    cursor: 'pointer', transition: 'all 0.15s',
+                  }}
+                >
+                  {start} - {end}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Interactive Episode Grid */}
+        {loadingEps ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '24px 0', justifyContent: 'center' }}>
+            <Loader2 size={18} color={palette.primary} className="animate-spin" />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: '#6b7280' }}>Loading episode details...</span>
+          </div>
+        ) : (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(68px, 1fr))',
+            gap: 8,
+            maxHeight: 320,
+            overflowY: 'auto',
+            paddingRight: 4,
+          }}>
+            {displayEpisodes.map((ep) => {
+              const epNum = ep.episodeNumber;
+              const isWatched = currentProgress >= epNum;
+              const isNext = currentProgress + 1 === epNum;
+
+              return (
+                <button
+                  key={epNum}
+                  onClick={() => onUpdateProgress(epNum)}
+                  onMouseEnter={() => setHoveredEp(ep)}
+                  onMouseLeave={() => setHoveredEp(null)}
+                  title={ep.title || `${unitName} ${epNum}`}
+                  style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    padding: '10px 4px', borderRadius: 10,
+                    cursor: 'pointer', transition: 'all 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
+                    background: isWatched
+                      ? `${palette.primary}25`
+                      : isNext
+                      ? 'rgba(255,255,255,0.08)'
+                      : 'rgba(255,255,255,0.02)',
+                    border: isWatched
+                      ? `1px solid ${palette.primary}60`
+                      : isNext
+                      ? `1px solid ${palette.primary}`
+                      : '1px solid rgba(255,255,255,0.06)',
+                    boxShadow: isNext ? `0 0 14px ${palette.glow}` : isWatched ? `0 2px 8px ${palette.glow}` : 'none',
+                    transform: isNext ? 'scale(1.04)' : 'scale(1)',
+                    position: 'relative',
+                  }}
+                >
+                  <span style={{
+                    fontFamily: 'var(--font-mono)', fontSize: '0.55rem',
+                    color: isWatched ? palette.primary : '#6b7280',
+                    textTransform: 'uppercase', letterSpacing: '0.05em',
+                  }}>
+                    {isManga ? 'CH' : 'EP'}
+                  </span>
+                  <span style={{
+                    fontFamily: 'var(--font-display)', fontWeight: 900,
+                    fontSize: '1rem',
+                    color: isWatched ? '#fff' : isNext ? palette.primary : '#9ca3af',
+                    lineHeight: 1.1,
+                  }}>
+                    {epNum}
+                  </span>
+
+                  {isWatched && (
+                    <div style={{ marginTop: 2 }}>
+                      <CheckCircle2 size={10} color={palette.primary} />
+                    </div>
+                  )}
+                  {isNext && (
+                    <div style={{
+                      position: 'absolute', top: -3, right: -3,
+                      width: 7, height: 7, borderRadius: '50%',
+                      background: palette.primary, boxShadow: `0 0 8px ${palette.primary}`,
+                      animation: 'pulse 1.5s infinite',
+                    }} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Selected / Hovered Episode Preview Bar */}
+        {hoveredEp && (hoveredEp.title || hoveredEp.thumbnail) && (
+          <div style={{
+            marginTop: 16, padding: '10px 14px', borderRadius: 10,
+            background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.08)',
+            display: 'flex', alignItems: 'center', gap: 12,
+            animation: 'fadeIn 0.2s ease',
+          }}>
+            {hoveredEp.thumbnail && (
+              <img src={hoveredEp.thumbnail} alt="" style={{ width: 48, height: 32, borderRadius: 6, objectFit: 'cover' }} />
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: palette.primary, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                {unitName} {hoveredEp.episodeNumber}
+              </span>
+              <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.82rem', fontWeight: 700, color: '#fff' }}>
+                {hoveredEp.title || `${unitName} ${hoveredEp.episodeNumber}`}
+              </span>
+            </div>
+            {hoveredEp.url && (
+              <a
+                href={hoveredEp.url}
+                target="_blank"
+                rel="noreferrer"
+                style={{ marginLeft: 'auto', color: palette.primary, display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none', fontSize: '0.75rem', fontFamily: 'var(--font-mono)' }}
+              >
+                Watch <ExternalLink size={12} />
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function LibraryButton({ status, label, icon: Icon, activeColor, currentStatus, onClick }) {
   const isActive = currentStatus === status;
   const [hovered, setHovered] = useState(false);
@@ -292,7 +609,21 @@ export default function ContentPage({ id, goBack }) {
 
   const handleAction = async (status) => {
     if (entry?.status === status) await removeItem(item.id);
-    else await updateItem(item.id, status, entry?.rating || null);
+    else await updateItem(item.id, status, entry?.rating || null, entry?.progress || 0);
+  };
+
+  const handleProgressUpdate = async (newProgress, forcedStatus = null) => {
+    if (!user) return toast('Please sign in to track progress.', 'info');
+    const total = item.totalEpisodes || (item.category === 'Manga' ? item.totalChapters : null);
+    let status = entry?.status || 'CURRENT';
+    if (forcedStatus) {
+      status = forcedStatus;
+    } else if (total && newProgress >= total && total > 0) {
+      status = 'COMPLETED';
+    } else if (!entry || status === 'PLANNING') {
+      status = 'CURRENT';
+    }
+    await updateItem(item.id, status, entry?.rating || null, newProgress);
   };
 
   const handleToggleFavourite = async () => {
@@ -956,6 +1287,14 @@ export default function ContentPage({ id, goBack }) {
             </div>
 
             <div className="section-divider" />
+
+            {/* ── EPISODE & PROGRESS TRACKER ── */}
+            <EpisodeTracker
+              item={item}
+              entry={entry}
+              palette={palette}
+              onUpdateProgress={handleProgressUpdate}
+            />
 
             {/* ── LIBRARY CONTROLS ── */}
             <div style={{

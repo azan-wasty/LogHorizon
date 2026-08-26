@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Hyperspeed from '../components/Hyperspeed';
 import { recommendations as recsApi, preferences as prefApi, content as contentApi } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
+import { useLibrary } from '../hooks/useLibrary';
 import { useToast } from '../hooks/useToast';
 import {
     Sparkles, Star, ExternalLink, Zap, Compass,
@@ -307,6 +308,7 @@ function StatCard({ label, value, sub, icon: Icon, color, dim }) {
 // ── Main Dashboard ─────────────────────────────────
 export default function DashboardPage({ onNavigate }) {
     const { user, achievements } = useAuth();
+    const { library, updateItem } = useLibrary();
     const toast = useToast();
     const queryClient = useQueryClient();
 
@@ -488,6 +490,99 @@ export default function DashboardPage({ onNavigate }) {
                     <StatCard label="Active Watch" value={<AnimNum target={stats.libraryStats.current} />} icon={Play} color="#22d3ee" dim="rgba(34,211,238,0.12)" />
                     <StatCard label="Watchlist" value={<AnimNum target={stats.libraryStats.planning || 0} />} icon={Bookmark} color="#f472b6" dim="rgba(244,114,182,0.12)" />
                 </div>
+            )}
+
+            {/* ── Continue Watching & Reading ──────────────── */}
+            {library.filter(i => i.status === 'CURRENT' && i.content).length > 0 && (
+                <section style={{ animation: 'fadeUp 0.4s 0.08s ease both' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <div style={{ padding: '6px 8px', borderRadius: 10, background: 'rgba(34,211,238,0.12)', border: '1px solid rgba(34,211,238,0.2)' }}>
+                                <Play size={15} color="#22d3ee" fill="#22d3ee" />
+                            </div>
+                            <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem', color: '#fff', letterSpacing: '-0.02em' }}>
+                                Continue Watching & Reading
+                            </h2>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#22d3ee', background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.2)', padding: '2px 8px', borderRadius: 20 }}>
+                                {library.filter(i => i.status === 'CURRENT' && i.content).length} active
+                            </span>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
+                        {library.filter(i => i.status === 'CURRENT' && i.content).map(entry => {
+                            const it = entry.content;
+                            const cat = CAT[it?.category] || fallbackCat;
+                            const isManga = it?.category === 'Manga';
+                            const total = it?.totalEpisodes || (isManga ? it?.totalChapters : null) || 0;
+                            const progress = entry.progress || 0;
+                            const percent = total > 0 ? Math.min(100, Math.round((progress / total) * 100)) : 0;
+
+                            return (
+                                <div
+                                    key={entry.id}
+                                    onClick={() => onNavigate(`content/${it.id}`)}
+                                    style={{
+                                        display: 'flex', gap: 14, padding: 12, borderRadius: 16,
+                                        background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+                                        cursor: 'pointer', transition: 'all 0.2s', position: 'relative', overflow: 'hidden'
+                                    }}
+                                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}
+                                >
+                                    <div style={{ width: 64, height: 86, borderRadius: 10, overflow: 'hidden', flexShrink: 0, position: 'relative', background: '#1e1e1e' }}>
+                                        {it?.coverImage ? (
+                                            <img src={it.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        ) : (
+                                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Database size={18} color="#374151" /></div>
+                                        )}
+                                    </div>
+
+                                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0, flex: 1 }}>
+                                        <div>
+                                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: cat.color, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+                                                {it?.category}
+                                            </span>
+                                            <h4 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.85rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 2 }}>
+                                                {it?.title}
+                                            </h4>
+                                        </div>
+
+                                        <div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                                                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', color: '#9ca3af' }}>
+                                                    {isManga ? 'Ch' : 'Ep'} <strong style={{ color: '#fff' }}>{progress}</strong>{total > 0 ? ` / ${total}` : ''}
+                                                </span>
+
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const nextProg = total > 0 ? Math.min(total, progress + 1) : progress + 1;
+                                                        const nextStatus = total > 0 && nextProg >= total ? 'COMPLETED' : 'CURRENT';
+                                                        updateItem(it.id, nextStatus, entry.rating, nextProg);
+                                                    }}
+                                                    title={`Mark ${isManga ? 'Chapter' : 'Episode'} ${progress + 1}`}
+                                                    style={{
+                                                        padding: '3px 8px', borderRadius: 6,
+                                                        background: `${cat.color}20`, border: `1px solid ${cat.color}40`,
+                                                        color: cat.color, fontFamily: 'var(--font-mono)', fontSize: '0.6rem', fontWeight: 800,
+                                                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 2,
+                                                    }}
+                                                >
+                                                    +1
+                                                </button>
+                                            </div>
+
+                                            <div style={{ width: '100%', height: 4, borderRadius: 99, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+                                                <div style={{ height: '100%', width: `${percent}%`, background: cat.color, borderRadius: 99 }} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </section>
             )}
 
             {/* ── Achievements ────────────────────────────── */}

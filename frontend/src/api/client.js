@@ -78,6 +78,7 @@ export const content = {
     return request(`/content${qs ? `?${qs}` : ''}`);
   },
   get: (id) => request(`/content/${id}`),
+  getEpisodes: (id) => request(`/content/${id}/episodes`),
   getSources: (id) => request(`/content/${id}/sources`),
 };
 
