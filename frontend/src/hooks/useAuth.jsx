@@ -13,6 +13,8 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   // achievements: stores list of achievements unlocked by the user.
   const [achievements, setAchievements] = useState([]);
+  // pinnedAchievements: subset of achievements the user has pinned to their profile.
+  const [pinnedAchievements, setPinnedAchievements] = useState([]);
   // favourites: stores list of user's bookmarked or favorited contents.
   const [favourites, setFavourites] = useState([]);
   // loading: keeps track of whether the initial token verification is in progress.
@@ -24,20 +26,21 @@ export function AuthProvider({ children }) {
   const fetchMe = useCallback(async () => {
     // Check if the JWT token exists in the browser's localStorage
     const token = localStorage.getItem('lh_token');
-    
+
     // If no token exists, the user is not authenticated; set loading to false and stop.
-    if (!token) { 
-      setLoading(false); 
-      return; 
+    if (!token) {
+      setLoading(false);
+      return;
     }
-    
+
     try {
       // API CALL (async/await): Request user details from the backend "/api/me"
       const data = await meApi.get();
-      
+
       // Update state hooks with retrieved backend data
       setUser(data.user);
       setAchievements(data.achievements || []);
+      setPinnedAchievements(data.pinnedAchievements || []);
       setFavourites(data.favourites || []);
     } catch (err) {
       // ERROR HANDLING: If the API call fails (e.g. token expired/invalid),
@@ -53,8 +56,8 @@ export function AuthProvider({ children }) {
   // Runs side effects after components render.
   // Here, we run `fetchMe()` exactly once when the provider mounts,
   // because `fetchMe` is memoized by `useCallback` and won't change.
-  useEffect(() => { 
-    fetchMe(); 
+  useEffect(() => {
+    fetchMe();
   }, [fetchMe]);
 
   // 6. ASYNC ACTION: LOG IN
@@ -70,7 +73,7 @@ export function AuthProvider({ children }) {
   // Registers a new user, automatically calls login to retrieve token, and updates user state.
   const register = async (username, email, password) => {
     const data = await authApi.register({ username, email, password });
-    
+
     // Auto-login sequence:
     const loginData = await authApi.login({ email, password });
     localStorage.setItem('lh_token', loginData.token);
@@ -89,14 +92,14 @@ export function AuthProvider({ children }) {
   // Values calculated on the fly during render based on the current state.
   // Optional Chaining (?.) prevents errors if `user` is null/undefined.
   const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
-  
+
   // Double Negation (!!) converts the user object or null into a boolean (true/false).
   const isAuthenticated = !!user;
 
   // 10. CONTEXT PROVIDER VALUE:
   // Passes state variables and action functions down the tree so that children can use them.
   return (
-    <AuthContext.Provider value={{ user, achievements, favourites, loading, isAuthenticated, isAdmin, login, register, logout, refetch: fetchMe }}>
+    <AuthContext.Provider value={{ user, achievements, pinnedAchievements, favourites, loading, isAuthenticated, isAdmin, login, register, logout, refetch: fetchMe }}>
       {children}
     </AuthContext.Provider>
   );
@@ -108,4 +111,3 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
-

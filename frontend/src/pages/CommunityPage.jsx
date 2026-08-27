@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import Radar from '../components/Radar';
 import {
-   Calendar, Users, MessageSquare, Plus, RefreshCw,
-   Search, ExternalLink, X, ChevronRight, Loader2, Star,
-   Database, ShieldCheck, Clock, CheckCircle, Activity,
-   UserPlus, UserCheck,
- } from 'lucide-react';
+  Calendar, Users, MessageSquare, Plus, RefreshCw,
+  Search, ExternalLink, X, ChevronRight, Loader2, Star,
+  Database, ShieldCheck, Clock, CheckCircle, Activity,
+  UserPlus, UserCheck, Radio, Heart, Award,
+} from 'lucide-react';
 import { events as eventsApi, users as usersApi, content as contentApi, friends as friendsApi } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
@@ -15,15 +15,15 @@ const EVENT_TYPES = ['WATCH_PARTY', 'DISCUSSION', 'TOURNAMENT', 'COMMUNITY'];
 const EVENT_LABELS = { WATCH_PARTY: 'Watch Party', DISCUSSION: 'Discussion', TOURNAMENT: 'Tournament', COMMUNITY: 'Community' };
 const EVENT_CFG = {
   WATCH_PARTY: { color: '#22d3ee', dim: 'rgba(34,211,238,0.1)', border: 'rgba(34,211,238,0.2)' },
-  DISCUSSION:  { color: '#34d399', dim: 'rgba(52,211,153,0.1)', border: 'rgba(52,211,153,0.2)' },
-  TOURNAMENT:  { color: '#fbbf24', dim: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.2)' },
-  COMMUNITY:   { color: '#7C3AED', dim: 'rgba(124,58,237,0.1)', border: 'rgba(124,58,237,0.2)' },
+  DISCUSSION: { color: '#34d399', dim: 'rgba(52,211,153,0.1)', border: 'rgba(52,211,153,0.2)' },
+  TOURNAMENT: { color: '#fbbf24', dim: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.2)' },
+  COMMUNITY: { color: '#7C3AED', dim: 'rgba(124,58,237,0.1)', border: 'rgba(124,58,237,0.2)' },
 };
 const CAT_CFG = {
   Anime: { color: '#f472b6', dim: 'rgba(244,114,182,0.1)', border: 'rgba(244,114,182,0.2)' },
   Manga: { color: '#60a5fa', dim: 'rgba(96,165,250,0.1)', border: 'rgba(96,165,250,0.2)' },
   Movie: { color: '#fbbf24', dim: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.2)' },
-  TV:    { color: '#34d399', dim: 'rgba(52,211,153,0.1)', border: 'rgba(52,211,153,0.2)' },
+  TV: { color: '#34d399', dim: 'rgba(52,211,153,0.1)', border: 'rgba(52,211,153,0.2)' },
 };
 
 function useDebounce(value, delay) {
@@ -57,9 +57,9 @@ function Avatar({ user, size = 36 }) {
 // ── Status Pill ────────────────────────────────────
 function StatusPill({ status }) {
   const cfg = {
-    LIVE:     { bg: 'rgba(52,211,153,0.12)', border: 'rgba(52,211,153,0.3)', color: '#34d399', label: 'Live', pulse: true },
+    LIVE: { bg: 'rgba(52,211,153,0.12)', border: 'rgba(52,211,153,0.3)', color: '#34d399', label: 'Live', pulse: true },
     UPCOMING: { bg: 'rgba(124,58,237,0.1)', border: 'rgba(124,58,237,0.3)', color: '#a78bfa', label: 'Upcoming', pulse: false },
-    ENDED:    { bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)', color: '#6b7280', label: 'Ended', pulse: false },
+    ENDED: { bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)', color: '#6b7280', label: 'Ended', pulse: false },
   }[status] || { bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)', color: '#6b7280', label: status, pulse: false };
 
   return (
@@ -473,6 +473,24 @@ function MembersSection({ currentUser }) {
                   {user.stats.current > 0 && <span style={{ color: '#6b7280' }}><span style={{ color: '#22d3ee', fontWeight: 700 }}>{user.stats.current}</span> watching</span>}
                 </div>
               </div>
+              {currentUser && user.id !== currentUser.id && (
+                <button
+                  onClick={(e) => toggleFriend(user, e)}
+                  disabled={pendingFriendId === user.id}
+                  title={friendIds.has(user.id) ? 'Remove friend' : 'Add friend'}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    width: 32, height: 32, borderRadius: 9, flexShrink: 0, cursor: 'pointer',
+                    background: friendIds.has(user.id) ? 'rgba(52,211,153,0.12)' : 'rgba(124,58,237,0.1)',
+                    border: friendIds.has(user.id) ? '1px solid rgba(52,211,153,0.3)' : '1px solid rgba(124,58,237,0.25)',
+                    opacity: pendingFriendId === user.id ? 0.5 : 1,
+                  }}
+                >
+                  {pendingFriendId === user.id
+                    ? <Loader2 size={13} color={friendIds.has(user.id) ? '#34d399' : '#7C3AED'} className="animate-spin" />
+                    : friendIds.has(user.id) ? <UserCheck size={13} color="#34d399" /> : <UserPlus size={13} color="#7C3AED" />}
+                </button>
+              )}
               <ChevronRight size={15} color="#374151" style={{ flexShrink: 0 }} />
             </div>
           ))}
@@ -509,13 +527,34 @@ function MembersSection({ currentUser }) {
                 {/* Identity */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                   <Avatar user={profile} size={56} />
-                  <div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
                       <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem', color: '#fff' }}>{profile.username}</span>
                       {profile.role?.toUpperCase() === 'ADMIN' && <ShieldCheck size={14} color="#7C3AED" />}
                     </div>
                     {profile.bio && <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.75rem', color: '#6b7280', fontStyle: 'italic', lineHeight: 1.5 }}>{profile.bio}</p>}
                   </div>
+                  {currentUser && profile.id !== currentUser.id && (
+                    <button
+                      onClick={(e) => toggleFriend(profile, e)}
+                      disabled={pendingFriendId === profile.id}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
+                        padding: '8px 14px', borderRadius: 20, cursor: 'pointer',
+                        background: friendIds.has(profile.id) ? 'rgba(52,211,153,0.12)' : 'rgba(124,58,237,0.12)',
+                        border: friendIds.has(profile.id) ? '1px solid rgba(52,211,153,0.3)' : '1px solid rgba(124,58,237,0.3)',
+                        fontFamily: 'var(--font-mono)', fontSize: '0.6rem', fontWeight: 700,
+                        textTransform: 'uppercase', letterSpacing: '0.08em',
+                        color: friendIds.has(profile.id) ? '#34d399' : '#a78bfa',
+                        opacity: pendingFriendId === profile.id ? 0.5 : 1,
+                      }}
+                    >
+                      {pendingFriendId === profile.id
+                        ? <Loader2 size={12} className="animate-spin" />
+                        : friendIds.has(profile.id) ? <UserCheck size={12} /> : <UserPlus size={12} />}
+                      {friendIds.has(profile.id) ? 'Friends' : 'Add'}
+                    </button>
+                  )}
                 </div>
 
                 {/* Stats */}
@@ -802,7 +841,7 @@ export default function CommunityPage({ onNavigate }) {
         />
       </div>
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 32 }} className="community-content">
-      <style>{`
+        <style>{`
         @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
         @keyframes spin { to { transform:rotate(360deg); } }
@@ -829,60 +868,60 @@ export default function CommunityPage({ onNavigate }) {
         }
       `}</style>
 
-      {/* Header */}
-      <header style={{ animation: 'fadeUp 0.4s ease' }} className="community-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          <span style={{
-            padding: '3px 10px', borderRadius: 20,
-            background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)',
-            fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#7C3AED',
-            textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700,
-          }}>
-            Community Nexus
-          </span>
+        {/* Header */}
+        <header style={{ animation: 'fadeUp 0.4s ease' }} className="community-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <span style={{
+              padding: '3px 10px', borderRadius: 20,
+              background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)',
+              fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#7C3AED',
+              textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700,
+            }}>
+              Community Nexus
+            </span>
+          </div>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2.2rem', color: '#fff', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 8 }}>
+            The <span style={{ color: '#7C3AED' }}>Community</span>
+          </h1>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: '#6b7280', fontStyle: 'italic' }}>
+            Connect, discover, and sync with your community.
+          </p>
+        </header>
+
+        {/* Tab Navigation */}
+        <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.06)', gap: 2 }} className="tab-container">
+          {TABS.map(tab => {
+            const active = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '12px 20px', border: 'none', cursor: 'pointer',
+                  fontFamily: 'var(--font-display)', fontSize: '0.82rem', fontWeight: 700,
+                  textTransform: 'uppercase', letterSpacing: '0.05em',
+                  background: 'transparent', transition: 'all 0.2s',
+                  color: active ? '#fff' : '#6b7280',
+                  position: 'relative',
+                  borderBottom: active ? '2px solid #7C3AED' : '2px solid transparent',
+                  marginBottom: -1,
+                  flexShrink: 0
+                }}
+              >
+                <tab.icon size={15} color={active ? '#7C3AED' : '#4b5563'} />
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2.2rem', color: '#fff', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 8 }}>
-          The <span style={{ color: '#7C3AED' }}>Community</span>
-        </h1>
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: '#6b7280', fontStyle: 'italic' }}>
-          Connect, discover, and sync with your community.
-        </p>
-      </header>
 
-      {/* Tab Navigation */}
-      <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.06)', gap: 2 }} className="tab-container">
-        {TABS.map(tab => {
-          const active = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                padding: '12px 20px', border: 'none', cursor: 'pointer',
-                fontFamily: 'var(--font-display)', fontSize: '0.82rem', fontWeight: 700,
-                textTransform: 'uppercase', letterSpacing: '0.05em',
-                background: 'transparent', transition: 'all 0.2s',
-                color: active ? '#fff' : '#6b7280',
-                position: 'relative',
-                borderBottom: active ? '2px solid #7C3AED' : '2px solid transparent',
-                marginBottom: -1,
-                flexShrink: 0
-              }}
-            >
-              <tab.icon size={15} color={active ? '#7C3AED' : '#4b5563'} />
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Tab Content */}
-      <div key={activeTab} style={{ animation: 'fadeUp 0.3s ease' }}>
-        {activeTab === 'events' && <EventsSection currentUser={user} isAdmin={isAdmin} />}
-        {activeTab === 'members' && <MembersSection currentUser={user} />}
-        {activeTab === 'social' && <SocialHubSection onNavigate={onNavigate} />}
-      </div>
+        {/* Tab Content */}
+        <div key={activeTab} style={{ animation: 'fadeUp 0.3s ease' }}>
+          {activeTab === 'events' && <EventsSection currentUser={user} isAdmin={isAdmin} />}
+          {activeTab === 'members' && <MembersSection currentUser={user} />}
+          {activeTab === 'social' && <SocialHubSection onNavigate={onNavigate} />}
+        </div>
       </div>
     </div>
   );

@@ -57,13 +57,13 @@ function pageToPath(page) {
   const map = {
     landing: '/',
     onboarding: '/onboarding',
-dashboard: '/dashboard',
-      discover: '/discover',
-      profile: '/profile',
+    dashboard: '/dashboard',
+    discover: '/discover',
+    profile: '/profile',
     achievements: '/profile/achievements',
-      community: '/community',
-      admin: '/admin',
-    };
+    community: '/community',
+    admin: '/admin',
+  };
   return map[page] || '/';
 }
 
@@ -73,10 +73,10 @@ function useLegacyNavigate() {
 }
 
 function pathToPage(pathname) {
-if (pathname.startsWith('/dashboard')) return 'dashboard';
-    if (pathname.startsWith('/discover')) return 'discover';
+  if (pathname.startsWith('/dashboard')) return 'dashboard';
+  if (pathname.startsWith('/discover')) return 'discover';
   if (pathname.startsWith('/profile/achievements')) return 'achievements';
-    if (pathname.startsWith('/profile')) return 'profile';
+  if (pathname.startsWith('/profile')) return 'profile';
   if (pathname.startsWith('/community')) return 'community';
   if (pathname.startsWith('/admin')) return 'admin';
   if (pathname.startsWith('/onboarding')) return 'onboarding';

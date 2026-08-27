@@ -25,6 +25,8 @@ const STATUS_CFG = {
   PLANNING: { label: 'Watchlist', color: '#7C3AED', accent: 'rgba(124,58,237,0.15)', icon: Bookmark },
 };
 
+const PAGE_SIZE = 12;
+
 // ── Animated number ──────────────────────────────────────────
 function AnimNum({ target, color }) {
   const [val, setVal] = useState(0);
@@ -125,7 +127,7 @@ function GridCard({ entry, onNavigate, onRemove }) {
     >
       <div style={{ aspectRatio: '3/4', background: '#1e1e1e', overflow: 'hidden' }}>
         {item?.coverImage
-          ? <img src={item.coverImage} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s', transform: hovered ? 'scale(1.08)' : 'scale(1)' }} />
+          ? <img src={item.coverImage} alt={item.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s', transform: hovered ? 'scale(1.08)' : 'scale(1)' }} />
           : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Film size={28} color="#374151" /></div>
         }
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)' }} />
@@ -213,7 +215,7 @@ function ListRow({ entry, index, onNavigate, onRemove }) {
 
       <div style={{ width: 40, height: 56, borderRadius: 8, overflow: 'hidden', background: '#1e1e1e', border: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
         {item?.coverImage
-          ? <img src={item.coverImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+          ? <img src={item.coverImage} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
           : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Film size={14} color="#374151" /></div>
         }
       </div>
@@ -291,10 +293,20 @@ function AchBadge({ ach, i }) {
   );
 }
 
+// Matches the backend's strict avatar validation: our own uploaded data URIs,
+// or a direct http(s) link that plainly points at an image file.
+const DATA_IMAGE_RE = /^data:image\/(jpe?g|png|webp|gif);base64,/i;
+const IMAGE_URL_RE = /^https?:\/\/[^\s]+\.(jpe?g|png|webp|gif|avif)(\?[^\s]*)?$/i;
+function isValidAvatarUrl(url) {
+  if (!url) return true;
+  return DATA_IMAGE_RE.test(url) || IMAGE_URL_RE.test(url);
+}
+
 // ── Edit Modal ────────────────────────────────────────────────
 function EditModal({ user, onSave, onClose }) {
   const [bio, setBio] = useState(user.bio || '');
   const [avatar, setAvatar] = useState(user.avatarUrl || '');
+  const [urlError, setUrlError] = useState('');
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
@@ -303,11 +315,11 @@ function EditModal({ user, onSave, onClose }) {
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { toast('File is too large (max 5MB)', 'error'); return; }
+    if (file.size > 2 * 1024 * 1024) { toast('File is too large (max 2MB)', 'error'); return; }
     try {
       setUploading(true);
       const res = await meApi.uploadAvatar(file);
-      if (res.ok) { setAvatar(res.url); toast('Image uploaded successfully', 'success'); }
+      if (res.ok) { setAvatar(res.url); setUrlError(''); toast('Image uploaded successfully', 'success'); }
     } catch (err) {
       toast(err.message || 'Upload failed', 'error');
     } finally {
@@ -315,7 +327,17 @@ function EditModal({ user, onSave, onClose }) {
     }
   };
 
+  const handleUrlChange = (e) => {
+    const val = e.target.value.trim();
+    setAvatar(val);
+    setUrlError(val && !isValidAvatarUrl(val) ? 'Must be a direct link to a .jpg/.png/.webp/.gif image' : '');
+  };
+
   const save = async () => {
+    if (avatar && !isValidAvatarUrl(avatar)) {
+      setUrlError('Must be a direct link to a .jpg/.png/.webp/.gif image');
+      return;
+    }
     setSaving(true);
     try { await onSave({ bio, avatarUrl: avatar }); }
     finally { setSaving(false); }
@@ -348,12 +370,12 @@ function EditModal({ user, onSave, onClose }) {
       }}>
         {/* Accent line */}
         <div style={{ height: 4, background: 'linear-gradient(90deg, var(--electric-purple), var(--cyan), #f472b6)' }} />
-        
+
         <div style={{ padding: 32 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
             <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.25rem', color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.02em', fontStyle: 'italic' }}>Update Profile</h3>
-            <button 
-              onClick={onClose} 
+            <button
+              onClick={onClose}
               style={{ padding: 8, borderRadius: 12, transition: 'background 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
@@ -364,25 +386,25 @@ function EditModal({ user, onSave, onClose }) {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-              <div 
-                style={{ position: 'relative', cursor: 'pointer' }} 
+              <div
+                style={{ position: 'relative', cursor: 'pointer' }}
                 onClick={() => fileInputRef.current?.click()}
               >
-                <div style={{ 
-                  width: 96, 
-                  height: 96, 
-                  borderRadius: '50%', 
-                  padding: 4, 
+                <div style={{
+                  width: 96,
+                  height: 96,
+                  borderRadius: '50%',
+                  padding: 4,
                   background: 'linear-gradient(135deg, var(--electric-purple), var(--accent-violet))',
                   boxShadow: '0 0 24px rgba(124, 58, 237, 0.3)'
                 }}>
-                  <div style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    borderRadius: '50%', 
-                    overflow: 'hidden', 
-                    display: 'flex', 
-                    alignItems: 'center', 
+                  <div style={{
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: '50%',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
                     justifyContent: 'center',
                     backgroundColor: 'var(--dark)'
                   }}>
@@ -395,16 +417,16 @@ function EditModal({ user, onSave, onClose }) {
                     )}
                   </div>
                 </div>
-                <div style={{ 
-                  position: 'absolute', 
-                  inset: 0, 
-                  borderRadius: '50%', 
-                  background: 'rgba(0,0,0,0.4)', 
-                  opacity: 0, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  transition: 'opacity 0.2s' 
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  borderRadius: '50%',
+                  background: 'rgba(0,0,0,0.4)',
+                  opacity: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'opacity 0.2s'
                 }}
                   onMouseEnter={e => e.currentTarget.style.opacity = 1}
                   onMouseLeave={e => e.currentTarget.style.opacity = 0}
@@ -420,33 +442,36 @@ function EditModal({ user, onSave, onClose }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Avatar Source (URL)</label>
                 <input
-                  style={{ 
-                    width: '100%', 
-                    backgroundColor: 'rgba(255,255,255,0.03)', 
-                    border: '1px solid rgba(255,255,255,0.1)', 
-                    borderRadius: 12, 
-                    padding: '12px 16px', 
-                    fontSize: '0.875rem', 
-                    color: '#fff', 
+                  style={{
+                    width: '100%',
+                    backgroundColor: 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${urlError ? 'rgba(248,113,113,0.6)' : 'rgba(255,255,255,0.1)'}`,
+                    borderRadius: 12,
+                    padding: '12px 16px',
+                    fontSize: '0.875rem',
+                    color: '#fff',
                     outline: 'none',
                     transition: 'border-color 0.2s'
                   }}
-                  onFocus={e => e.currentTarget.style.borderColor = 'rgba(124, 58, 237, 0.5)'}
-                  onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
-                  value={avatar} onChange={e => setAvatar(e.target.value)} placeholder="https://..."
+                  onFocus={e => e.currentTarget.style.borderColor = urlError ? 'rgba(248,113,113,0.6)' : 'rgba(124, 58, 237, 0.5)'}
+                  onBlur={e => e.currentTarget.style.borderColor = urlError ? 'rgba(248,113,113,0.6)' : 'rgba(255,255,255,0.1)'}
+                  value={avatar} onChange={handleUrlChange} placeholder="https://.../image.jpg"
                 />
+                {urlError && (
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#f87171' }}>{urlError}</span>
+                )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.2em' }}>Personal Transmission (Bio)</label>
                 <textarea
-                  style={{ 
-                    width: '100%', 
-                    backgroundColor: 'rgba(255,255,255,0.03)', 
-                    border: '1px solid rgba(255,255,255,0.1)', 
-                    borderRadius: 12, 
-                    padding: '12px 16px', 
-                    fontSize: '0.875rem', 
-                    color: '#fff', 
+                  style={{
+                    width: '100%',
+                    backgroundColor: 'rgba(255,255,255,0.03)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: 12,
+                    padding: '12px 16px',
+                    fontSize: '0.875rem',
+                    color: '#fff',
                     outline: 'none',
                     resize: 'none',
                     transition: 'border-color 0.2s'
@@ -459,28 +484,28 @@ function EditModal({ user, onSave, onClose }) {
             </div>
 
             <button
-              onClick={save} disabled={saving || uploading}
-              style={{ 
-                width: '100%', 
-                padding: 16, 
-                backgroundColor: '#fff', 
-                color: '#000', 
-                borderRadius: 16, 
-                fontFamily: 'var(--font-display)', 
-                fontWeight: 900, 
-                fontSize: '0.75rem', 
-                textTransform: 'uppercase', 
-                letterSpacing: '0.15em', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                gap: 12, 
+              onClick={save} disabled={saving || uploading || !!urlError}
+              style={{
+                width: '100%',
+                padding: 16,
+                backgroundColor: '#fff',
+                color: '#000',
+                borderRadius: 16,
+                fontFamily: 'var(--font-display)',
+                fontWeight: 900,
+                fontSize: '0.75rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.15em',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 12,
                 cursor: 'pointer',
                 transition: 'all 0.2s',
-                opacity: (saving || uploading) ? 0.5 : 1
+                opacity: (saving || uploading || urlError) ? 0.5 : 1
               }}
-              onMouseEnter={e => { if(!saving && !uploading) e.currentTarget.style.backgroundColor = '#e5e7eb'; }}
-              onMouseLeave={e => { if(!saving && !uploading) e.currentTarget.style.backgroundColor = '#fff'; }}
+              onMouseEnter={e => { if (!saving && !uploading && !urlError) e.currentTarget.style.backgroundColor = '#e5e7eb'; }}
+              onMouseLeave={e => { if (!saving && !uploading && !urlError) e.currentTarget.style.backgroundColor = '#fff'; }}
             >
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
               {saving ? 'Synchronizing...' : 'Save Changes'}
@@ -494,12 +519,17 @@ function EditModal({ user, onSave, onClose }) {
 
 // ── Main ProfilePage ──────────────────────────────────────────
 export default function ProfilePage({ onNavigate }) {
-  const { user, achievements, favourites, refetch } = useAuth();
+  const { user, achievements, pinnedAchievements, favourites, refetch } = useAuth();
   const { library, loading: libLoading, removeItem } = useLibrary();
   const toast = useToast();
-const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('COMPLETED');
   const [viewMode, setViewMode] = useState('grid');
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [activeTab]);
 
   const handleSave = async (data) => {
     try {
@@ -534,7 +564,9 @@ const [isEditing, setIsEditing] = useState(false);
     { id: 'PLANNING', label: 'Watchlist', count: planning.length, color: '#7C3AED' },
   ];
 
-  const tabItems = activeTab === 'COMPLETED' ? completed : activeTab === 'CURRENT' ? current : planning;
+  const allTabItems = activeTab === 'COMPLETED' ? completed : activeTab === 'CURRENT' ? current : planning;
+  const tabItems = allTabItems.slice(0, visibleCount);
+  const hasMore = visibleCount < allTabItems.length;
 
   const heroCover = (current[0] || completed[0])?.content?.coverImage;
 
@@ -570,325 +602,357 @@ const [isEditing, setIsEditing] = useState(false);
         </div>
         <div style={{ position: 'relative', zIndex: 1, pointerEvents: 'all' }}>
 
-        {/* ── HERO CARD ── */}
-        <div style={{ position: 'relative', borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)' }}>
-          {heroCover ? (
-            <>
-              <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${heroCover})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(40px) brightness(0.18) saturate(180%)', transform: 'scale(1.1)' }} />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(18,18,36,0.92) 0%, rgba(18,18,28,0.85) 100%)' }} />
-            </>
-          ) : (
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(18,18,30,0.95)' }} />
-          )}
+          {/* ── HERO CARD ── */}
+          <div style={{ position: 'relative', borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)' }}>
+            {heroCover ? (
+              <>
+                <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${heroCover})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(40px) brightness(0.18) saturate(180%)', transform: 'scale(1.1)' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(18,18,36,0.92) 0%, rgba(18,18,28,0.85) 100%)' }} />
+              </>
+            ) : (
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(18,18,30,0.95)' }} />
+            )}
 
-          <div style={{ position: 'absolute', top: -60, right: -60, width: 280, height: 280, background: 'radial-gradient(circle, rgba(124,58,237,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', bottom: -40, left: -40, width: 200, height: 200, background: 'radial-gradient(circle, rgba(34,211,238,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: -60, right: -60, width: 280, height: 280, background: 'radial-gradient(circle, rgba(124,58,237,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', bottom: -40, left: -40, width: 200, height: 200, background: 'radial-gradient(circle, rgba(34,211,238,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-          <div style={{ height: 3, background: 'linear-gradient(90deg, #7C3AED 0%, #22d3ee 50%, #f472b6 100%)' }} />
+            <div style={{ height: 3, background: 'linear-gradient(90deg, #7C3AED 0%, #22d3ee 50%, #f472b6 100%)' }} />
 
-          <div style={{ position: 'relative', zIndex: 1, padding: '28px 32px 32px' }}>
-            <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+            <div style={{ position: 'relative', zIndex: 1, padding: '28px 32px 32px' }}>
+              <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap', alignItems: 'flex-start' }}>
 
-              {/* Avatar */}
-              <div
-                className="avatar-wrap"
-                style={{ position: 'relative', flexShrink: 0, cursor: 'pointer' }}
-                onClick={() => setIsEditing(true)}
-              >
-                <div style={{ width: 100, height: 100, borderRadius: '50%', padding: 3, background: 'linear-gradient(135deg, #7C3AED, #22d3ee)', boxShadow: '0 0 40px rgba(124,58,237,0.4)' }}>
-                  <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', background: '#121212' }}>
-                    {user.avatarUrl
-                      ? <img src={user.avatarUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="avatar" />
-                      : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontSize: '2.2rem', fontWeight: 900, color: '#7C3AED' }}>
-                        {user.username?.[0]?.toUpperCase()}
-                      </div>
-                    }
-                  </div>
-                </div>
-                <div className="avatar-overlay" style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Camera size={22} color="#fff" />
-                </div>
-              </div>
-
-              {/* Identity + DNA */}
-              <div style={{ flex: 1, minWidth: 240 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 6 }}>
-                  <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.8rem', color: '#fff', lineHeight: 1 }}>
-                    {user.username}
-                  </h1>
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, cursor: 'pointer' }}
-                  >
-                    <Edit3 size={12} color="#6b7280" />
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Edit</span>
-                  </button>
-                </div>
-                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#7C3AED', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 12 }}>
-                  @{user.username}
-                </p>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.6, maxWidth: 420, marginBottom: 24 }}>
-                  {user.bio || 'A wanderer across the media horizon.'}
-                </p>
-
-                {library.length > 0 && <DNABar library={library} />}
-              </div>
-
-              {/* Stats cluster */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, flexShrink: 0 }}>
-                {[
-                  { label: 'Total', value: library.length, color: '#8B5CF6' },
-                  { label: 'Completed', value: completed.length, color: '#34d399' },
-                  { label: 'Watching', value: current.length, color: '#22d3ee' },
-                  { label: 'Avg Rating', value: avgRating || '—', color: '#fbbf24', raw: true },
-                ].map(s => (
-                  <div key={s.label} style={{
-                    padding: '14px 18px',
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.07)',
-                    borderRadius: 14,
-                    textAlign: 'center',
-                    minWidth: 90,
-                  }}>
-                    <p style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.6rem', lineHeight: 1, marginBottom: 4, color: s.color }}>
-                      {s.raw ? s.value : <AnimNum target={s.value} color={s.color} />}
-                    </p>
-                    <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                      {s.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Currently watching strip */}
-            {current.length > 0 && (
-              <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22d3ee', boxShadow: '0 0 8px #22d3ee', animation: 'pulse 2s infinite' }} />
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#22d3ee', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Now Watching</span>
-                </div>
-                <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
-                  {current.slice(0, 8).map(e => (
-                    <div
-                      key={e.id}
-                      title={e.content?.title}
-                      onClick={() => onNavigate(`content/${e.content?.id}`)}
-                      style={{ width: 48, height: 68, borderRadius: 8, overflow: 'hidden', flexShrink: 0, cursor: 'pointer', border: '1px solid rgba(34,211,238,0.2)', transition: 'transform 0.2s', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}
-                      onMouseEnter={el => el.currentTarget.style.transform = 'scale(1.08)'}
-                      onMouseLeave={el => el.currentTarget.style.transform = 'none'}
-                    >
-                      {e.content?.coverImage
-                        ? <img src={e.content.coverImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
-                        : <div style={{ width: '100%', height: '100%', background: '#1e1e1e' }} />
+                {/* Avatar */}
+                <div
+                  className="avatar-wrap"
+                  style={{ position: 'relative', flexShrink: 0, cursor: 'pointer' }}
+                  onClick={() => setIsEditing(true)}
+                >
+                  <div style={{ width: 100, height: 100, borderRadius: '50%', padding: 3, background: 'linear-gradient(135deg, #7C3AED, #22d3ee)', boxShadow: '0 0 40px rgba(124,58,237,0.4)' }}>
+                    <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', background: '#121212' }}>
+                      {user.avatarUrl
+                        ? <img src={user.avatarUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="avatar" />
+                        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontSize: '2.2rem', fontWeight: 900, color: '#7C3AED' }}>
+                          {user.username?.[0]?.toUpperCase()}
+                        </div>
                       }
                     </div>
-                  ))}
-                  {current.length > 8 && (
-                    <div style={{ width: 48, height: 68, borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: 'var(--text-muted)' }}>+{current.length - 8}</span>
+                  </div>
+                  <div className="avatar-overlay" style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Camera size={22} color="#fff" />
+                  </div>
+                </div>
+
+                {/* Identity + DNA */}
+                <div style={{ flex: 1, minWidth: 240 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 6 }}>
+                    <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.8rem', color: '#fff', lineHeight: 1 }}>
+                      {user.username}
+                    </h1>
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, cursor: 'pointer' }}
+                    >
+                      <Edit3 size={12} color="#6b7280" />
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Edit</span>
+                    </button>
+                  </div>
+                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#7C3AED', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 12 }}>
+                    @{user.username}
+                  </p>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.6, maxWidth: 420, marginBottom: 24 }}>
+                    {user.bio || 'A wanderer across the media horizon.'}
+                  </p>
+
+                  {library.length > 0 && <DNABar library={library} />}
+                </div>
+
+                {/* Stats cluster */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, flexShrink: 0 }}>
+                  {[
+                    { label: 'Total', value: library.length, color: '#8B5CF6' },
+                    { label: 'Completed', value: completed.length, color: '#34d399' },
+                    { label: 'Watching', value: current.length, color: '#22d3ee' },
+                    { label: 'Avg Rating', value: avgRating || '—', color: '#fbbf24', raw: true },
+                  ].map(s => (
+                    <div key={s.label} style={{
+                      padding: '14px 18px',
+                      background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.07)',
+                      borderRadius: 14,
+                      textAlign: 'center',
+                      minWidth: 90,
+                    }}>
+                      <p style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.6rem', lineHeight: 1, marginBottom: 4, color: s.color }}>
+                        {s.raw ? s.value : <AnimNum target={s.value} color={s.color} />}
+                      </p>
+                      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                        {s.label}
+                      </p>
                     </div>
-                  )}
+                  ))}
+                </div>
+              </div>
+
+              {/* Currently watching strip */}
+              {current.length > 0 && (
+                <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22d3ee', boxShadow: '0 0 8px #22d3ee', animation: 'pulse 2s infinite' }} />
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#22d3ee', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Now Watching</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
+                    {current.slice(0, 8).map(e => (
+                      <div
+                        key={e.id}
+                        title={e.content?.title}
+                        onClick={() => onNavigate(`content/${e.content?.id}`)}
+                        style={{ width: 48, height: 68, borderRadius: 8, overflow: 'hidden', flexShrink: 0, cursor: 'pointer', border: '1px solid rgba(34,211,238,0.2)', transition: 'transform 0.2s', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}
+                        onMouseEnter={el => el.currentTarget.style.transform = 'scale(1.08)'}
+                        onMouseLeave={el => el.currentTarget.style.transform = 'none'}
+                      >
+                        {e.content?.coverImage
+                          ? <img src={e.content.coverImage} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                          : <div style={{ width: '100%', height: '100%', background: '#1e1e1e' }} />
+                        }
+                      </div>
+                    ))}
+                    {current.length > 8 && (
+                      <div style={{ width: 48, height: 68, borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: 'var(--text-muted)' }}>+{current.length - 8}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ── ACHIEVEMENTS ── profile only shows the ones the user pinned; full list lives on its own page */}
+          <div style={{ marginTop: 20, animation: 'fadeUp 0.5s 0.08s ease both' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+              <Award size={16} color="#fbbf24" fill="rgba(251,191,36,0.3)" />
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-muted)' }}>
+                Achievements
+              </span>
+              <span style={{
+                padding: '2px 8px', borderRadius: 20,
+                background: achievements?.length > 0 ? 'rgba(251,191,36,0.1)' : 'rgba(255,255,255,0.04)',
+                border: achievements?.length > 0 ? '1px solid rgba(251,191,36,0.2)' : '1px solid rgba(255,255,255,0.06)',
+                fontFamily: 'var(--font-mono)', fontSize: '0.55rem', fontWeight: 700,
+                color: achievements?.length > 0 ? '#fbbf24' : '#374151',
+                letterSpacing: '0.08em',
+              }}>
+                {achievements?.length || 0} unlocked
+              </span>
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.05)' }} />
+              <button
+                onClick={() => onNavigate?.('achievements')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  background: 'transparent', border: '1px solid rgba(251,191,36,0.2)',
+                  borderRadius: 20, padding: '4px 12px', cursor: 'pointer',
+                  fontFamily: 'var(--font-mono)', fontSize: '0.6rem', fontWeight: 700,
+                  color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '0.08em',
+                }}
+              >
+                Manage
+              </button>
+            </div>
+
+            {pinnedAchievements?.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
+                {pinnedAchievements.map((ach, i) => <AchBadge key={ach.key || ach.title} ach={ach} i={i} />)}
+              </div>
+            ) : (
+              <div style={{
+                padding: '28px 24px',
+                background: 'rgba(251,191,36,0.02)',
+                border: '1px dashed rgba(251,191,36,0.1)',
+                borderRadius: 16,
+                display: 'flex', alignItems: 'center', gap: 16,
+              }}>
+                <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Award size={18} color="#374151" />
+                </div>
+                <div>
+                  <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.85rem', color: '#4b5563', marginBottom: 3 }}>
+                    {achievements?.length > 0 ? 'No achievements pinned' : 'No achievements yet'}
+                  </p>
+                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#2d2d3d', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                    {achievements?.length > 0
+                      ? 'Pick up to 6 to show here from the Achievements page'
+                      : 'Complete entries, rate content, and build your library to unlock badges'}
+                  </p>
                 </div>
               </div>
             )}
           </div>
-        </div>
 
-        {/* ── ACHIEVEMENTS ── always rendered, shows empty state if none */}
-        <div style={{ marginTop: 20, animation: 'fadeUp 0.5s 0.08s ease both' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-            <Award size={16} color="#fbbf24" fill="rgba(251,191,36,0.3)" />
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-muted)' }}>
-              Achievements
-            </span>
-            <span style={{
-              padding: '2px 8px', borderRadius: 20,
-              background: achievements?.length > 0 ? 'rgba(251,191,36,0.1)' : 'rgba(255,255,255,0.04)',
-              border: achievements?.length > 0 ? '1px solid rgba(251,191,36,0.2)' : '1px solid rgba(255,255,255,0.06)',
-              fontFamily: 'var(--font-mono)', fontSize: '0.55rem', fontWeight: 700,
-              color: achievements?.length > 0 ? '#fbbf24' : '#374151',
-              letterSpacing: '0.08em',
-            }}>
-              {achievements?.length || 0} unlocked
-            </span>
-            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.05)' }} />
-          </div>
+          {/* ── TOP PROTOCOL: FAVOURITES ── */}
+          <div style={{ marginTop: 20, animation: 'fadeUp 0.5s 0.1s ease both' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+              <Heart size={16} color="#ef4444" fill="rgba(239,68,68,0.3)" />
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-muted)' }}>
+                Top Protocol: Favourites
+              </span>
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.05)' }} />
+            </div>
 
-          {achievements?.length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
-              {achievements.map((ach, i) => <AchBadge key={ach.title} ach={ach} i={i} />)}
-            </div>
-          ) : (
-            <div style={{
-              padding: '28px 24px',
-              background: 'rgba(251,191,36,0.02)',
-              border: '1px dashed rgba(251,191,36,0.1)',
-              borderRadius: 16,
-              display: 'flex', alignItems: 'center', gap: 16,
-            }}>
-              <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Award size={18} color="#374151" />
-              </div>
-              <div>
-                <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.85rem', color: '#4b5563', marginBottom: 3 }}>No achievements yet</p>
-                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#2d2d3d', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                  Complete entries, rate content, and build your library to unlock badges
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
- 
-        {/* ── TOP PROTOCOL: FAVOURITES ── */}
-        <div style={{ marginTop: 20, animation: 'fadeUp 0.5s 0.1s ease both' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-            <Heart size={16} color="#ef4444" fill="rgba(239,68,68,0.3)" />
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-muted)' }}>
-              Top Protocol: Favourites
-            </span>
-            <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.05)' }} />
-          </div>
- 
-          {favourites?.length > 0 ? (
-            <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 10, scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-              {favourites.map((fav, i) => {
-                const item = fav.content;
-                const p = CAT[item.category] || fallbackPalette;
-                return (
-                  <div
-                    key={fav.id}
-                    onClick={() => onNavigate(`content/${item.id}`)}
-                    style={{
-                      flexShrink: 0, width: 200, position: 'relative', cursor: 'pointer',
-                      borderRadius: 16, overflow: 'hidden',
-                      background: '#121212', border: '1px solid rgba(255,255,255,0.08)',
-                      animation: `fadeUp 0.4s ${i * 80}ms ease both`,
-                      transition: 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03) translateY(-4px)'; e.currentTarget.style.borderColor = p.color; }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
-                  >
-                    <div style={{ aspectRatio: '2/3', position: 'relative' }}>
-                      <img src={item.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
-                      <div style={{ position: 'absolute', top: 8, right: 8, width: 22, height: 22, borderRadius: '50%', background: 'rgba(239,68,68,0.2)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Heart size={10} color="#ef4444" fill="#ef4444" />
+            {favourites?.length > 0 ? (
+              <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 10, scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                {favourites.map((fav, i) => {
+                  const item = fav.content;
+                  const p = CAT[item.category] || fallbackPalette;
+                  return (
+                    <div
+                      key={fav.id}
+                      onClick={() => onNavigate(`content/${item.id}`)}
+                      style={{
+                        flexShrink: 0, width: 200, position: 'relative', cursor: 'pointer',
+                        borderRadius: 16, overflow: 'hidden',
+                        background: '#121212', border: '1px solid rgba(255,255,255,0.08)',
+                        animation: `fadeUp 0.4s ${i * 80}ms ease both`,
+                        transition: 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03) translateY(-4px)'; e.currentTarget.style.borderColor = p.color; }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+                    >
+                      <div style={{ aspectRatio: '2/3', position: 'relative' }}>
+                        <img src={item.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
+                        <div style={{ position: 'absolute', top: 8, right: 8, width: 22, height: 22, borderRadius: '50%', background: 'rgba(239,68,68,0.2)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Heart size={10} color="#ef4444" fill="#ef4444" />
+                        </div>
                       </div>
-                    </div>
-                    <div style={{ padding: 12 }}>
-                      <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.72rem', color: '#fff', marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {item.title}
-                      </p>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: p.color, textTransform: 'uppercase' }}>{item.category}</span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                          <Star size={8} color="#fbbf24" fill="#fbbf24" />
-                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#fbbf24', fontWeight: 700 }}>{item.rating || '—'}</span>
+                      <div style={{ padding: 12 }}>
+                        <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.72rem', color: '#fff', marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {item.title}
+                        </p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: p.color, textTransform: 'uppercase' }}>{item.category}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                            <Star size={8} color="#fbbf24" fill="#fbbf24" />
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#fbbf24', fontWeight: 700 }}>{item.rating || '—'}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.06)', borderRadius: 16, textAlign: 'center' }}>
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                Your top protocol remains empty. Heart your favorite titles to see them here.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* ── LIBRARY SECTION ── */}
-        <div style={{ marginTop: 20, animation: 'fadeUp 0.5s 0.14s ease both' }}>
-
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, flexWrap: 'wrap', gap: 12 }}>
-            <div style={{ display: 'flex', gap: 4, padding: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 14, border: '1px solid rgba(255,255,255,0.06)' }}>
-              {TABS.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '9px 18px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                    fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.8rem',
-                    textTransform: 'uppercase', letterSpacing: '0.05em',
-                    background: activeTab === tab.id ? `${tab.color}18` : 'transparent',
-                    color: activeTab === tab.id ? tab.color : 'var(--text-muted)',
-                    borderBottom: activeTab === tab.id ? `2px solid ${tab.color}` : '2px solid transparent',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  {tab.label}
-                  <span style={{
-                    fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
-                    padding: '1px 7px', borderRadius: 99,
-                    background: activeTab === tab.id ? `${tab.color}20` : 'rgba(255,255,255,0.06)',
-                    color: activeTab === tab.id ? tab.color : 'var(--text-muted)',
-                  }}>
-                    {tab.count}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            <div style={{ display: 'flex', gap: 2, padding: 3, background: 'rgba(255,255,255,0.04)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)' }}>
-              {[['grid', LayoutGrid], ['list', List]].map(([mode, Icon]) => (
-                <button
-                  key={mode}
-                  onClick={() => setViewMode(mode)}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    width: 34, height: 34, borderRadius: 8, border: 'none', cursor: 'pointer',
-                    background: viewMode === mode ? 'rgba(124,58,237,0.2)' : 'transparent',
-                    color: viewMode === mode ? '#7C3AED' : '#4b5563',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  <Icon size={16} />
-                </button>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.06)', borderRadius: 16, textAlign: 'center' }}>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  Your top protocol remains empty. Heart your favorite titles to see them here.
+                </p>
+              </div>
+            )}
           </div>
 
-          {tabItems.length === 0 ? (
-            <div style={{ padding: '56px 24px', textAlign: 'center', border: '1px dashed rgba(255,255,255,0.06)', borderRadius: 20 }}>
-              <Compass size={36} color="#374151" style={{ margin: '0 auto 12px' }} />
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-muted)', marginBottom: 14 }}>
-                Nothing here yet
-              </p>
-              <button
-                onClick={() => onNavigate('discover')}
-                style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#7C3AED', textTransform: 'uppercase', letterSpacing: '0.12em', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
-              >
-                Browse the index →
-              </button>
-            </div>
-          ) : viewMode === 'grid' ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 14 }}>
-              {tabItems.map((entry, i) => (
-                <div key={entry.id} style={{ animation: `fadeUp 0.35s ${i * 30}ms ease both` }}>
-                  <GridCard entry={entry} onNavigate={onNavigate} onRemove={removeItem} />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ background: 'rgba(18,18,30,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 18, overflow: 'hidden' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '24px 52px 1fr auto auto', gap: 14, padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}>
-                {['#', '', 'Title', 'Rating', ''].map((h, i) => (
-                  <span key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{h}</span>
+          {/* ── LIBRARY SECTION ── */}
+          <div style={{ marginTop: 20, animation: 'fadeUp 0.5s 0.14s ease both' }}>
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, flexWrap: 'wrap', gap: 12 }}>
+              <div style={{ display: 'flex', gap: 4, padding: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 14, border: '1px solid rgba(255,255,255,0.06)' }}>
+                {TABS.map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 8,
+                      padding: '9px 18px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                      fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.8rem',
+                      textTransform: 'uppercase', letterSpacing: '0.05em',
+                      background: activeTab === tab.id ? `${tab.color}18` : 'transparent',
+                      color: activeTab === tab.id ? tab.color : 'var(--text-muted)',
+                      borderBottom: activeTab === tab.id ? `2px solid ${tab.color}` : '2px solid transparent',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {tab.label}
+                    <span style={{
+                      fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
+                      padding: '1px 7px', borderRadius: 99,
+                      background: activeTab === tab.id ? `${tab.color}20` : 'rgba(255,255,255,0.06)',
+                      color: activeTab === tab.id ? tab.color : 'var(--text-muted)',
+                    }}>
+                      {tab.count}
+                    </span>
+                  </button>
                 ))}
               </div>
-              {tabItems.map((entry, i) => (
-                <div key={entry.id} style={{ animation: `fadeUp 0.35s ${i * 25}ms ease both` }}>
-                  <ListRow entry={entry} index={i} onNavigate={onNavigate} onRemove={removeItem} />
-                </div>
-              ))}
+
+              <div style={{ display: 'flex', gap: 2, padding: 3, background: 'rgba(255,255,255,0.04)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)' }}>
+                {[['grid', LayoutGrid], ['list', List]].map(([mode, Icon]) => (
+                  <button
+                    key={mode}
+                    onClick={() => setViewMode(mode)}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      width: 34, height: 34, borderRadius: 8, border: 'none', cursor: 'pointer',
+                      background: viewMode === mode ? 'rgba(124,58,237,0.2)' : 'transparent',
+                      color: viewMode === mode ? '#7C3AED' : '#4b5563',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    <Icon size={16} />
+                  </button>
+                ))}
+              </div>
             </div>
-          )}
-        </div>
+
+            {tabItems.length === 0 ? (
+              <div style={{ padding: '56px 24px', textAlign: 'center', border: '1px dashed rgba(255,255,255,0.06)', borderRadius: 20 }}>
+                <Compass size={36} color="#374151" style={{ margin: '0 auto 12px' }} />
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-muted)', marginBottom: 14 }}>
+                  Nothing here yet
+                </p>
+                <button
+                  onClick={() => onNavigate('discover')}
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#7C3AED', textTransform: 'uppercase', letterSpacing: '0.12em', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  Browse the index →
+                </button>
+              </div>
+            ) : viewMode === 'grid' ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 14 }}>
+                {tabItems.map((entry, i) => (
+                  <div key={entry.id} style={{ animation: `fadeUp 0.35s ${i * 30}ms ease both` }}>
+                    <GridCard entry={entry} onNavigate={onNavigate} onRemove={removeItem} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ background: 'rgba(18,18,30,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 18, overflow: 'hidden' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '24px 52px 1fr auto auto', gap: 14, padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}>
+                  {['#', '', 'Title', 'Rating', ''].map((h, i) => (
+                    <span key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{h}</span>
+                  ))}
+                </div>
+                {tabItems.map((entry, i) => (
+                  <div key={entry.id} style={{ animation: `fadeUp 0.35s ${i * 25}ms ease both` }}>
+                    <ListRow entry={entry} index={i} onNavigate={onNavigate} onRemove={removeItem} />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {hasMore && (
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 20 }}>
+                <button
+                  onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
+                  style={{
+                    fontFamily: 'var(--font-mono)', fontSize: '0.68rem', fontWeight: 700,
+                    textTransform: 'uppercase', letterSpacing: '0.12em', color: '#7C3AED',
+                    background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.25)',
+                    borderRadius: 20, padding: '10px 22px', cursor: 'pointer',
+                  }}
+                >
+                  Load more ({allTabItems.length - visibleCount} remaining)
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

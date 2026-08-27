@@ -1,4 +1,5 @@
 const prisma = require("../prismaClient");
+const activityService = require("../services/ActivityService");
 const achievementsService = require("../services/AchievementsService");
 
 /**
@@ -71,6 +72,8 @@ async function addFavourite(req, res) {
                 },
             },
         });
+
+        await activityService.log(userId, "FAVOURITED", contentId);
 
         // Check DEDICATED_FAN achievement (5 favourites)
         const count = await prisma.favourite.count({ where: { userId } });
