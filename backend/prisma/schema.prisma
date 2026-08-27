@@ -56,8 +56,7 @@ model Content {
   favourites             Favourite[]
   subredditRecommendations SubredditRecommendation[]
 reviews                Review[]
-  activity               Activity?  @relation("ActivityContent", fields: [activityId], references: [id])
-  activityId             Int?
+  activities             Activity[]
 
   parentId               Int?
   parent                 Content?                @relation("ContentToContent", fields: [parentId], references: [id])
