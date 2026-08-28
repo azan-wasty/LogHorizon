@@ -18,6 +18,7 @@ const CAT = {
   Movie: { color: '#fbbf24', dim: 'rgba(251,191,36,0.12)', label: 'Movie', icon: Film },
   TV: { color: '#34d399', dim: 'rgba(52,211,153,0.12)', label: 'TV', icon: Monitor },
 };
+const fallbackPalette = { color: '#7C3AED', dim: 'rgba(124,58,237,0.12)', label: '—', icon: Film };
 
 const STATUS_CFG = {
   COMPLETED: { label: 'Completed', color: '#34d399', accent: 'rgba(52,211,153,0.15)', icon: CheckCircle2 },
@@ -801,11 +802,12 @@ export default function ProfilePage({ onNavigate }) {
             {favourites?.length > 0 ? (
               <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 10, scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                 {favourites.map((fav, i) => {
-                  const item = fav.content;
+                  const item = fav.content || fav;
+                  if (!item || !item.id) return null;
                   const p = CAT[item.category] || fallbackPalette;
                   return (
                     <div
-                      key={fav.id}
+                      key={fav.id || item.id}
                       onClick={() => onNavigate(`content/${item.id}`)}
                       style={{
                         flexShrink: 0, width: 200, position: 'relative', cursor: 'pointer',
@@ -817,8 +819,14 @@ export default function ProfilePage({ onNavigate }) {
                       onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03) translateY(-4px)'; e.currentTarget.style.borderColor = p.color; }}
                       onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
                     >
-                      <div style={{ aspectRatio: '2/3', position: 'relative' }}>
-                        <img src={item.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <div style={{ aspectRatio: '2/3', position: 'relative', background: '#1a1a24' }}>
+                        {item.coverImage ? (
+                          <img src={item.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Film size={28} color="#4b5563" />
+                          </div>
+                        )}
                         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
                         <div style={{ position: 'absolute', top: 8, right: 8, width: 22, height: 22, borderRadius: '50%', background: 'rgba(239,68,68,0.2)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <Heart size={10} color="#ef4444" fill="#ef4444" />
@@ -829,7 +837,7 @@ export default function ProfilePage({ onNavigate }) {
                           {item.title}
                         </p>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: p.color, textTransform: 'uppercase' }}>{item.category}</span>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: p.color, textTransform: 'uppercase' }}>{item.category || 'General'}</span>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                             <Star size={8} color="#fbbf24" fill="#fbbf24" />
                             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#fbbf24', fontWeight: 700 }}>{item.rating || '—'}</span>

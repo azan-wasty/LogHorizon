@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import DashboardPage from './pages/DashboardPage';
+import FeedPage from './pages/FeedPage';
 import DiscoverPage from './pages/DiscoverPage';
 import ProfilePage from './pages/ProfilePage';
 import AchievementsPage from './pages/AchievementsPage';
@@ -58,6 +59,7 @@ function pageToPath(page) {
     landing: '/',
     onboarding: '/onboarding',
     dashboard: '/dashboard',
+    feed: '/feed',
     discover: '/discover',
     profile: '/profile',
     achievements: '/profile/achievements',
@@ -74,6 +76,7 @@ function useLegacyNavigate() {
 
 function pathToPage(pathname) {
   if (pathname.startsWith('/dashboard')) return 'dashboard';
+  if (pathname.startsWith('/feed')) return 'feed';
   if (pathname.startsWith('/discover')) return 'discover';
   if (pathname.startsWith('/profile/achievements')) return 'achievements';
   if (pathname.startsWith('/profile')) return 'profile';
@@ -145,6 +148,16 @@ function App() {
           <RequireAuth>
             <AppShell>
               <DashboardPage onNavigate={legacyNavigate} />
+            </AppShell>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/feed"
+        element={
+          <RequireAuth>
+            <AppShell>
+              <FeedPage onNavigate={legacyNavigate} />
             </AppShell>
           </RequireAuth>
         }

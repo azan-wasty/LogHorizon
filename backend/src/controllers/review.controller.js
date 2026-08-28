@@ -27,7 +27,7 @@ async function addReview(req, res) {
 
     // Only log a fresh REVIEWED activity for new reviews, not every edit.
     if (!existing) {
-        await activityService.log(userId, "REVIEWED", contentId, parseInt(rating));
+        await activityService.log(userId, "REVIEWED", contentId, parseInt(rating), comment);
     }
 
     return res.json({ ok: true, review });

@@ -120,20 +120,27 @@ function ActivityFeedSection({ onNavigate }) {
                         <Activity size={15} color="#7C3AED" />
                     </div>
                     <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem', color: '#fff', letterSpacing: '-0.02em' }}>
-                        Activity Feed
+                        Live Activity Stream
                     </h2>
                 </div>
-                <button
-                    onClick={() => onNavigate('community')}
-                    style={{
-                        display: 'flex', alignItems: 'center', gap: 6,
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        fontFamily: 'var(--font-mono)', fontSize: '0.62rem', color: '#7C3AED',
-                        textTransform: 'uppercase', letterSpacing: '0.1em',
-                    }}
-                >
-                    <Users size={13} /> Find friends
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <button
+                        onClick={() => onNavigate('feed')}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: 5,
+                            padding: '6px 12px', borderRadius: 8,
+                            background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.25)',
+                            fontFamily: 'var(--font-mono)', fontSize: '0.62rem', fontWeight: 700,
+                            color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.08em',
+                            cursor: 'pointer', transition: 'all 0.2s',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(124,58,237,0.25)'; e.currentTarget.style.color = '#fff'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(124,58,237,0.12)'; e.currentTarget.style.color = '#a78bfa'; }}
+                    >
+                        <span>Open Full Feed</span>
+                        <ChevronRight size={12} />
+                    </button>
+                </div>
             </div>
 
             {loading ? (

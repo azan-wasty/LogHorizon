@@ -180,6 +180,18 @@ export const activity = {
     const qs = new URLSearchParams(params).toString();
     return request(`/activity/feed${qs ? `?${qs}` : ''}`);
   },
+  react: (activityId, emoji) => request(`/activity/${activityId}/react`, {
+    method: 'POST',
+    body: JSON.stringify({ emoji }),
+  }),
+  getComments: (activityId) => request(`/activity/${activityId}/comments`),
+  addComment: (activityId, text) => request(`/activity/${activityId}/comments`, {
+    method: 'POST',
+    body: JSON.stringify({ text }),
+  }),
+  deleteComment: (commentId) => request(`/activity/comments/${commentId}`, {
+    method: 'DELETE',
+  }),
 };
 
 // ── Achievements (pinning) ────────────────────────

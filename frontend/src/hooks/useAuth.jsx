@@ -43,9 +43,12 @@ export function AuthProvider({ children }) {
       setPinnedAchievements(data.pinnedAchievements || []);
       setFavourites(data.favourites || []);
     } catch (err) {
-      // ERROR HANDLING: If the API call fails (e.g. token expired/invalid),
-      // clean up by removing the corrupted token from localStorage.
-      localStorage.removeItem('lh_token');
+      // Only remove token if explicitly unauthorized (401).
+      // Never wipe token on transient server errors or network disconnects.
+      if (err?.status === 401) {
+        localStorage.removeItem('lh_token');
+        setUser(null);
+      }
     } finally {
       // FINALLY BLOCK: Executes regardless of try/catch success to end the loading state
       setLoading(false);

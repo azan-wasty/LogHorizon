@@ -19,7 +19,8 @@ import {
 } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, desc: 'Your feed' },
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, desc: 'Overview & picks' },
+  { id: 'feed', label: 'Feed', icon: Activity, desc: 'Social stream' },
   { id: 'discover', label: 'Discover', icon: Compass, desc: 'Browse index' },
   { id: 'profile', label: 'My Profile', icon: User, desc: 'Library & stats' },
   { id: 'community', label: 'Community', icon: Users, desc: 'Events & members' },

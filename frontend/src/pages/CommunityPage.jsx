@@ -377,6 +377,30 @@ function MembersSection({ currentUser }) {
 
   useEffect(() => { fetchFriends(); }, [fetchFriends]);
 
+  const toggleFriend = async (user, e) => {
+    e.stopPropagation();
+    if (pendingFriendId) return;
+    const isFriend = friendIds.has(user.id);
+    setPendingFriendId(user.id);
+    try {
+      const data = isFriend ? await friendsApi.remove(user.id) : await friendsApi.add(user.id);
+      if (data.ok) {
+        setFriendIds(prev => {
+          const next = new Set(prev);
+          isFriend ? next.delete(user.id) : next.add(user.id);
+          return next;
+        });
+        toast?.(isFriend ? `Removed @${user.username}` : `Following @${user.username}!`, 'success');
+      } else {
+        toast?.(data.message || 'Something went wrong', 'error');
+      }
+    } catch (err) {
+      toast?.(err?.message || 'Something went wrong', 'error');
+    } finally {
+      setPendingFriendId(null);
+    }
+  };
+
   const openProfile = async (user) => {
     if (currentUser && user.id === currentUser.id) return;
     setSelectedUserId(user.id);
