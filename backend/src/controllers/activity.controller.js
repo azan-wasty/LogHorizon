@@ -8,7 +8,8 @@ async function getFeed(req, res) {
     try {
         const userId = req.user.id;
         const scope = (req.query.scope || "all").toLowerCase();
-        const type = req.query.type || null;
+        const rawType = req.query.type;
+        const type = rawType && rawType !== "undefined" && rawType !== "null" ? rawType : null;
         const limit = Math.min(parseInt(req.query.limit, 10) || 20, 50);
         const offset = parseInt(req.query.offset, 10) || 0;
 

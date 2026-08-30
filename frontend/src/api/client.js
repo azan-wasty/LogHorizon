@@ -177,7 +177,11 @@ export const friends = {
 // ── Activity feed ─────────────────────────────────
 export const activity = {
   feed: (params = {}) => {
-    const qs = new URLSearchParams(params).toString();
+    const clean = {};
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) clean[key] = value;
+    });
+    const qs = new URLSearchParams(clean).toString();
     return request(`/activity/feed${qs ? `?${qs}` : ''}`);
   },
   react: (activityId, emoji) => request(`/activity/${activityId}/react`, {

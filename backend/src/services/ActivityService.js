@@ -47,54 +47,77 @@ async function log(userId, type, contentId = null, rating = null, comment = null
 async function ensureSampleActivities() {
     try {
         const count = await prisma.activity.count();
-        if (count > 0) return;
+        if (count === 0) {
+            console.log("Backfilling sample activities from existing database records...");
 
-        console.log("Backfilling sample activities from existing database records...");
-        
-        // Pull reviews first (with comments)
-        const reviews = await prisma.review.findMany({ take: 20, orderBy: { createdAt: "desc" } });
-        for (const rev of reviews) {
-            await prisma.activity.create({
-                data: {
-                    userId: rev.userId,
-                    contentId: rev.contentId,
-                    type: "REVIEWED",
-                    rating: rev.rating,
-                    comment: rev.comment,
-                    createdAt: rev.createdAt,
-                }
+            // Pull reviews first (with comments)
+            const reviews = await prisma.review.findMany({ take: 20, orderBy: { createdAt: "desc" } });
+            for (const rev of reviews) {
+                await prisma.activity.create({
+                    data: {
+                        userId: rev.userId,
+                        contentId: rev.contentId,
+                        type: "REVIEWED",
+                        rating: rev.rating,
+                        comment: rev.comment,
+                        createdAt: rev.createdAt,
+                    }
+                });
+            }
+
+            // Pull library items
+            const libraryItems = await prisma.userLibrary.findMany({
+                take: 30,
+                orderBy: { updatedAt: "desc" },
             });
+            for (const item of libraryItems) {
+                const actType = item.status === "COMPLETED" ? "COMPLETED" : item.status === "CURRENT" ? "WATCHING" : "PLANNING";
+                await prisma.activity.create({
+                    data: {
+                        userId: item.userId,
+                        contentId: item.contentId,
+                        type: actType,
+                        rating: item.rating,
+                        createdAt: item.updatedAt || item.createdAt,
+                    }
+                });
+            }
+
+            // Pull favourites
+            const favs = await prisma.favourite.findMany({ take: 20, orderBy: { createdAt: "desc" } });
+            for (const fav of favs) {
+                await prisma.activity.create({
+                    data: {
+                        userId: fav.userId,
+                        contentId: fav.contentId,
+                        type: "FAVOURITED",
+                        createdAt: fav.createdAt,
+                    }
+                });
+            }
         }
 
-        // Pull library items
-        const libraryItems = await prisma.userLibrary.findMany({
-            take: 30,
-            orderBy: { updatedAt: "desc" },
-        });
-        for (const item of libraryItems) {
-            const actType = item.status === "COMPLETED" ? "COMPLETED" : item.status === "CURRENT" ? "WATCHING" : "PLANNING";
-            await prisma.activity.create({
-                data: {
-                    userId: item.userId,
-                    contentId: item.contentId,
-                    type: actType,
-                    rating: item.rating,
-                    createdAt: item.updatedAt || item.createdAt,
-                }
+        // Independently backfill RATED activities from existing ratings. This runs even when
+        // general activities already exist, since older seed/backfill data predates the
+        // Ratings feed filter and never created a distinct RATED-type activity row.
+        const ratedActivityCount = await prisma.activity.count({ where: { type: "RATED" } });
+        if (ratedActivityCount === 0) {
+            const ratedItems = await prisma.userLibrary.findMany({
+                where: { rating: { not: null } },
+                take: 50,
+                orderBy: { updatedAt: "desc" },
             });
-        }
-
-        // Pull favourites
-        const favs = await prisma.favourite.findMany({ take: 20, orderBy: { createdAt: "desc" } });
-        for (const fav of favs) {
-            await prisma.activity.create({
-                data: {
-                    userId: fav.userId,
-                    contentId: fav.contentId,
-                    type: "FAVOURITED",
-                    createdAt: fav.createdAt,
-                }
-            });
+            for (const item of ratedItems) {
+                await prisma.activity.create({
+                    data: {
+                        userId: item.userId,
+                        contentId: item.contentId,
+                        type: "RATED",
+                        rating: item.rating,
+                        createdAt: item.updatedAt || item.createdAt,
+                    }
+                });
+            }
         }
     } catch (err) {
         console.error("ensureSampleActivities error:", err);

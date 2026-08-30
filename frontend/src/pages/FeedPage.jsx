@@ -13,6 +13,12 @@ import {
 
 const REACTION_EMOJIS = ['🔥', '❤️', '🎉', '👏', '👀', '🚀'];
 
+// Module-level cache so switching filters/scopes or navigating away and back
+// doesn't refetch from the network every time. Lives for the SPA session
+// (cleared on a full page reload), keyed per scope+type combo.
+const feedCache = new Map();
+const FEED_CACHE_TTL = 45000; // 45s — after this, a cached view still renders instantly but revalidates in the background
+
 const ACTIVITY_CFG = {
   WATCHING: { verb: 'started watching', icon: Play, color: '#22d3ee', bg: 'rgba(34,211,238,0.12)', border: 'rgba(34,211,238,0.25)' },
   COMPLETED: { verb: 'completed', icon: Check, color: '#34d399', bg: 'rgba(52,211,153,0.12)', border: 'rgba(52,211,153,0.25)' },
@@ -540,9 +546,29 @@ export default function FeedPage({ onNavigate }) {
   const [profileLoading, setProfileLoading] = useState(false);
   const PAGE_SIZE = 15;
 
-  const fetchFeed = useCallback(async (offset = 0, isAppend = false) => {
-    if (offset === 0) setLoading(true);
-    else setLoadingMore(true);
+  const fetchFeed = useCallback(async (offset = 0, isAppend = false, { silent = false, force = false } = {}) => {
+    const cacheKey = `${scope}::${typeFilter}`;
+
+    // Serve cached results instantly for a fresh (offset 0) load, then
+    // silently revalidate in the background if the cache has gone stale.
+    if (offset === 0 && !isAppend && !force) {
+      const cached = feedCache.get(cacheKey);
+      if (cached) {
+        setActivities(cached.activities);
+        setHasMore(cached.hasMore);
+        setTotal(cached.total);
+        setLoading(false);
+        if (Date.now() - cached.ts > FEED_CACHE_TTL) {
+          fetchFeed(0, false, { silent: true, force: true });
+        }
+        return;
+      }
+    }
+
+    if (!silent) {
+      if (offset === 0) setLoading(true);
+      else setLoadingMore(true);
+    }
 
     try {
       const res = await activityApi.feed({
@@ -553,15 +579,21 @@ export default function FeedPage({ onNavigate }) {
       });
 
       if (res.ok) {
-        setActivities(prev => isAppend ? [...prev, ...res.activities] : res.activities);
+        setActivities(prev => {
+          const next = isAppend ? [...prev, ...res.activities] : res.activities;
+          feedCache.set(cacheKey, { activities: next, hasMore: res.hasMore, total: res.total, ts: Date.now() });
+          return next;
+        });
         setHasMore(res.hasMore);
         setTotal(res.total);
       }
     } catch (err) {
-      toast('Failed to load activity feed', 'error');
+      if (!silent) toast('Failed to load activity feed', 'error');
     } finally {
-      setLoading(false);
-      setLoadingMore(false);
+      if (!silent) {
+        setLoading(false);
+        setLoadingMore(false);
+      }
     }
   }, [scope, typeFilter, toast]);
 
@@ -571,17 +603,38 @@ export default function FeedPage({ onNavigate }) {
     }
   }, [fetchFeed, authLoading]);
 
-  const handleLoadMore = () => {
-    fetchFeed(activities.length, true);
-  };
+  // ── Auto-load more when the sentinel at the bottom scrolls into view ──
+  const sentinelRef = useRef(null);
+  useEffect(() => {
+    if (!hasMore || loading) return;
+    const el = sentinelRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loadingMore) {
+          fetchFeed(activities.length, true);
+        }
+      },
+      { rootMargin: '300px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore, loading, loadingMore, activities.length, fetchFeed]);
 
   const handleReactionUpdate = (activityId, reactionCounts, userReactions) => {
-    setActivities(prev => prev.map(act => {
-      if (act.id === activityId) {
-        return { ...act, reactionCounts, userReactions };
-      }
-      return act;
-    }));
+    setActivities(prev => {
+      const next = prev.map(act => {
+        if (act.id === activityId) {
+          return { ...act, reactionCounts, userReactions };
+        }
+        return act;
+      });
+      const cacheKey = `${scope}::${typeFilter}`;
+      const cached = feedCache.get(cacheKey);
+      if (cached) feedCache.set(cacheKey, { ...cached, activities: next });
+      return next;
+    });
   };
 
   const openProfile = async (targetUser) => {
@@ -638,8 +691,8 @@ export default function FeedPage({ onNavigate }) {
         }} />
       </div>
 
-        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 32, maxWidth: 840, margin: '0 auto' }} className="feed-page">
-          <style>{`
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 32, maxWidth: 840, margin: '0 auto' }} className="feed-page">
+        <style>{`
             @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
             @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
             @keyframes spin { to { transform:rotate(360deg); } }
@@ -675,7 +728,7 @@ export default function FeedPage({ onNavigate }) {
           </div>
 
           <button
-            onClick={() => fetchFeed(0, false)}
+            onClick={() => fetchFeed(0, false, { force: true })}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
               padding: '9px 14px', borderRadius: 12,
@@ -736,7 +789,7 @@ export default function FeedPage({ onNavigate }) {
                 onClick={() => setTypeFilter(chip.id)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '7px 14px', borderRadius: 10, cursor: 'pointer',
+                  padding: '6px 12px', borderRadius: 10, cursor: 'pointer',
                   border: active ? '1px solid rgba(124,58,237,0.4)' : '1px solid rgba(255,255,255,0.06)',
                   background: active ? 'rgba(124,58,237,0.15)' : 'rgba(255,255,255,0.02)',
                   color: active ? '#fff' : '#6b7280',
@@ -745,7 +798,7 @@ export default function FeedPage({ onNavigate }) {
                   whiteSpace: 'nowrap', transition: 'all 0.15s',
                 }}
               >
-                {chip.icon && <chip.icon size={12} color={active ? '#7C3AED' : '#6b7280'} />}
+                {chip.icon && <chip.icon size={10} color={active ? '#7C3AED' : '#6b7280'} />}
                 {chip.label}
               </button>
             );
@@ -805,27 +858,24 @@ export default function FeedPage({ onNavigate }) {
           </div>
         )}
 
-        {/* ── Load More Button ───────────────────────── */}
-        {hasMore && !loading && (
-          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 10, paddingBottom: 40 }}>
-            <button
-              onClick={handleLoadMore}
-              disabled={loadingMore}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                padding: '12px 28px', borderRadius: 20,
-                background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.3)',
-                fontFamily: 'var(--font-mono)', fontSize: '0.7rem', fontWeight: 700,
-                color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.12em',
-                cursor: loadingMore ? 'default' : 'pointer', transition: 'all 0.2s',
-                opacity: loadingMore ? 0.6 : 1,
-              }}
-              onMouseEnter={e => { if (!loadingMore) { e.currentTarget.style.background = 'rgba(124,58,237,0.2)'; e.currentTarget.style.color = '#fff'; } }}
-              onMouseLeave={e => { if (!loadingMore) { e.currentTarget.style.background = 'rgba(124,58,237,0.1)'; e.currentTarget.style.color = '#a78bfa'; } }}
-            >
-              {loadingMore ? <Loader2 size={14} className="animate-spin" /> : <ChevronDown size={14} />}
-              Load More Transmissions ({total - activities.length} remaining)
-            </button>
+        {/* ── Auto-loading pagination ─────────────────── */}
+        {hasMore && (
+          <div ref={sentinelRef} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: 10, paddingBottom: 40, minHeight: 50 }}>
+            {loadingMore && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Loader2 size={16} color="#7C3AED" className="animate-spin" />
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  Loading more transmissions...
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+        {!hasMore && !loading && activities.length > 0 && (
+          <div style={{ textAlign: 'center', paddingTop: 10, paddingBottom: 40 }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+              End of stream • {total} transmission{total === 1 ? '' : 's'} total
+            </span>
           </div>
         )}
       </div>

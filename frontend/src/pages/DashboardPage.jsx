@@ -100,7 +100,7 @@ function ActivityFeedSection({ onNavigate }) {
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(false);
-    const PAGE_SIZE = 10;
+    const PAGE_SIZE = 5;
 
     const load = async (offset = 0) => {
         try {

@@ -578,12 +578,39 @@ export default function ProfilePage({ onNavigate }) {
          .profile-page { display:flex; flex-direction:column; gap:24px; animation:fadeUp 0.5s ease; }
          .avatar-wrap:hover .avatar-overlay { opacity:1; }
          .avatar-overlay { opacity:0; transition:opacity 0.2s; }
+
+         .library-grid {
+           display: grid;
+           grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+           gap: 14px;
+         }
+
          @media (max-width: 768px) {
-           .profile-page { gap: 20px !important; }
-           .profile-page .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+           .profile-page { gap: 16px !important; }
+
+           /* Hero card: stop hugging desktop padding, stack instead of cramming a row */
+           .profile-page .hero-inner { padding: 20px 16px 22px !important; }
+           .profile-page .hero-row { flex-direction: column !important; align-items: center !important; gap: 18px !important; text-align: center; }
+           .profile-page .identity-block { min-width: 0 !important; width: 100%; }
+           .profile-page .identity-block p { max-width: none !important; }
+           .profile-page .hero-username { font-size: 1.4rem !important; justify-content: center; }
+           .profile-page .hero-username-row { justify-content: center !important; }
+
+           /* Stats cluster: full width 2x2 instead of a squished side column */
+           .profile-page .stats-grid { grid-template-columns: repeat(2, 1fr) !important; width: 100%; gap: 8px !important; }
+           .profile-page .stats-grid > div { padding: 10px 12px !important; min-width: 0 !important; }
+
+           .profile-page .now-watching-row { justify-content: center !important; }
+
+           .profile-page .library-grid { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)) !important; gap: 10px !important; }
+           .profile-page .fav-card { width: 140px !important; }
+           .profile-page .pinned-ach-grid { grid-template-columns: 1fr !important; }
+
            .profile-page .list-view { overflow-x: auto; -webkit-overflow-scrolling: touch; }
            .profile-page .list-view > div { min-width: 600px; }
-           .profile-page .pinned-ach-grid { grid-template-columns: 1fr !important; }
+
+           .profile-page .library-tabs-row { flex-direction: column !important; align-items: stretch !important; }
+           .profile-page .library-tabs-row > div { width: 100%; justify-content: space-between; }
          }
        `}</style>
 
@@ -626,8 +653,8 @@ export default function ProfilePage({ onNavigate }) {
 
             <div style={{ height: 3, background: 'linear-gradient(90deg, #7C3AED 0%, #22d3ee 50%, #f472b6 100%)' }} />
 
-            <div style={{ position: 'relative', zIndex: 1, padding: '28px 32px 32px' }}>
-              <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+            <div className="hero-inner" style={{ position: 'relative', zIndex: 1, padding: '28px 32px 32px' }}>
+              <div className="hero-row" style={{ display: 'flex', gap: 28, flexWrap: 'wrap', alignItems: 'flex-start' }}>
 
                 {/* Avatar */}
                 <div
@@ -651,9 +678,9 @@ export default function ProfilePage({ onNavigate }) {
                 </div>
 
                 {/* Identity + DNA */}
-                <div style={{ flex: 1, minWidth: 240 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 6 }}>
-                    <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.8rem', color: '#fff', lineHeight: 1 }}>
+                <div className="identity-block" style={{ flex: 1, minWidth: 240 }}>
+                  <div className="hero-username-row" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 6 }}>
+                    <h1 className="hero-username" style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.8rem', color: '#fff', lineHeight: 1 }}>
                       {user.username}
                     </h1>
                     <button
@@ -708,7 +735,7 @@ export default function ProfilePage({ onNavigate }) {
                     <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22d3ee', boxShadow: '0 0 8px #22d3ee', animation: 'pulse 2s infinite' }} />
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#22d3ee', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Now Watching</span>
                   </div>
-                  <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
+                  <div className="now-watching-row" style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
                     {current.slice(0, 8).map(e => (
                       <div
                         key={e.id}
@@ -815,6 +842,7 @@ export default function ProfilePage({ onNavigate }) {
                   return (
                     <div
                       key={fav.id || item.id}
+                      className="fav-card"
                       onClick={() => onNavigate(`content/${item.id}`)}
                       style={{
                         flexShrink: 0, width: 200, position: 'relative', cursor: 'pointer',
@@ -867,7 +895,7 @@ export default function ProfilePage({ onNavigate }) {
           {/* ── LIBRARY SECTION ── */}
           <div style={{ marginTop: 20, animation: 'fadeUp 0.5s 0.14s ease both' }}>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, flexWrap: 'wrap', gap: 12 }}>
+            <div className="library-tabs-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, flexWrap: 'wrap', gap: 12 }}>
               <div style={{ display: 'flex', gap: 4, padding: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 14, border: '1px solid rgba(255,255,255,0.06)' }}>
                 {TABS.map(tab => (
                   <button
@@ -930,7 +958,7 @@ export default function ProfilePage({ onNavigate }) {
                 </button>
               </div>
             ) : viewMode === 'grid' ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 14 }}>
+              <div className="library-grid">
                 {tabItems.map((entry, i) => (
                   <div key={entry.id} style={{ animation: `fadeUp 0.35s ${i * 30}ms ease both` }}>
                     <GridCard entry={entry} onNavigate={onNavigate} onRemove={removeItem} />

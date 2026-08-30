@@ -520,7 +520,8 @@ export default function Layout({ children, currentPage, onNavigate }) {
           .desktop-sidebar { transform: translateX(-100%); }
           .desktop-sidebar.mobile-open { transform: translateX(0) !important; }
           .sidebar-toggle { display: none !important; }
-          .main-content-wrapper { padding: 24px 20px !important; }
+          .main-content-wrapper { padding: 24px 20px !important; max-width: 100vw !important; }
+          .main-content-area, .main-content-wrapper, .mobile-header { min-width: 0 !important; max-width: 100vw !important; overflow-x: hidden; }
         }
         @media (min-width: 1024px) {
           .mobile-header { border-bottom: none; background: transparent !important; height: 0 !important; overflow: hidden; }
@@ -553,6 +554,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
       {/* Main content */}
       <div style={{
         flex: 1,
+        minWidth: 0,
         display: 'flex',
         flexDirection: 'column',
         paddingLeft: isCollapsed ? 80 : 240,
@@ -563,6 +565,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
         {/* Mobile header */}
         <header style={{
           height: 58,
+          minWidth: 0,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -618,6 +621,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
           className="main-content-wrapper"
           style={{
             flex: 1,
+            minWidth: 0,
             padding: '36px 40px',
             maxWidth: 1440,
             width: '100%',
