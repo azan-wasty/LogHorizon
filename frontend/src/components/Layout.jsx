@@ -516,7 +516,6 @@ export default function Layout({ children, currentPage, onNavigate }) {
         @media (max-width: 1024px) {
           .main-content-area { padding-left: 0 !important; }
           .mobile-header { display: flex !important; }
-          .mobile-menu-btn { display: flex !important; }
           .desktop-sidebar { transform: translateX(-100%); }
           .desktop-sidebar.mobile-open { transform: translateX(0) !important; }
           .sidebar-toggle { display: none !important; }
