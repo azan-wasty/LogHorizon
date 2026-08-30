@@ -239,7 +239,18 @@ export default function ContentStudio() {
   };
 
   return (
-    <div className="space-y-10">
+    <div className="admin-page space-y-10">
+      <style>{`
+        @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+        @media (max-width: 768px) {
+          .admin-page { padding: 0 !important; }
+          .admin-page .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .admin-page table { font-size: 0.75rem; }
+          .admin-page .glass-panel { margin: 0 16px; border-radius: var(--radius); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+          .admin-page .modal-content { max-width: 100% !important; margin: 0 !important; border-radius: 0 !important; }
+          .admin-page .form-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+        }
+      `}</style>
       {/* Page Header */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-1">
@@ -272,8 +283,8 @@ export default function ContentStudio() {
         </div>
       </header>
 
-      {/* Stats Board */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+       {/* Stats Board */}
+       <div className="stats-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
           { label: 'Total Index', value: content.length, icon: Database, color: 'text-electric-purple', bg: 'bg-electric-purple/10' },
           { label: 'Active Tags', value: tags.length, icon: TagIcon, color: 'text-cyan-400', bg: 'bg-cyan-400/10' },
@@ -847,18 +858,18 @@ export default function ContentStudio() {
       {/* Manual Entry Form Modal (Keep condensed) */}
       {showForm && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 backdrop-blur-md bg-black/60 overflow-y-auto">
-          <div className="w-full max-w-2xl bg-charcoal border border-white/10 rounded-2xl shadow-2xl flex flex-col relative animate-fade-up">
-            <div className="h-1.5 bg-gradient-to-r from-electric-purple to-accent-violet rounded-t-2xl" />
+           <div className="w-full max-w-2xl bg-charcoal border border-white/10 rounded-2xl shadow-2xl flex flex-col relative animate-fade-up modal-content">
+             <div className="h-1.5 bg-gradient-to-r from-electric-purple to-accent-violet rounded-t-2xl" />
 
-            <div className="p-8 border-b border-white/5 flex justify-between items-center">
-              <h2 className="text-xl font-display font-bold text-white">
-                {editId ? 'Modify Record' : 'Create New Asset'}
-              </h2>
-              <button onClick={() => setShowForm(false)} className="text-gray-500 hover:text-white"><XCircle size={24} /></button>
-            </div>
+             <div className="p-8 border-b border-white/5 flex justify-between items-center">
+               <h2 className="text-xl font-display font-bold text-white">
+                 {editId ? 'Modify Record' : 'Create New Asset'}
+               </h2>
+               <button onClick={() => setShowForm(false)} className="text-gray-500 hover:text-white"><XCircle size={24} /></button>
+             </div>
 
-            <div className="p-8 overflow-y-auto max-h-[70vh] space-y-6">
-              <div className="grid grid-cols-2 gap-6">
+             <div className="p-8 overflow-y-auto max-h-[70vh] space-y-6">
+               <div className="form-grid grid grid-cols-2 gap-6">
                 <div>
                   <label className="block text-[10px] font-mono uppercase tracking-widest text-gray-500 mb-2">Category</label>
                   <select

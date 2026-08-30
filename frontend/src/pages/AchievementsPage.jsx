@@ -75,9 +75,20 @@ export default function AchievementsPage({ onNavigate }) {
   };
 
   return (
-    <div style={{ maxWidth: 820, margin: '0 auto', padding: '32px 20px 80px' }}>
+    <>
+      <style>{`
+        @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+        @media (max-width: 768px) {
+          .ach-page { padding: 20px 16px 80px !important; }
+          .ach-page h1 { font-size: 1.2rem !important; }
+          .ach-page .ach-count { font-size: 0.6rem !important; margin-bottom: 20px !important; }
+          .ach-page .back-link { font-size: 0.6rem !important; margin-bottom: 16px !important; }
+        }
+      `}</style>
+      <div className="ach-page" style={{ maxWidth: 820, margin: '0 auto', padding: '32px 20px 80px' }}>
       <button
         onClick={() => onNavigate?.('profile')}
+        className="back-link"
         style={{
           display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24,
           background: 'none', border: 'none', cursor: 'pointer',
@@ -92,7 +103,7 @@ export default function AchievementsPage({ onNavigate }) {
         <Award size={22} color="#fbbf24" fill="rgba(251,191,36,0.3)" />
         <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.4rem', color: '#fff' }}>Achievements</h1>
       </div>
-      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 28 }}>
+      <p className="ach-count" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 28 }}>
         {(achievements || []).length} unlocked · {pinnedCount}/{MAX_PINNED} pinned to your profile
       </p>
 
@@ -114,6 +125,7 @@ export default function AchievementsPage({ onNavigate }) {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

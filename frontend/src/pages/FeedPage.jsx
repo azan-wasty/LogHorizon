@@ -638,13 +638,19 @@ export default function FeedPage({ onNavigate }) {
         }} />
       </div>
 
-      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 32, maxWidth: 840, margin: '0 auto' }}>
-        <style>{`
-          @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
-          @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
-          @keyframes spin { to { transform:rotate(360deg); } }
-          @keyframes slideInRight { from { transform:translateX(100%); } to { transform:translateX(0); } }
-        `}</style>
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 32, maxWidth: 840, margin: '0 auto' }} className="feed-page">
+          <style>{`
+            @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+            @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+            @keyframes spin { to { transform:rotate(360deg); } }
+            @keyframes slideInRight { from { transform:translateX(100%); } to { transform:translateX(0); } }
+            @media (max-width: 768px) {
+              .feed-page { gap: 24px !important; }
+              .feed-page h1 { font-size: 1.6rem !important; }
+              .feed-page .scope-tabs { grid-template-columns: 1fr !important; }
+              .feed-page .profile-panel { max-width: 100% !important; right: 0 !important; left: 0 !important; bottom: 0 !important; top: auto !important; max-height: 50vh !important; border-left: none !important; border-top: 1px solid rgba(255,255,255,0.07) !important; }
+            }
+          `}</style>
 
         {/* ── Header ─────────────────────────────────── */}
         <header style={{ animation: 'fadeUp 0.4s ease', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
@@ -686,7 +692,7 @@ export default function FeedPage({ onNavigate }) {
         </header>
 
         {/* ── Scope Tabs ─────────────────────────────── */}
-        <div style={{
+        <div className="scope-tabs" style={{
           display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8,
           padding: 6, background: 'rgba(255,255,255,0.03)',
           border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16,
@@ -832,7 +838,7 @@ export default function FeedPage({ onNavigate }) {
             position: 'fixed', right: 0, top: 0, bottom: 0, zIndex: 160, width: '100%', maxWidth: 340,
             background: '#0e0e16', borderLeft: '1px solid rgba(255,255,255,0.07)',
             overflowY: 'auto', animation: 'slideInRight 0.25s ease',
-          }}>
+          }} className="profile-panel">
             <div style={{ height: 2, background: 'linear-gradient(90deg, #7C3AED, #22d3ee)' }} />
             <div style={{ padding: '20px 22px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '0.95rem', color: '#fff' }}>Member Profile</h3>

@@ -582,7 +582,7 @@ function MembersSection({ currentUser }) {
                 </div>
 
                 {/* Stats */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                <div className="profile-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                   {[
                     { label: 'Total', value: profile.stats.total, color: '#7C3AED' },
                     { label: 'Done', value: profile.stats.completed, color: '#34d399' },
@@ -639,28 +639,28 @@ function MembersSection({ currentUser }) {
                   </div>
                 )}
 
-                {/* Favourites */}
-                {profile.favourites?.length > 0 && (
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
-                      <Heart size={13} color="#f472b6" fill="rgba(244,114,182,0.3)" />
-                      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#f472b6', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Favourites</p>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
-                      {profile.favourites.slice(0, 8).map(c => (
-                        <div key={c.id} style={{ aspectRatio: '3/4', borderRadius: 8, overflow: 'hidden', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(244,114,182,0.15)', position: 'relative' }}>
-                          {c.coverImage ? <img src={c.coverImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={c.title} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Heart size={10} color="#f472b6" /></div>}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                     {/* Favourites */}
+                     {profile.favourites?.length > 0 && (
+                       <div>
+                         <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+                           <Heart size={13} color="#f472b6" fill="rgba(244,114,182,0.3)" />
+                           <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#f472b6', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Favourites</p>
+                         </div>
+                         <div className="profile-covers" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+                           {profile.favourites.slice(0, 8).map(c => (
+                             <div key={c.id} style={{ aspectRatio: '3/4', borderRadius: 8, overflow: 'hidden', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(244,114,182,0.15)', position: 'relative' }}>
+                               {c.coverImage ? <img src={c.coverImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={c.title} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Heart size={10} color="#f472b6" /></div>}
+                             </div>
+                           ))}
+                         </div>
+                       </div>
+                     )}
 
-                {/* Completed covers */}
-                {profile.completed.length > 0 && (
-                  <div>
-                    <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 10 }}>Completed</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+                     {/* Completed covers */}
+                     {profile.completed.length > 0 && (
+                       <div>
+                         <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 10 }}>Completed</p>
+                         <div className="profile-covers" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
                       {profile.completed.slice(0, 12).map(c => (
                         <div key={c.id} style={{ aspectRatio: '3/4', borderRadius: 8, overflow: 'hidden', background: 'rgba(255,255,255,0.05)' }}>
                           {c.coverImage ? <img src={c.coverImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={c.title} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Database size={12} color="#374151" /></div>}
@@ -883,13 +883,15 @@ export default function CommunityPage({ onNavigate }) {
           gap: 14px;
         }
 
-        @media (max-width: 768px) {
-          .community-content { gap: 24px !important; }
-          .community-grid { grid-template-columns: 1fr; gap: 12px; }
-          .social-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
-          .community-header h1 { font-size: 1.6rem !important; }
-          .tab-container { overflow-x: auto; padding-bottom: 8px; }
-        }
+         @media (max-width: 768px) {
+           .community-content { gap: 24px !important; }
+           .community-grid { grid-template-columns: 1fr; gap: 12px; }
+           .social-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+           .community-header h1 { font-size: 1.6rem !important; }
+           .tab-container { overflow-x: auto; padding-bottom: 8px; }
+           .profile-stats { grid-template-columns: repeat(2, 1fr) !important; }
+           .profile-covers { grid-template-columns: repeat(2, 1fr) !important; }
+         }
       `}</style>
 
         {/* Header */}

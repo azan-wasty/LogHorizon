@@ -822,13 +822,18 @@ export default function ContentPage({ id, goBack }) {
         {/* ── MAIN LAYOUT ── */}
         <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 60, alignItems: 'start' }} className="content-main-grid">
           <style>{`
-            @media (max-width: 1024px) {
-              .content-page-wrapper { padding: 24px 20px 80px !important; }
-              .content-main-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
-              .content-left-col { position: relative !important; top: 0 !important; width: 100% !important; max-width: 320px !important; margin: 0 auto !important; }
-              .content-top-nav { margin-bottom: 24px !important; }
-              .fav-text { display: none; }
-            }
+           @media (max-width: 1024px) {
+               .content-page-wrapper { padding: 24px 20px 80px !important; }
+               .content-main-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+               .content-left-col { position: relative !important; top: 0 !important; width: 100% !important; max-width: 320px !important; margin: 0 auto !important; }
+               .content-top-nav { margin-bottom: 24px !important; }
+               .fav-text { display: none; }
+             }
+             @media (max-width: 768px) {
+               .content-page-wrapper { padding: 16px 16px 80px !important; }
+               .content-top-nav { flex-direction: column; gap: 12px; align-items: flex-start !important; }
+               .content-actions { flex-wrap: wrap; }
+             }
           `}</style>
 
           {/* ════════════════════════════════

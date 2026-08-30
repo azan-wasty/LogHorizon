@@ -573,12 +573,18 @@ export default function ProfilePage({ onNavigate }) {
 
   return (
     <>
-      <style>{`
-        @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
-        .profile-page { display:flex; flex-direction:column; gap:24px; animation:fadeUp 0.5s ease; }
-        .avatar-wrap:hover .avatar-overlay { opacity:1; }
-        .avatar-overlay { opacity:0; transition:opacity 0.2s; }
-      `}</style>
+       <style>{`
+         @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+         .profile-page { display:flex; flex-direction:column; gap:24px; animation:fadeUp 0.5s ease; }
+         .avatar-wrap:hover .avatar-overlay { opacity:1; }
+         .avatar-overlay { opacity:0; transition:opacity 0.2s; }
+         @media (max-width: 768px) {
+           .profile-page { gap: 20px !important; }
+           .profile-page .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+           .profile-page .list-view { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+           .profile-page .list-view > div { min-width: 600px; }
+         }
+       `}</style>
 
       <div className="profile-page" style={{ position: 'relative' }}>
         <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.2 }}>
@@ -668,7 +674,7 @@ export default function ProfilePage({ onNavigate }) {
                 </div>
 
                 {/* Stats cluster */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, flexShrink: 0 }}>
+                <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, flexShrink: 0 }}>
                   {[
                     { label: 'Total', value: library.length, color: '#8B5CF6' },
                     { label: 'Completed', value: completed.length, color: '#34d399' },
@@ -931,7 +937,7 @@ export default function ProfilePage({ onNavigate }) {
                 ))}
               </div>
             ) : (
-              <div style={{ background: 'rgba(18,18,30,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 18, overflow: 'hidden' }}>
+              <div className="list-view" style={{ background: 'rgba(18,18,30,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 18, overflow: 'hidden' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '24px 52px 1fr auto auto', gap: 14, padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}>
                   {['#', '', 'Title', 'Rating', ''].map((h, i) => (
                     <span key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{h}</span>
