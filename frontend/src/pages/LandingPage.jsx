@@ -11,8 +11,6 @@ const CATEGORY_COLORS = {
   TV: '#34d399',
 };
 
-// Fisher-Yates shuffle — keeps the trail from spawning catalog entries in the
-// same fixed (rating-sorted) order on every page load
 function shuffleArray(arr) {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -30,8 +28,6 @@ export default function LandingPage({ onNavigate }) {
   const cardIndexRef = useRef(0);
   const mediaPoolRef = useRef([]);
 
-  // Real catalog entries for the mouse-trail poster effect — was a hardcoded
-  // placeholder array before, now pulled from the public /content endpoint
   const { data: contentData } = useQuery({
     queryKey: ['landing-trail-media'],
     queryFn: () => contentApi.list({ limit: 60, offset: 0, sort: 'rating' }),
@@ -41,22 +37,19 @@ export default function LandingPage({ onNavigate }) {
 
   useEffect(() => {
     const items = contentData?.content || [];
-    // Only titles with a real cover image make sense in the trail
     const withCovers = items.filter((item) => !!item.coverImage);
     mediaPoolRef.current = shuffleArray(withCovers);
   }, [contentData]);
 
-  // Mouse path poster trail generation
   useEffect(() => {
     const handleMouseMove = (e) => {
       const pool = mediaPoolRef.current;
-      if (pool.length === 0) return; // catalog hasn't loaded (or is empty) yet
+      if (pool.length === 0) return;
 
       const dx = e.clientX - lastMousePos.current.x;
       const dy = e.clientY - lastMousePos.current.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
-      // Spawn a new poster card every 80px traveled by cursor
       if (dist > 80) {
         lastMousePos.current = { x: e.clientX, y: e.clientY };
 
@@ -119,8 +112,8 @@ export default function LandingPage({ onNavigate }) {
 
         .lh-hero-title {
           font-family: var(--font-superhead);
-          font-size: clamp(3.2rem, 9.5vw, 7.5rem);
-          line-height: 0.9;
+          font-size: clamp(2.8rem, 12vw, 7.5rem);
+          line-height: 0.95;
           letter-spacing: 0.02em;
           text-transform: uppercase;
           max-width: 1050px;
@@ -148,10 +141,49 @@ export default function LandingPage({ onNavigate }) {
           will-change: transform, opacity;
         }
 
+        .lh-hero-actions {
+          display: flex;
+          gap: 16px;
+          justify-content: center;
+          width: 100%;
+          max-width: 420px;
+        }
+
         @media (max-width: 768px) {
           .lh-trail-card { display: none; }
-          .lh-nav { padding: 20px !important; }
-          .lh-footer { padding: 20px !important; flex-direction: column !important; gap: 16px !important; text-align: center; }
+          .lh-nav { 
+            padding: 16px 20px !important; 
+          }
+          .lh-brand-text {
+            font-size: 1.05rem !important;
+          }
+          .lh-nav-actions {
+            gap: 10px !important;
+          }
+          .lh-nav-signin {
+            font-size: 0.75rem !important;
+            white-space: nowrap !important;
+          }
+          .lh-nav-getstarted {
+            padding: 8px 16px !important;
+            font-size: 0.75rem !important;
+            white-space: nowrap !important;
+          }
+          .lh-hero-actions {
+            flex-direction: column;
+            padding: 0 16px;
+            gap: 12px;
+          }
+          .lh-hero-actions button {
+            width: 100%;
+            justify-content: center;
+          }
+          .lh-footer { 
+            padding: 20px !important; 
+            flex-direction: column !important; 
+            gap: 8px !important; 
+            text-align: center; 
+          }
         }
       `}</style>
 
@@ -171,17 +203,18 @@ export default function LandingPage({ onNavigate }) {
           }}
           className="lh-nav"
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: 'linear-gradient(135deg, var(--electric-purple), var(--accent-violet))', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(124,58,237,0.4)' }}>
-              <Hexagon size={20} color="#fff" fill="#fff" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 30, height: 30, borderRadius: 8, background: 'linear-gradient(135deg, var(--electric-purple), var(--accent-violet))', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(124,58,237,0.4)', flexShrink: 0 }}>
+              <Hexagon size={18} color="#fff" fill="#fff" />
             </div>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.25rem', letterSpacing: '-0.02em' }}>
+            <span className="lh-brand-text" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.25rem', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>
               LOG<span style={{ color: 'var(--electric-purple)' }}>HORIZON</span>
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }} className="lh-nav-actions">
             <button
+              className="lh-nav-signin"
               onClick={() => setAuthModal('login')}
               style={{
                 fontFamily: 'var(--font-display)',
@@ -201,7 +234,7 @@ export default function LandingPage({ onNavigate }) {
               Sign In
             </button>
             <button
-              className="btn-primary"
+              className="btn-primary lh-nav-getstarted"
               onClick={() => setAuthModal('register')}
               style={{ padding: '10px 22px', fontSize: '0.8rem' }}
             >
@@ -264,18 +297,16 @@ export default function LandingPage({ onNavigate }) {
             alignItems: 'center',
             justifyContent: 'center',
             textAlign: 'center',
-            padding: '40px 24px',
+            padding: '32px 20px',
             margin: 'auto 0',
           }}
         >
-
-
-          <h1 className="lh-hero-title" style={{ marginBottom: 36 }}>
+          <h1 className="lh-hero-title" style={{ marginBottom: 32 }}>
             Organize Your Taste <br />
             <span className="lh-title-gradient">All In One Place</span>
           </h1>
 
-          <div style={{ display: 'flex', gap: 16 }}>
+          <div className="lh-hero-actions">
             <button className="btn-primary" onClick={() => setAuthModal('register')}>
               Get Started <ArrowUpRight size={18} />
             </button>
@@ -317,4 +348,4 @@ export default function LandingPage({ onNavigate }) {
       </div>
     </>
   );
-} 
+}
