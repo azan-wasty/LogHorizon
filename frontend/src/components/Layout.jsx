@@ -16,10 +16,11 @@ import {
   Zap,
   PanelLeftClose,
   PanelLeftOpen,
+  Home,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, desc: 'Overview & picks' },
+  { id: 'home', label: 'Home', icon: Home, desc: 'Overview & picks' },
   { id: 'feed', label: 'Feed', icon: Activity, desc: 'Social stream' },
   { id: 'discover', label: 'Discover', icon: Compass, desc: 'Browse index' },
   { id: 'profile', label: 'My Profile', icon: User, desc: 'Library & stats' },
@@ -676,7 +677,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
                   )}
                 </div>
                 <span style={{ fontSize: '0.6rem', fontWeight: active ? 700 : 500, fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
-                  {item.label === 'Dashboard' ? 'Feed' : item.label.split(' ')[0]}
+                  {item.label === 'Dashboard' ? 'Home' : item.label.split(' ')[0]}
                 </span>
               </button>
             );

@@ -8,7 +8,7 @@ import { useToast } from '../hooks/useToast';
 import {
     Sparkles, Star, ExternalLink, Zap, Compass,
     ChevronRight, Loader2, TrendingUp, Database,
-    Hash, Settings2, BarChart3, Award, Activity,
+    Hash, Settings2, BarChart3, Activity,
     Play, Bookmark, Check, ArrowUpRight, Heart,
     MessageSquare, Users, ChevronDown,
 } from 'lucide-react';
@@ -51,34 +51,46 @@ function ActivityRow({ item, onNavigate, i }) {
     return (
         <div
             style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                padding: '12px 14px', borderRadius: 12,
+                display: 'flex', alignItems: 'flex-start', gap: 10,
+                padding: '10px 12px', borderRadius: 12,
                 background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)',
                 animation: `fadeUp 0.35s ${i * 40}ms ease both`,
+                width: '100%', maxWidth: '100%', boxSizing: 'border-box',
+                minWidth: 0, overflow: 'hidden',
             }}
         >
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+            <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
                 {item.user?.avatarUrl
                     ? <img src={item.user.avatarUrl} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '0.7rem', color: '#9ca3af' }}>{item.user?.username?.[0]?.toUpperCase() || '?'}</span>}
+                    : <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '0.62rem', color: '#9ca3af' }}>{item.user?.username?.[0]?.toUpperCase() || '?'}</span>}
             </div>
-            <div style={{ width: 22, height: 22, borderRadius: 7, background: `${cfg.color}18`, border: `1px solid ${cfg.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Icon size={12} color={cfg.color} />
+
+            <div style={{ flex: '1 1 0%', minWidth: 0, maxWidth: '100%', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <p style={{
+                    margin: 0,
+                    fontFamily: 'var(--font-body)', fontSize: '0.78rem', color: '#d1d5db', lineHeight: 1.35,
+                    display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden', wordBreak: 'break-word', overflowWrap: 'anywhere',
+                }}>
+                    <span style={{ fontWeight: 700, color: '#fff' }}>@{item.user?.username}</span>{' '}
+                    <span style={{ color: '#6b7280' }}>{cfg.verb}</span>{' '}
+                    {item.content ? (
+                        <span
+                            onClick={() => onNavigate(`content/${item.content.id}`)}
+                            style={{ color: cfg.color, cursor: 'pointer', fontWeight: 600 }}
+                        >
+                            {item.content.title}
+                        </span>
+                    ) : null}
+                    {item.type === 'RATED' && item.rating ? <span style={{ color: '#fbbf24' }}> · {item.rating}/10</span> : null}
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <div style={{ width: 16, height: 16, borderRadius: 5, background: `${cfg.color}18`, border: `1px solid ${cfg.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Icon size={9} color={cfg.color} />
+                    </div>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: '#4b5563' }}>{timeAgo(item.createdAt)}</span>
+                </div>
             </div>
-            <p style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-body)', fontSize: '0.82rem', color: '#d1d5db', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                <span style={{ fontWeight: 700, color: '#fff' }}>@{item.user?.username}</span>{' '}
-                <span style={{ color: '#6b7280' }}>{cfg.verb}</span>{' '}
-                {item.content ? (
-                    <span
-                        onClick={() => onNavigate(`content/${item.content.id}`)}
-                        style={{ color: cfg.color, cursor: 'pointer', fontWeight: 600 }}
-                    >
-                        {item.content.title}
-                    </span>
-                ) : null}
-                {item.type === 'RATED' && item.rating ? <span style={{ color: '#fbbf24' }}> · {item.rating}/10</span> : null}
-            </p>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#4b5563', flexShrink: 0 }}>{timeAgo(item.createdAt)}</span>
         </div>
     );
 }
@@ -88,7 +100,7 @@ function ActivityFeedSection({ onNavigate }) {
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(false);
-    const PAGE_SIZE = 5;
+    const PAGE_SIZE = 10;
 
     const load = async (offset = 0) => {
         try {
@@ -113,7 +125,7 @@ function ActivityFeedSection({ onNavigate }) {
     };
 
     return (
-        <section style={{ animation: 'fadeUp 0.4s 0.05s ease both' }}>
+        <section style={{ animation: 'fadeUp 0.4s 0.05s ease both', minWidth: 0, maxWidth: '100%', width: '100%', overflow: 'hidden', boxSizing: 'border-box' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{ padding: '6px 8px', borderRadius: 10, background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.2)' }}>
@@ -157,7 +169,7 @@ function ActivityFeedSection({ onNavigate }) {
                     </p>
                 </div>
             ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0, width: '100%', maxWidth: '100%' }}>
                     {activities.map((item, i) => <ActivityRow key={item.id} item={item} onNavigate={onNavigate} i={i} />)}
                 </div>
             )}
@@ -598,12 +610,6 @@ export default function DashboardPage({ onNavigate }) {
           gap: 10px;
         }
 
-        .badges-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-          gap: 14px;
-        }
-
         .continue-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -615,7 +621,6 @@ export default function DashboardPage({ onNavigate }) {
           .dashboard-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important; gap: 10px !important; }
           .rec-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important; gap: 12px !important; }
           .explore-grid { grid-template-columns: 1fr !important; }
-          .badges-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important; gap: 10px !important; }
           .continue-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
           .dashboard-header h1 { font-size: 1.6rem !important; }
           .dashboard-header p { font-size: 0.8rem !important; }
@@ -766,40 +771,7 @@ export default function DashboardPage({ onNavigate }) {
                     </section>
                 )}
 
-                {/* ── Achievements ────────────────────────────── */}
-                {achievements?.length > 0 && (
-                    <section style={{ animation: 'fadeUp 0.4s 0.1s ease both' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                            <div style={{ padding: '5px 7px', borderRadius: 9, background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)' }}>
-                                <Award size={15} color="#fbbf24" fill="rgba(251,191,36,0.3)" />
-                            </div>
-                            <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1rem', color: '#fff', letterSpacing: '-0.02em' }}>
-                                Unlocked Badges
-                            </h2>
-                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#fbbf24', background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)', padding: '2px 8px', borderRadius: 20 }}>
-                                {achievements.length}
-                            </span>
-                        </div>
-                        <div className="badges-grid">
-                            {achievements.map((ach, i) => (
-                                <div key={ach.title} style={{
-                                    display: 'flex', alignItems: 'center', gap: 12,
-                                    padding: '12px 16px', borderRadius: 12,
-                                    background: 'rgba(251,191,36,0.04)', border: '1px solid rgba(251,191,36,0.1)',
-                                    animation: `fadeUp 0.4s ${i * 60}ms ease both`,
-                                }}>
-                                    <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                        <Star size={16} color="#fbbf24" fill="rgba(251,191,36,0.4)" />
-                                    </div>
-                                    <div>
-                                        <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.82rem', color: '#fbbf24', marginBottom: 2 }}>{ach.title}</p>
-                                        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{ach.description}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
+                {/* Achievements section removed from Dashboard for length */}
 
                 {/* ── Stats row ───────────────────────────────── */}
                 <div className="dashboard-grid">
