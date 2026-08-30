@@ -573,7 +573,7 @@ export default function ProfilePage({ onNavigate }) {
 
   return (
     <>
-       <style>{`
+      <style>{`
          @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
          .profile-page { display:flex; flex-direction:column; gap:24px; animation:fadeUp 0.5s ease; }
          .avatar-wrap:hover .avatar-overlay { opacity:1; }
@@ -583,6 +583,7 @@ export default function ProfilePage({ onNavigate }) {
            .profile-page .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
            .profile-page .list-view { overflow-x: auto; -webkit-overflow-scrolling: touch; }
            .profile-page .list-view > div { min-width: 600px; }
+           .profile-page .pinned-ach-grid { grid-template-columns: 1fr !important; }
          }
        `}</style>
 
@@ -767,7 +768,7 @@ export default function ProfilePage({ onNavigate }) {
             </div>
 
             {pinnedAchievements?.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
+              <div className="pinned-ach-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
                 {pinnedAchievements.map((ach, i) => <AchBadge key={ach.key || ach.title} ach={ach} i={i} />)}
               </div>
             ) : (

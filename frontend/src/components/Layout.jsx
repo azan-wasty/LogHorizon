@@ -26,9 +26,53 @@ const NAV_ITEMS = [
   { id: 'community', label: 'Community', icon: Users, desc: 'Events & members' },
 ];
 
-function NavItem({ item, active, onClick, isCollapsed }) {
+function ProfileIcon({ user, size = 16, active, hovered }) {
+  const handle = user?.username || 'user';
+  const initial = handle[0]?.toUpperCase() || 'U';
+  const color = active ? '#7C3AED' : hovered ? '#d1d5db' : '#6b7280';
+
+  if (user?.avatarUrl) {
+    return (
+      <img
+        src={user.avatarUrl}
+        alt=""
+        style={{
+          width: size,
+          height: size,
+          borderRadius: '50%',
+          objectFit: 'cover',
+          flexShrink: 0,
+          border: `1px solid ${active ? 'rgba(124,58,237,0.6)' : 'rgba(255,255,255,0.15)'}`,
+        }}
+      />
+    );
+  }
+
+  return (
+    <div style={{
+      width: size,
+      height: size,
+      borderRadius: '50%',
+      flexShrink: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'rgba(124,58,237,0.2)',
+      border: `1px solid ${active ? 'rgba(124,58,237,0.6)' : 'rgba(255,255,255,0.15)'}`,
+      fontFamily: 'var(--font-display)',
+      fontWeight: 800,
+      fontSize: size * 0.5,
+      color,
+    }}>
+      {initial}
+    </div>
+  );
+}
+
+function NavItem({ item, active, onClick, isCollapsed, user }) {
   const [hovered, setHovered] = useState(false);
   const Icon = item.icon;
+  const isProfile = item.id === 'profile';
   return (
     <button
       onClick={onClick}
@@ -83,11 +127,15 @@ function NavItem({ item, active, onClick, isCollapsed }) {
         transition: 'all 0.2s',
         boxShadow: active ? '0 0 12px rgba(124,58,237,0.3)' : 'none',
       }}>
-        <Icon
-          size={16}
-          color={active ? '#7C3AED' : hovered ? '#d1d5db' : '#6b7280'}
-          style={{ transition: 'color 0.2s' }}
-        />
+        {isProfile ? (
+          <ProfileIcon user={user} size={20} active={active} hovered={hovered} />
+        ) : (
+          <Icon
+            size={16}
+            color={active ? '#7C3AED' : hovered ? '#d1d5db' : '#6b7280'}
+            style={{ transition: 'color 0.2s' }}
+          />
+        )}
       </div>
 
       {!isCollapsed && (
@@ -146,7 +194,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
   const dateStr = time.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
 
   const Sidebar = () => (
-    <aside 
+    <aside
       className="desktop-sidebar"
       style={{
         width: isCollapsed ? 80 : 240,
@@ -176,10 +224,10 @@ export default function Layout({ children, currentPage, onNavigate }) {
         flexDirection: 'column',
         alignItems: isCollapsed ? 'center' : 'stretch',
       }}>
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: 10, 
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
           marginBottom: isCollapsed ? 0 : 14,
           justifyContent: isCollapsed ? 'center' : 'flex-start'
         }}>
@@ -329,6 +377,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
               active={currentPage === item.id}
               onClick={() => { onNavigate(item.id); setMobileOpen(false); }}
               isCollapsed={isCollapsed}
+              user={user}
             />
           ))}
         </div>
@@ -490,7 +539,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
       )}
 
       {/* Sidebar — desktop always visible */}
-      <div 
+      <div
         className={`desktop-sidebar ${mobileOpen ? 'mobile-open' : ''}`}
         style={{
           position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 100,
@@ -501,10 +550,10 @@ export default function Layout({ children, currentPage, onNavigate }) {
       </div>
 
       {/* Main content */}
-      <div style={{ 
-        flex: 1, 
-        display: 'flex', 
-        flexDirection: 'column', 
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
         paddingLeft: isCollapsed ? 80 : 240,
         transition: 'padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         paddingBottom: 70, // Space for mobile nav
@@ -527,12 +576,12 @@ export default function Layout({ children, currentPage, onNavigate }) {
         }} className="mobile-header">
           <button
             onClick={() => setMobileOpen(true)}
-            style={{ 
-              background: 'rgba(255,255,255,0.06)', 
-              border: '1px solid rgba(255,255,255,0.08)', 
-              borderRadius: 8, 
-              padding: 8, 
-              cursor: 'pointer', 
+            style={{
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 8,
+              padding: 8,
+              cursor: 'pointer',
               display: 'none',
               alignItems: 'center',
               justifyContent: 'center'
@@ -547,19 +596,24 @@ export default function Layout({ children, currentPage, onNavigate }) {
               Log<span style={{ color: '#7C3AED' }}>Horizon</span>
             </span>
           </div>
-          <button 
+          <button
             onClick={() => onNavigate('profile')}
-            style={{ 
-              width: 32, height: 32, borderRadius: '50%', 
+            style={{
+              width: 32, height: 32, borderRadius: '50%',
               background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              overflow: 'hidden', padding: 0,
             }}
           >
-            <User size={16} color="#7C3AED" />
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <User size={16} color="#7C3AED" />
+            )}
           </button>
         </header>
 
-        <main 
+        <main
           className="main-content-wrapper"
           style={{
             flex: 1,
@@ -592,6 +646,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
           {NAV_ITEMS.map(item => {
             const Icon = item.icon;
             const active = currentPage === item.id;
+            const isProfile = item.id === 'profile';
             return (
               <button
                 key={item.id}
@@ -614,7 +669,11 @@ export default function Layout({ children, currentPage, onNavigate }) {
                   background: active ? 'rgba(124,58,237,0.12)' : 'transparent',
                   transition: 'all 0.2s'
                 }}>
-                  <Icon size={20} />
+                  {isProfile ? (
+                    <ProfileIcon user={user} size={20} active={active} />
+                  ) : (
+                    <Icon size={20} />
+                  )}
                 </div>
                 <span style={{ fontSize: '0.6rem', fontWeight: active ? 700 : 500, fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
                   {item.label === 'Dashboard' ? 'Feed' : item.label.split(' ')[0]}

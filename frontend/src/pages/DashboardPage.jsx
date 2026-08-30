@@ -88,7 +88,7 @@ function ActivityFeedSection({ onNavigate }) {
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(false);
-    const PAGE_SIZE = 10;
+    const PAGE_SIZE = 5;
 
     const load = async (offset = 0) => {
         try {
@@ -598,11 +598,25 @@ export default function DashboardPage({ onNavigate }) {
           gap: 10px;
         }
 
+        .badges-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+          gap: 14px;
+        }
+
+        .continue-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+          gap: 14px;
+        }
+
         @media (max-width: 768px) {
           .dashboard-content { gap: 32px !important; }
-          .dashboard-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
-          .rec-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
-          .explore-grid { grid-template-columns: 1fr; }
+          .dashboard-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important; gap: 10px !important; }
+          .rec-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important; gap: 12px !important; }
+          .explore-grid { grid-template-columns: 1fr !important; }
+          .badges-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important; gap: 10px !important; }
+          .continue-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
           .dashboard-header h1 { font-size: 1.6rem !important; }
           .dashboard-header p { font-size: 0.8rem !important; }
         }
@@ -676,7 +690,7 @@ export default function DashboardPage({ onNavigate }) {
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 14 }}>
+                        <div className="continue-grid">
                             {library.filter(i => i.status === 'CURRENT' && i.content).map(entry => {
                                 const it = entry.content;
                                 const cat = CAT[it?.category] || fallbackCat;
@@ -766,7 +780,7 @@ export default function DashboardPage({ onNavigate }) {
                                 {achievements.length}
                             </span>
                         </div>
-                        <div className="dashboard-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
+                        <div className="badges-grid">
                             {achievements.map((ach, i) => (
                                 <div key={ach.title} style={{
                                     display: 'flex', alignItems: 'center', gap: 12,
