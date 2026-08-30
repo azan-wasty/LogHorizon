@@ -207,7 +207,7 @@ export default function LandingPage({ onNavigate }) {
             <div style={{ width: 30, height: 30, borderRadius: 8, background: 'linear-gradient(135deg, var(--electric-purple), var(--accent-violet))', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(124,58,237,0.4)', flexShrink: 0 }}>
               <Hexagon size={18} color="#fff" fill="#fff" />
             </div>
-            <span className="lh-brand-text" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.25rem', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>
+            <span className="lh-brand-text" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '0.75', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>
               LOG<span style={{ color: 'var(--electric-purple)' }}>HORIZON</span>
             </span>
           </div>
