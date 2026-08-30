@@ -101,7 +101,6 @@ function NavItem({ item, active, onClick, isCollapsed, user }) {
       }}
       title={isCollapsed ? item.label : ''}
     >
-      {/* Active glow */}
       {active && (
         <div style={{
           position: 'absolute', inset: 0,
@@ -110,7 +109,6 @@ function NavItem({ item, active, onClick, isCollapsed, user }) {
         }} />
       )}
 
-      {/* Icon container */}
       <div style={{
         width: 34,
         height: 34,
@@ -153,11 +151,9 @@ function NavItem({ item, active, onClick, isCollapsed, user }) {
             {item.label}
           </p>
           <p style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.58rem',
+            fontFamily: 'var(--font-body)',
+            fontSize: '0.62rem',
             color: active ? 'rgba(124,58,237,0.8)' : '#4b5563',
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
             transition: 'color 0.2s',
           }}>
             {item.desc}
@@ -213,10 +209,8 @@ export default function Layout({ children, currentPage, onNavigate }) {
         transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
       }}
     >
-      {/* Top gradient accent */}
       <div style={{ height: 2, background: 'linear-gradient(90deg, #7C3AED, #22d3ee, #f472b6)', flexShrink: 0 }} />
 
-      {/* Logo */}
       <div style={{
         padding: isCollapsed ? '20px 0' : '20px 20px 16px',
         borderBottom: '1px solid rgba(255,255,255,0.04)',
@@ -260,7 +254,6 @@ export default function Layout({ children, currentPage, onNavigate }) {
           )}
         </div>
 
-        {/* Live clock - hide when collapsed */}
         {!isCollapsed && (
           <div style={{
             display: 'flex',
@@ -273,17 +266,16 @@ export default function Layout({ children, currentPage, onNavigate }) {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#34d399', boxShadow: '0 0 6px #34d399', animation: 'pulse 2s infinite' }} />
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#34d399', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Online</span>
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.6rem', color: '#34d399', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Online</span>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', color: '#9ca3af', lineHeight: 1.2 }}>{timeStr}</p>
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: '#4b5563', lineHeight: 1.2 }}>{dateStr}</p>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.62rem', color: '#9ca3af', lineHeight: 1.2 }}>{timeStr}</p>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.55rem', color: '#4b5563', lineHeight: 1.2 }}>{dateStr}</p>
             </div>
           </div>
         )}
       </div>
 
-      {/* User card */}
       <div style={{
         padding: '14px 16px',
         borderBottom: '1px solid rgba(255,255,255,0.04)',
@@ -341,7 +333,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
                 @{handle}
               </p>
               <p style={{
-                fontFamily: 'var(--font-mono)',
+                fontFamily: 'var(--font-body)',
                 fontSize: '0.55rem',
                 color: '#7C3AED',
                 textTransform: 'uppercase',
@@ -355,11 +347,10 @@ export default function Layout({ children, currentPage, onNavigate }) {
         </div>
       </div>
 
-      {/* Navigation */}
       <nav style={{ flex: 1, padding: '14px 12px', overflowY: 'auto' }}>
         {!isCollapsed && (
           <p style={{
-            fontFamily: 'var(--font-mono)',
+            fontFamily: 'var(--font-body)',
             fontSize: '0.55rem',
             textTransform: 'uppercase',
             letterSpacing: '0.2em',
@@ -387,7 +378,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
           <div style={{ marginTop: 20 }}>
             {!isCollapsed && (
               <p style={{
-                fontFamily: 'var(--font-mono)',
+                fontFamily: 'var(--font-body)',
                 fontSize: '0.55rem',
                 textTransform: 'uppercase',
                 letterSpacing: '0.2em',
@@ -408,7 +399,6 @@ export default function Layout({ children, currentPage, onNavigate }) {
         )}
       </nav>
 
-      {/* Footer actions */}
       <div style={{
         padding: '12px 12px 16px',
         borderTop: '1px solid rgba(255,255,255,0.04)',
@@ -466,7 +456,6 @@ export default function Layout({ children, currentPage, onNavigate }) {
           {!isCollapsed && <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.8rem' }}>Sign Out</span>}
         </button>
 
-        {/* Retract Toggle symbol on the right edge */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="sidebar-toggle"
@@ -488,8 +477,6 @@ export default function Layout({ children, currentPage, onNavigate }) {
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             padding: 0,
           }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.2)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(124,58,237,0.6)'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 0 15px rgba(124,58,237,0.4)'; }}
           title={isCollapsed ? 'Expand Navigation' : 'Collapse Navigation'}
         >
           {isCollapsed ? <PanelLeftOpen size={10} color="#fff" /> : <PanelLeftClose size={10} color="#fff" />}
@@ -497,7 +484,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
 
         {!isCollapsed && (
           <div style={{ paddingTop: 10, paddingLeft: 4 }}>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.52rem', color: '#2d2d3d', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.52rem', color: '#2d2d3d', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
               LogHorizon v2.0 · Spring '26
             </p>
           </div>
@@ -519,7 +506,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
           .desktop-sidebar { transform: translateX(-100%); }
           .desktop-sidebar.mobile-open { transform: translateX(0) !important; }
           .sidebar-toggle { display: none !important; }
-          .main-content-wrapper { padding: 24px 20px !important; max-width: 100vw !important; }
+          .main-content-wrapper { padding: 24px 16px !important; max-width: 100vw !important; }
           .main-content-area, .main-content-wrapper, .mobile-header { min-width: 0 !important; max-width: 100vw !important; overflow-x: hidden; }
         }
         @media (min-width: 1024px) {
@@ -528,7 +515,6 @@ export default function Layout({ children, currentPage, onNavigate }) {
         }
       `}</style>
 
-      {/* Mobile overlay */}
       {mobileOpen && (
         <div
           onClick={() => setMobileOpen(false)}
@@ -539,7 +525,6 @@ export default function Layout({ children, currentPage, onNavigate }) {
         />
       )}
 
-      {/* Sidebar — desktop always visible */}
       <div
         className={`desktop-sidebar ${mobileOpen ? 'mobile-open' : ''}`}
         style={{
@@ -550,7 +535,6 @@ export default function Layout({ children, currentPage, onNavigate }) {
         <Sidebar />
       </div>
 
-      {/* Main content */}
       <div style={{
         flex: 1,
         minWidth: 0,
@@ -558,17 +542,17 @@ export default function Layout({ children, currentPage, onNavigate }) {
         flexDirection: 'column',
         paddingLeft: isCollapsed ? 80 : 240,
         transition: 'padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        paddingBottom: 70, // Space for mobile nav
+        paddingBottom: 70,
       }} className="main-content-area">
 
-        {/* Mobile header */}
+        {/* Mobile Header with Added Logout Button */}
         <header style={{
           height: 58,
           minWidth: 0,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 20px',
+          padding: '0 16px',
           borderBottom: '1px solid rgba(255,255,255,0.05)',
           background: 'rgba(14,14,22,0.85)',
           backdropFilter: 'blur(12px)',
@@ -585,7 +569,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
               borderRadius: 8,
               padding: 8,
               cursor: 'pointer',
-              display: 'none',
+              display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}
@@ -593,27 +577,50 @@ export default function Layout({ children, currentPage, onNavigate }) {
           >
             <Menu size={20} color="#9ca3af" />
           </button>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Hexagon size={20} color="#7C3AED" fill="#7C3AED" />
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1rem', color: '#fff' }}>
+            <Hexagon size={18} color="#7C3AED" fill="#7C3AED" />
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '0.95rem', color: '#fff' }}>
               Log<span style={{ color: '#7C3AED' }}>Horizon</span>
             </span>
           </div>
-          <button
-            onClick={() => onNavigate('profile')}
-            style={{
-              width: 32, height: 32, borderRadius: '50%',
-              background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              overflow: 'hidden', padding: 0,
-            }}
-          >
-            {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              <User size={16} color="#7C3AED" />
-            )}
-          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button
+              onClick={() => onNavigate('profile')}
+              style={{
+                width: 32, height: 32, borderRadius: '50%',
+                background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                overflow: 'hidden', padding: 0,
+              }}
+            >
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <User size={16} color="#7C3AED" />
+              )}
+            </button>
+
+            {/* Logout button on mobile navbar */}
+            <button
+              onClick={handleLogout}
+              style={{
+                background: 'rgba(248,113,113,0.1)',
+                border: '1px solid rgba(248,113,113,0.2)',
+                borderRadius: 8,
+                padding: 8,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#f87171',
+              }}
+              title="Sign Out"
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
         </header>
 
         <main
@@ -631,7 +638,6 @@ export default function Layout({ children, currentPage, onNavigate }) {
           {children}
         </main>
 
-        {/* Mobile Bottom Nav */}
         <nav className="mobile-nav" style={{
           position: 'fixed',
           bottom: 0,
@@ -679,7 +685,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
                     <Icon size={20} />
                   )}
                 </div>
-                <span style={{ fontSize: '0.6rem', fontWeight: active ? 700 : 500, fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '0.6rem', fontWeight: active ? 700 : 500, fontFamily: 'var(--font-body)', textTransform: 'uppercase' }}>
                   {item.label === 'Dashboard' ? 'Home' : item.label.split(' ')[0]}
                 </span>
               </button>
