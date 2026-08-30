@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import AuthModal from '../components/AuthModal';
+import { content as contentApi } from '../api/client';
 import { ShieldCheck, Hexagon, ArrowUpRight } from 'lucide-react';
 
 const CATEGORY_COLORS = {
@@ -9,15 +11,16 @@ const CATEGORY_COLORS = {
   TV: '#34d399',
 };
 
-// High-resolution poster pool spawned along the mouse trajectory
-const MEDIA_POOL = [
-  { id: '1', title: 'Cyberpunk: Edgerunners', category: 'Anime', coverImage: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=400&q=80' },
-  { id: '2', title: 'Chainsaw Man', category: 'Manga', coverImage: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=400&q=80' },
-  { id: '3', title: 'Akira', category: 'Movie', coverImage: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400&q=80' },
-  { id: '4', title: 'Dune: Part Two', category: 'Movie', coverImage: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400&q=80' },
-  { id: '5', title: 'Berserk', category: 'Manga', coverImage: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=400&q=80' },
-  { id: '6', title: 'Arcane', category: 'TV', coverImage: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&q=80' },
-];
+// Fisher-Yates shuffle — keeps the trail from spawning catalog entries in the
+// same fixed (rating-sorted) order on every page load
+function shuffleArray(arr) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
 
 export default function LandingPage({ onNavigate }) {
   const [authModal, setAuthModal] = useState(null);
@@ -25,10 +28,30 @@ export default function LandingPage({ onNavigate }) {
 
   const lastMousePos = useRef({ x: 0, y: 0 });
   const cardIndexRef = useRef(0);
+  const mediaPoolRef = useRef([]);
+
+  // Real catalog entries for the mouse-trail poster effect — was a hardcoded
+  // placeholder array before, now pulled from the public /content endpoint
+  const { data: contentData } = useQuery({
+    queryKey: ['landing-trail-media'],
+    queryFn: () => contentApi.list({ limit: 60, offset: 0, sort: 'rating' }),
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    const items = contentData?.content || [];
+    // Only titles with a real cover image make sense in the trail
+    const withCovers = items.filter((item) => !!item.coverImage);
+    mediaPoolRef.current = shuffleArray(withCovers);
+  }, [contentData]);
 
   // Mouse path poster trail generation
   useEffect(() => {
     const handleMouseMove = (e) => {
+      const pool = mediaPoolRef.current;
+      if (pool.length === 0) return; // catalog hasn't loaded (or is empty) yet
+
       const dx = e.clientX - lastMousePos.current.x;
       const dy = e.clientY - lastMousePos.current.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
@@ -37,7 +60,7 @@ export default function LandingPage({ onNavigate }) {
       if (dist > 80) {
         lastMousePos.current = { x: e.clientX, y: e.clientY };
 
-        const randomMedia = MEDIA_POOL[cardIndexRef.current % MEDIA_POOL.length];
+        const randomMedia = pool[cardIndexRef.current % pool.length];
         cardIndexRef.current += 1;
 
         const newCard = {
