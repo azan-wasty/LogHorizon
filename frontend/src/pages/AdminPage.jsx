@@ -51,11 +51,11 @@ export default function ContentStudio() {
 
   useEffect(() => { refresh(); }, []);
 
-  // Enhanced ingestion handler with lock guard, method detection & verbose error catching
-  const handleIngest = async (titleToIngest = ingestTitle, categoryToIngest = ingestCategory) => {
-    if (ingesting) return; // Concurrency lock guard
+  // Single-title ingest via /admin/content/ingest
+  const handleIngest = async () => {
+    if (ingesting) return;
 
-    const targetTitle = titleToIngest.trim();
+    const targetTitle = ingestTitle.trim();
     if (!targetTitle) {
       toast('Please enter a title to ingest', 'error');
       return;
@@ -63,65 +63,107 @@ export default function ContentStudio() {
 
     setIngesting(true);
     try {
-      // Find whichever function exists on adminApi
-      const ingestFn =
-        adminApi.ingestContent ||
-        adminApi.ingest ||
-        adminApi.rapidIngest ||
-        adminApi.triggerIngest ||
-        adminApi.ingestMedia ||
-        adminApi.createContent;
-
-      const payload = {
-        title: targetTitle,
-        category: categoryToIngest,
-        name: targetTitle,
-        query: targetTitle
-      };
-
-      if (typeof ingestFn === 'function') {
-        await ingestFn.call(adminApi, payload);
-      } else if (typeof adminApi.post === 'function') {
-        await adminApi.post('/ingest', payload);
-      } else {
-        throw new Error('No valid ingestion method found on adminApi. Check api/client.js exports.');
-      }
-
-      toast(`Ingestion triggered for "${targetTitle}"`, 'success');
-      if (titleToIngest === ingestTitle) setIngestTitle('');
+      const result = await adminApi.ingestContent({ title: targetTitle, category: ingestCategory });
+      if (result?.ok === false) throw new Error(result.message || 'Ingestion failed');
+      toast(`"${targetTitle}" ingested successfully`, 'success');
+      setIngestTitle('');
       refresh();
     } catch (err) {
       console.error('Ingestion failed:', err);
-      const serverMsg = err.response?.data?.message || err.response?.data?.error || err.message || 'Ingestion request failed';
-      toast(`Ingestion error: ${serverMsg}`, 'error');
+      toast(`Ingestion error: ${err.message || 'Unknown error'}`, 'error');
     } finally {
       setIngesting(false);
     }
   };
 
+  // Bulk auto-discovery via /admin/content/discover
+  const handleDiscover = async (cat) => {
+    if (ingesting) return;
+    setIngesting(true);
+    try {
+      const result = await adminApi.discoverContent({ category: cat, mode: 'popular', pages: 3 });
+      if (result?.ok === false) throw new Error(result.message || 'Discovery failed');
+      const s = result?.stats;
+      toast(`Discovered ${cat}: +${s?.ingested ?? 0} new, ${s?.skipped ?? 0} skipped`, 'success');
+      refresh();
+    } catch (err) {
+      console.error('Discovery failed:', err);
+      toast(`Discovery error: ${err.message || 'Unknown error'}`, 'error');
+    } finally {
+      setIngesting(false);
+    }
+  };
+
+  const handleDeleteContent = async (id, title) => {
+    if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return;
+    try {
+      await adminApi.deleteContent(id);
+      toast(`"${title}" deleted`, 'success');
+      refresh();
+    } catch (err) {
+      toast(`Delete failed: ${err.message}`, 'error');
+    }
+  };
+
   const handleApproveDiscord = async (id) => {
     try {
-      if (adminApi.approveDiscordRecommendation) {
-        await adminApi.approveDiscordRecommendation(id);
-      }
+      await adminApi.updateDiscordRecommendation(id, 'APPROVED');
       toast('Discord link approved', 'success');
       refresh();
     } catch (err) {
       console.error('Discord approval error:', err);
-      toast('Failed to approve Discord link', 'error');
+      toast(`Failed to approve: ${err.message}`, 'error');
+    }
+  };
+
+  const handleRejectDiscord = async (id) => {
+    try {
+      await adminApi.updateDiscordRecommendation(id, 'REJECTED');
+      toast('Discord link rejected', 'success');
+      refresh();
+    } catch (err) {
+      toast(`Failed to reject: ${err.message}`, 'error');
     }
   };
 
   const handleApproveSubreddit = async (id) => {
     try {
-      if (adminApi.approveSubredditRecommendation) {
-        await adminApi.approveSubredditRecommendation(id);
-      }
+      await adminApi.updateSubredditRecommendation(id, 'APPROVED');
       toast('Subreddit link approved', 'success');
       refresh();
     } catch (err) {
       console.error('Subreddit approval error:', err);
-      toast('Failed to approve Subreddit link', 'error');
+      toast(`Failed to approve: ${err.message}`, 'error');
+    }
+  };
+
+  const handleRejectSubreddit = async (id) => {
+    try {
+      await adminApi.updateSubredditRecommendation(id, 'REJECTED');
+      toast('Subreddit link rejected', 'success');
+      refresh();
+    } catch (err) {
+      toast(`Failed to reject: ${err.message}`, 'error');
+    }
+  };
+
+  const handleApproveEvent = async (id) => {
+    try {
+      await adminApi.approveEvent(id, 'APPROVED');
+      toast('Event approved', 'success');
+      refresh();
+    } catch (err) {
+      toast(`Failed to approve event: ${err.message}`, 'error');
+    }
+  };
+
+  const handleRejectEvent = async (id) => {
+    try {
+      await adminApi.approveEvent(id, 'REJECTED');
+      toast('Event rejected', 'success');
+      refresh();
+    } catch (err) {
+      toast(`Failed to reject event: ${err.message}`, 'error');
     }
   };
 
@@ -237,7 +279,7 @@ export default function ContentStudio() {
           {CATEGORIES.map(cat => (
             <div
               key={cat}
-              onClick={() => handleIngest(`Top ${cat}`, cat)}
+              onClick={() => handleDiscover(cat)}
               style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', padding: '16px', textAlign: 'center', cursor: ingesting ? 'not-allowed' : 'pointer', opacity: ingesting ? 0.5 : 1 }}
             >
               {ingesting ? (
@@ -316,8 +358,13 @@ export default function ContentStudio() {
                     </span>
                   </td>
                   <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                    <button style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', padding: '6px' }}><Edit3 size={14} /></button>
-                    <button style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '6px' }}><Trash2 size={14} /></button>
+                    <button
+                      onClick={() => handleDeleteContent(item.id, item.title)}
+                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '6px' }}
+                      title="Delete"
+                    >
+                      <Trash2 size={14} />
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -359,11 +406,12 @@ export default function ContentStudio() {
                 <th style={{ padding: '12px 16px', fontWeight: 'bold' }}>USER</th>
                 <th style={{ padding: '12px 16px', fontWeight: 'bold' }}>EMAIL</th>
                 <th style={{ padding: '12px 16px', fontWeight: 'bold' }}>ROLE</th>
+                <th style={{ padding: '12px 16px', fontWeight: 'bold', textAlign: 'right' }}>ACTIONS</th>
               </tr>
             </thead>
             <tbody>
               {users.length === 0 ? (
-                <tr><td colSpan={3} style={{ padding: '24px', textAlign: 'center', color: '#777' }}>No users found.</td></tr>
+                <tr><td colSpan={4} style={{ padding: '24px', textAlign: 'center', color: '#777' }}>No users found.</td></tr>
               ) : users.map(user => (
                 <tr key={user.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                   <td style={{ padding: '12px 16px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -371,9 +419,36 @@ export default function ContentStudio() {
                   </td>
                   <td style={{ padding: '12px 16px', color: '#aaa' }}>{user.email}</td>
                   <td style={{ padding: '12px 16px' }}>
-                    <span style={{ background: 'rgba(168,85,247,0.1)', color: '#a855f7', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>
+                    <span style={{
+                      background: user.role === 'ADMIN' ? 'rgba(239,68,68,0.12)' : 'rgba(168,85,247,0.1)',
+                      color: user.role === 'ADMIN' ? '#ef4444' : '#a855f7',
+                      padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold'
+                    }}>
                       {user.role || 'USER'}
                     </span>
+                  </td>
+                  <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                    <button
+                      onClick={async () => {
+                        const newRole = user.role === 'ADMIN' ? 'USER' : 'ADMIN';
+                        try {
+                          await adminApi.updateUserRole(user.id, newRole);
+                          toast(`${user.username} is now ${newRole}`, 'success');
+                          refresh();
+                        } catch (err) {
+                          toast(`Failed to update role: ${err.message}`, 'error');
+                        }
+                      }}
+                      style={{
+                        background: user.role === 'ADMIN' ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)',
+                        border: `1px solid ${user.role === 'ADMIN' ? 'rgba(239,68,68,0.3)' : 'rgba(16,185,129,0.3)'}`,
+                        color: user.role === 'ADMIN' ? '#ef4444' : '#10b981',
+                        borderRadius: '6px', padding: '4px 10px', cursor: 'pointer',
+                        fontWeight: 'bold', fontSize: '10px', whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {user.role === 'ADMIN' ? '⬇ Demote to User' : '⬆ Make Admin'}
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -389,20 +464,21 @@ export default function ContentStudio() {
               <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.08)', color: '#888' }}>
                 <th style={{ padding: '12px 16px', fontWeight: 'bold' }}>TITLE / ENTRY</th>
                 <th style={{ padding: '12px 16px', fontWeight: 'bold' }}>DISCORD LINK</th>
+                <th style={{ padding: '12px 16px', fontWeight: 'bold' }}>SUBMITTED BY</th>
                 <th style={{ padding: '12px 16px', fontWeight: 'bold', textAlign: 'right' }}>ACTIONS</th>
               </tr>
             </thead>
             <tbody>
               {discordApprovals.length === 0 ? (
-                <tr><td colSpan={3} style={{ padding: '24px', textAlign: 'center', color: '#777' }}>No pending Discord link approvals.</td></tr>
+                <tr><td colSpan={4} style={{ padding: '24px', textAlign: 'center', color: '#777' }}>No pending Discord link approvals.</td></tr>
               ) : discordApprovals.map(item => (
                 <tr key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                  <td style={{ padding: '12px 16px', fontWeight: 'bold' }}>{item.contentTitle || item.title || `Content #${item.contentId}`}</td>
-                  <td style={{ padding: '12px 16px', color: '#6366f1' }}>{item.discordLink || item.url}</td>
-                  <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                    <button onClick={() => handleApproveDiscord(item.id)} style={{ background: '#10b981', border: 'none', color: '#fff', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px', marginRight: '6px' }}>
-                      Approve
-                    </button>
+                  <td style={{ padding: '12px 16px', fontWeight: 'bold' }}>{item.content?.title || `Content #${item.contentId}`}</td>
+                  <td style={{ padding: '12px 16px', color: '#6366f1' }}>{item.inviteLink}</td>
+                  <td style={{ padding: '12px 16px', color: '#777', fontSize: '11px' }}>{item.user?.username}</td>
+                  <td style={{ padding: '12px 16px', textAlign: 'right', display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                    <button onClick={() => handleApproveDiscord(item.id)} style={{ background: '#10b981', border: 'none', color: '#fff', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>Approve</button>
+                    <button onClick={() => handleRejectDiscord(item.id)} style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>Reject</button>
                   </td>
                 </tr>
               ))}
@@ -417,21 +493,22 @@ export default function ContentStudio() {
             <thead>
               <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.08)', color: '#888' }}>
                 <th style={{ padding: '12px 16px', fontWeight: 'bold' }}>TITLE / ENTRY</th>
-                <th style={{ padding: '12px 16px', fontWeight: 'bold' }}>SUBREDDIT LINK</th>
+                <th style={{ padding: '12px 16px', fontWeight: 'bold' }}>SUBREDDIT</th>
+                <th style={{ padding: '12px 16px', fontWeight: 'bold' }}>SUBMITTED BY</th>
                 <th style={{ padding: '12px 16px', fontWeight: 'bold', textAlign: 'right' }}>ACTIONS</th>
               </tr>
             </thead>
             <tbody>
               {subredditApprovals.length === 0 ? (
-                <tr><td colSpan={3} style={{ padding: '24px', textAlign: 'center', color: '#777' }}>No pending Subreddit link approvals.</td></tr>
+                <tr><td colSpan={4} style={{ padding: '24px', textAlign: 'center', color: '#777' }}>No pending Subreddit link approvals.</td></tr>
               ) : subredditApprovals.map(item => (
                 <tr key={item.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                  <td style={{ padding: '12px 16px', fontWeight: 'bold' }}>{item.contentTitle || item.title || `Content #${item.contentId}`}</td>
-                  <td style={{ padding: '12px 16px', color: '#f97316' }}>{item.redditLink || item.url}</td>
-                  <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                    <button onClick={() => handleApproveSubreddit(item.id)} style={{ background: '#10b981', border: 'none', color: '#fff', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>
-                      Approve
-                    </button>
+                  <td style={{ padding: '12px 16px', fontWeight: 'bold' }}>{item.content?.title || `Content #${item.contentId}`}</td>
+                  <td style={{ padding: '12px 16px', color: '#f97316' }}>r/{item.subreddit}</td>
+                  <td style={{ padding: '12px 16px', color: '#777', fontSize: '11px' }}>{item.user?.username}</td>
+                  <td style={{ padding: '12px 16px', textAlign: 'right', display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                    <button onClick={() => handleApproveSubreddit(item.id)} style={{ background: '#10b981', border: 'none', color: '#fff', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>Approve</button>
+                    <button onClick={() => handleRejectSubreddit(item.id)} style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>Reject</button>
                   </td>
                 </tr>
               ))}
@@ -446,18 +523,25 @@ export default function ContentStudio() {
             <thead>
               <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '1px solid rgba(255,255,255,0.08)', color: '#888' }}>
                 <th style={{ padding: '12px 16px', fontWeight: 'bold' }}>EVENT NAME</th>
-                <th style={{ padding: '12px 16px', fontWeight: 'bold' }}>SCHEDULE</th>
-                <th style={{ padding: '12px 16px', fontWeight: 'bold' }}>STATUS</th>
+                <th style={{ padding: '12px 16px', fontWeight: 'bold' }}>TYPE</th>
+                <th style={{ padding: '12px 16px', fontWeight: 'bold' }}>HOST</th>
+                <th style={{ padding: '12px 16px', fontWeight: 'bold' }}>STARTS</th>
+                <th style={{ padding: '12px 16px', fontWeight: 'bold', textAlign: 'right' }}>ACTIONS</th>
               </tr>
             </thead>
             <tbody>
               {pendingEvents.length === 0 ? (
-                <tr><td colSpan={3} style={{ padding: '24px', textAlign: 'center', color: '#777' }}>No pending events found.</td></tr>
+                <tr><td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: '#777' }}>No pending events found.</td></tr>
               ) : pendingEvents.map(event => (
                 <tr key={event.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                  <td style={{ padding: '12px 16px', fontWeight: 'bold' }}>{event.name || event.title}</td>
-                  <td style={{ padding: '12px 16px', color: '#aaa' }}>{event.date || 'TBD'}</td>
-                  <td style={{ padding: '12px 16px', color: '#f59e0b', fontWeight: 'bold' }}>PENDING</td>
+                  <td style={{ padding: '12px 16px', fontWeight: 'bold' }}>{event.title}</td>
+                  <td style={{ padding: '12px 16px', color: '#a855f7', fontSize: '11px' }}>{event.type}</td>
+                  <td style={{ padding: '12px 16px', color: '#aaa', fontSize: '11px' }}>{event.host?.username || '—'}</td>
+                  <td style={{ padding: '12px 16px', color: '#aaa', fontSize: '11px' }}>{event.startDate ? new Date(event.startDate).toLocaleDateString() : 'TBD'}</td>
+                  <td style={{ padding: '12px 16px', textAlign: 'right', display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                    <button onClick={() => handleApproveEvent(event.id)} style={{ background: '#10b981', border: 'none', color: '#fff', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>Approve</button>
+                    <button onClick={() => handleRejectEvent(event.id)} style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>Reject</button>
+                  </td>
                 </tr>
               ))}
             </tbody>
