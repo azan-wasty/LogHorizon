@@ -4,12 +4,12 @@ import { useLibrary } from '../hooks/useLibrary';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import {
-  Star, Database, ExternalLink, Loader2, Bookmark,
-  Check, Play, ArrowLeft, Layers, Activity, X,
-  MessageCircle, Zap, Hash, Clock, Eye, Heart, Search,
-  BookOpen, Tv, Film, Plus, Minus, CheckCircle2, ListFilter,
-  Sparkles, CheckCheck
-} from 'lucide-react';
+  Star, Database, ArrowSquareOut, CircleNotch, BookmarkSimple,
+  Check, Play, ArrowLeft, Stack, Fingerprint, X,
+  ChatCircle, Target, Lightning, Hash, Eye, Heart, MagnifyingGlass,
+  BookOpen, Television, FilmStrip, Plus, Minus, CheckCircle,
+  Checks
+} from '@phosphor-icons/react';
 
 const CAT_PALETTES = {
   Anime: {
@@ -18,7 +18,7 @@ const CAT_PALETTES = {
     glow: 'rgba(244, 114, 182, 0.35)',
     dim: 'rgba(244, 114, 182, 0.08)',
     border: 'rgba(244, 114, 182, 0.2)',
-    gradient: 'linear-gradient(135deg, rgba(244,114,182,0.15) 0%, rgba(124,58,237,0.08) 100%)',
+    gradient: 'linear-gradient(135deg, rgba(244,114,182,0.15) 0%, rgba(147,51,234,0.08) 100%)',
   },
   Manga: {
     primary: '#60a5fa',
@@ -26,7 +26,7 @@ const CAT_PALETTES = {
     glow: 'rgba(96, 165, 250, 0.35)',
     dim: 'rgba(96, 165, 250, 0.08)',
     border: 'rgba(96, 165, 250, 0.2)',
-    gradient: 'linear-gradient(135deg, rgba(96,165,250,0.15) 0%, rgba(124,58,237,0.08) 100%)',
+    gradient: 'linear-gradient(135deg, rgba(96,165,250,0.15) 0%, rgba(147,51,234,0.08) 100%)',
   },
   Movie: {
     primary: '#fbbf24',
@@ -34,7 +34,7 @@ const CAT_PALETTES = {
     glow: 'rgba(251, 191, 36, 0.35)',
     dim: 'rgba(251, 191, 36, 0.08)',
     border: 'rgba(251, 191, 36, 0.2)',
-    gradient: 'linear-gradient(135deg, rgba(251,191,36,0.12) 0%, rgba(124,58,237,0.08) 100%)',
+    gradient: 'linear-gradient(135deg, rgba(251,191,36,0.12) 0%, rgba(147,51,234,0.08) 100%)',
   },
   TV: {
     primary: '#34d399',
@@ -42,17 +42,17 @@ const CAT_PALETTES = {
     glow: 'rgba(52, 211, 153, 0.35)',
     dim: 'rgba(52, 211, 153, 0.08)',
     border: 'rgba(52, 211, 153, 0.2)',
-    gradient: 'linear-gradient(135deg, rgba(52,211,153,0.12) 0%, rgba(124,58,237,0.08) 100%)',
+    gradient: 'linear-gradient(135deg, rgba(52,211,153,0.12) 0%, rgba(147,51,234,0.08) 100%)',
   },
 };
 
 const fallbackPalette = {
-  primary: '#7C3AED',
+  primary: '#9333EA',
   secondary: '#6D28D9',
   glow: 'rgba(124, 58, 237, 0.35)',
   dim: 'rgba(124, 58, 237, 0.08)',
   border: 'rgba(124, 58, 237, 0.2)',
-  gradient: 'linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(34,211,238,0.08) 100%)',
+  gradient: 'linear-gradient(135deg, rgba(147,51,234,0.15) 0%, rgba(34,211,238,0.08) 100%)',
 };
 
 function StarRating({ value, max = 10, interactive = false, onRate }) {
@@ -91,52 +91,10 @@ function StarRating({ value, max = 10, interactive = false, onRate }) {
   );
 }
 
-function ParallaxCover({ src, palette }) {
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const handleScroll = () => {
-      const scrolled = window.scrollY;
-      el.style.transform = `translateY(${scrolled * 0.3}px)`;
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  return (
-    <div style={{
-      position: 'absolute', inset: 0, overflow: 'hidden',
-      borderRadius: 'inherit',
-    }}>
-      {src ? (
-        <img
-          ref={ref}
-          src={src}
-          alt=""
-          style={{
-            position: 'absolute', inset: '-20%',
-            width: '140%', height: '140%',
-            objectFit: 'cover',
-            filter: 'blur(60px) brightness(0.15) saturate(200%)',
-          }}
-        />
-      ) : (
-        <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse at 30% 20%, ${palette.glow} 0%, transparent 60%), radial-gradient(ellipse at 70% 80%, rgba(124,58,237,0.1) 0%, transparent 60%)` }} />
-      )}
-      {/* Dark overlay */}
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(9,9,11,0.7) 0%, rgba(9,9,11,0.95) 100%)' }} />
-      {/* Colored tint from palette */}
-      <div style={{ position: 'absolute', inset: 0, background: palette.gradient, opacity: 0.6 }} />
-    </div>
-  );
-}
-
 function TagPill({ tag, palette }) {
   const [hovered, setHovered] = useState(false);
   const typeColors = {
-    Genre: { color: '#7C3AED', bg: 'rgba(124,58,237,0.1)', border: 'rgba(124,58,237,0.25)' },
+    Genre: { color: '#9333EA', bg: 'rgba(147,51,234,0.1)', border: 'rgba(147,51,234,0.25)' },
     Mood: { color: '#22d3ee', bg: 'rgba(34,211,238,0.1)', border: 'rgba(34,211,238,0.25)' },
     Theme: { color: palette.primary, bg: palette.dim, border: palette.border },
   };
@@ -205,7 +163,6 @@ function EpisodeTracker({ item, entry, palette, onUpdateProgress }) {
   const startIdx = activeTab * chunkSize;
   const endIdx = Math.min(totalItems, (activeTab + 1) * chunkSize);
 
-  // Generate slice of episodes for active chunk
   const displayEpisodes = [];
   for (let i = startIdx + 1; i <= endIdx; i++) {
     const existingMeta = episodesList[i - 1];
@@ -226,7 +183,6 @@ function EpisodeTracker({ item, entry, palette, onUpdateProgress }) {
       marginBottom: 32,
       animation: 'fadeUp 0.5s 0.38s ease both',
     }}>
-      {/* Background glow */}
       <div style={{
         position: 'absolute', top: -30, left: -30, width: 220, height: 220,
         background: `radial-gradient(circle, ${palette.glow} 0%, transparent 70%)`,
@@ -234,10 +190,9 @@ function EpisodeTracker({ item, entry, palette, onUpdateProgress }) {
       }} />
 
       <div style={{ position: 'relative', zIndex: 1 }}>
-        {/* Header with Title & Stats */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Tv size={16} color={palette.primary} />
+            <Television size={16} color={palette.primary} weight="duotone" />
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1rem', color: '#fff', letterSpacing: '-0.01em' }}>
               {isManga ? 'Chapter Tracker' : 'Episode Tracker'}
             </span>
@@ -253,7 +208,6 @@ function EpisodeTracker({ item, entry, palette, onUpdateProgress }) {
             )}
           </div>
 
-          {/* Quick Step Buttons */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
               onClick={() => onUpdateProgress(Math.max(0, currentProgress - 1))}
@@ -309,13 +263,12 @@ function EpisodeTracker({ item, entry, palette, onUpdateProgress }) {
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(52, 211, 153, 0.2)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(52, 211, 153, 0.1)'; }}
               >
-                <CheckCheck size={14} /> All
+                <Checks size={14} weight="bold" /> All
               </button>
             )}
           </div>
         </div>
 
-        {/* Progress Bar & Status Text */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: '#9ca3af' }}>
@@ -343,7 +296,6 @@ function EpisodeTracker({ item, entry, palette, onUpdateProgress }) {
           </div>
         </div>
 
-        {/* Tab pagination if > 50 episodes */}
         {totalChunks > 1 && (
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
             {Array.from({ length: totalChunks }).map((_, idx) => {
@@ -370,10 +322,9 @@ function EpisodeTracker({ item, entry, palette, onUpdateProgress }) {
           </div>
         )}
 
-        {/* Interactive Episode Grid */}
         {loadingEps ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '24px 0', justifyContent: 'center' }}>
-            <Loader2 size={18} color={palette.primary} className="animate-spin" />
+            <CircleNotch size={18} color={palette.primary} className="animate-spin" weight="bold" />
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: '#6b7280' }}>Loading episode details...</span>
           </div>
         ) : (
@@ -404,15 +355,14 @@ function EpisodeTracker({ item, entry, palette, onUpdateProgress }) {
                     background: isWatched
                       ? `${palette.primary}25`
                       : isNext
-                      ? 'rgba(255,255,255,0.08)'
-                      : 'rgba(255,255,255,0.02)',
+                        ? 'rgba(255,255,255,0.08)'
+                        : 'rgba(255,255,255,0.02)',
                     border: isWatched
                       ? `1px solid ${palette.primary}60`
                       : isNext
-                      ? `1px solid ${palette.primary}`
-                      : '1px solid rgba(255,255,255,0.06)',
+                        ? `1px solid ${palette.primary}`
+                        : '1px solid rgba(255,255,255,0.06)',
                     boxShadow: isNext ? `0 0 14px ${palette.glow}` : isWatched ? `0 2px 8px ${palette.glow}` : 'none',
-                    transform: isNext ? 'scale(1.04)' : 'scale(1)',
                     position: 'relative',
                   }}
                 >
@@ -433,8 +383,8 @@ function EpisodeTracker({ item, entry, palette, onUpdateProgress }) {
                   </span>
 
                   {isWatched && (
-                    <div style={{ marginTop: 2 }}>
-                      <CheckCircle2 size={10} color={palette.primary} />
+                    <div style={{ marginTop: 2, lineHeight: 0, flexShrink: 0 }}>
+                      <CheckCircle size={10} color={palette.primary} weight="fill" style={{ width: 10, height: 10 }} />
                     </div>
                   )}
                   {isNext && (
@@ -451,7 +401,6 @@ function EpisodeTracker({ item, entry, palette, onUpdateProgress }) {
           </div>
         )}
 
-        {/* Selected / Hovered Episode Preview Bar */}
         {hoveredEp && (hoveredEp.title || hoveredEp.thumbnail) && (
           <div style={{
             marginTop: 16, padding: '10px 14px', borderRadius: 10,
@@ -477,7 +426,7 @@ function EpisodeTracker({ item, entry, palette, onUpdateProgress }) {
                 rel="noreferrer"
                 style={{ marginLeft: 'auto', color: palette.primary, display: 'flex', alignItems: 'center', gap: 4, textDecoration: 'none', fontSize: '0.75rem', fontFamily: 'var(--font-mono)' }}
               >
-                Watch <ExternalLink size={12} />
+                Watch <ArrowSquareOut size={12} weight="bold" />
               </a>
             )}
           </div>
@@ -513,8 +462,8 @@ function LibraryButton({ status, label, icon: Icon, activeColor, currentStatus, 
     >
       <Icon
         size={15}
-        fill={isActive ? activeColor : 'none'}
         color={isActive ? activeColor : 'currentColor'}
+        weight={isActive ? 'fill' : 'duotone'}
       />
       {label}
       {isActive && (
@@ -545,7 +494,6 @@ export default function ContentPage({ id, goBack }) {
   const { user, favourites, refetch } = useAuth();
   const { updateItem, removeItem, isInLibrary } = useLibrary();
   const toast = useToast();
-  const heroRef = useRef(null);
 
   useEffect(() => {
     contentApi.get(id)
@@ -555,14 +503,12 @@ export default function ContentPage({ id, goBack }) {
           average: res.content.platformAverage || 0,
           count: res.content.platformReviewCount || 0
         });
-        // Check if item is in global favourites list
         const fav = favourites.some(f => f.contentId === Number(id));
         setIsFavourite(fav);
       })
       .catch(() => toast('Content unavailable.', 'error'))
       .finally(() => setLoading(false));
 
-    // Fetch reviews
     reviewsApi.get(id)
       .then(res => {
         if (res.ok) {
@@ -575,7 +521,6 @@ export default function ContentPage({ id, goBack }) {
       })
       .catch(console.error);
 
-    // Fetch sources
     setIsLoadingSources(true);
     contentApi.getSources(id)
       .then(res => {
@@ -589,8 +534,8 @@ export default function ContentPage({ id, goBack }) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '70vh', gap: 16 }}>
         <div style={{ position: 'relative' }}>
-          <Loader2 size={40} color="#7C3AED" style={{ animation: 'spin 0.8s linear infinite' }} />
-          <div style={{ position: 'absolute', inset: -8, borderRadius: '50%', border: '1px solid rgba(124,58,237,0.2)', animation: 'ping 1.5s ease-out infinite' }} />
+          <CircleNotch size={40} color="#9333EA" weight="bold" style={{ animation: 'spin 0.8s linear infinite' }} />
+          <div style={{ position: 'absolute', inset: -8, borderRadius: '50%', border: '1px solid rgba(147,51,234,0.2)', animation: 'ping 1.5s ease-out infinite' }} />
         </div>
         <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.25em' }}>
           Retrieving transmission...
@@ -627,21 +572,29 @@ export default function ContentPage({ id, goBack }) {
     await updateItem(item.id, status, entry?.rating || null, newProgress);
   };
 
+  // OPTIMISTIC FAVOURITE TOGGLE
   const handleToggleFavourite = async () => {
     if (!user) return toast('Please sign in to save favourites.', 'info');
+
+    const previousFavState = isFavourite;
+    const nextFavState = !previousFavState;
+
+    setIsFavourite(nextFavState);
+    if (nextFavState) {
+      toast('Added to favourites!', 'success');
+    } else {
+      toast('Removed from favourites', 'info');
+    }
+
     try {
-      if (isFavourite) {
+      if (previousFavState) {
         await favouritesApi.remove(item.id);
-        setIsFavourite(false);
-        toast('Removed from favourites', 'info');
       } else {
         await favouritesApi.add(item.id);
-        setIsFavourite(true);
-        toast('Added to favourites!', 'success');
       }
-      // Refresh global state so other pages reflect change
       refetch();
     } catch (err) {
+      setIsFavourite(previousFavState);
       toast('Failed to update favourites', 'error');
     }
   };
@@ -651,59 +604,107 @@ export default function ContentPage({ id, goBack }) {
     await updateItem(item.id, status, newRating);
   };
 
+  // OPTIMISTIC DISCORD SUBMISSION
   const handleDiscordSubmit = async (e) => {
     e.preventDefault();
     if (!discordInvite) return;
+
+    const submittedLink = discordInvite;
+    const previousDiscordLink = item.discordLink;
+
+    setItem(prev => ({ ...prev, discordLink: submittedLink }));
+    setShowDiscordForm(false);
+    setDiscordInvite('');
+    toast('Recommendation submitted for review!', 'success');
+
     try {
       setIsSubmittingDiscord(true);
-      await discordApi.recommend({ contentId: item.id, inviteLink: discordInvite });
-      toast('Recommendation submitted for review!', 'success');
-      setShowDiscordForm(false);
-      setDiscordInvite('');
+      await discordApi.recommend({ contentId: item.id, inviteLink: submittedLink });
     } catch (err) {
+      setItem(prev => ({ ...prev, discordLink: previousDiscordLink }));
+      setShowDiscordForm(true);
+      setDiscordInvite(submittedLink);
       toast(err.message || 'Failed to submit', 'error');
     } finally {
       setIsSubmittingDiscord(false);
     }
   };
 
+  // OPTIMISTIC SUBREDDIT SUBMISSION
   const handleSubredditSubmit = async (e) => {
     e.preventDefault();
     if (!subredditName) return;
+
+    const submittedSubreddit = subredditName;
+    const previousRedditLink = item.redditLink;
+    const formattedLink = `https://reddit.com/r/${submittedSubreddit.replace(/^r\//, '')}`;
+
+    setItem(prev => ({ ...prev, redditLink: formattedLink }));
+    setShowSubredditForm(false);
+    setSubredditName('');
+    toast('Subreddit recommendation submitted!', 'success');
+
     try {
       setIsSubmittingSubreddit(true);
-      await subredditApi.recommend({ contentId: item.id, subreddit: subredditName });
-      toast('Subreddit recommendation submitted!', 'success');
-      setShowSubredditForm(false);
-      setSubredditName('');
+      await subredditApi.recommend({ contentId: item.id, subreddit: submittedSubreddit });
     } catch (err) {
+      setItem(prev => ({ ...prev, redditLink: previousRedditLink }));
+      setShowSubredditForm(true);
+      setSubredditName(submittedSubreddit);
       toast(err.message || 'Failed to submit', 'error');
     } finally {
       setIsSubmittingSubreddit(false);
     }
   };
 
+  // OPTIMISTIC REVIEW SUBMISSION
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     if (!user) return toast('Sign in to leave a review.', 'info');
     if (!newReview.comment.trim()) return toast('Please enter a comment.', 'info');
 
+    const reviewToAdd = {
+      id: `temp-${Date.now()}`,
+      rating: newReview.rating,
+      comment: newReview.comment,
+      createdAt: new Date().toISOString(),
+      user: {
+        username: user.username || 'You',
+        avatarUrl: user.avatarUrl || null,
+      }
+    };
+
+    const previousReviews = [...platformReviews];
+    const previousStats = { ...platformStats };
+
+    const updatedReviews = [reviewToAdd, ...platformReviews];
+    const newCount = platformStats.count + 1;
+    const newAverage = ((platformStats.average * platformStats.count) + newReview.rating) / newCount;
+
+    setPlatformReviews(updatedReviews);
+    setPlatformStats({ average: newAverage, count: newCount });
+    const submittedComment = newReview.comment;
+    const submittedRating = newReview.rating;
+    setNewReview({ rating: 10, comment: '' });
+    toast('Review posted!', 'success');
+
     try {
       setIsSubmittingReview(true);
       await reviewsApi.add({
         contentId: item.id,
-        rating: newReview.rating,
-        comment: newReview.comment
+        rating: submittedRating,
+        comment: submittedComment
       });
-      toast('Review posted!', 'success');
-      setNewReview({ rating: 10, comment: '' });
-      // Refresh reviews
+
       const res = await reviewsApi.get(item.id);
       if (res.ok) {
         setPlatformReviews(res.reviews);
         setPlatformStats({ average: res.averageRating, count: res.reviewCount });
       }
     } catch (err) {
+      setPlatformReviews(previousReviews);
+      setPlatformStats(previousStats);
+      setNewReview({ rating: submittedRating, comment: submittedComment });
       toast('Failed to post review', 'error');
     } finally {
       setIsSubmittingReview(false);
@@ -716,9 +717,7 @@ export default function ContentPage({ id, goBack }) {
       setLoading(true);
       const res = await libraryApi.markAllCompleted(item.id);
       toast(res.message, 'success');
-      // Refresh library state
       refetch();
-      // Reload item to see updated status if needed (though local library state handles most of it)
       const contentRes = await contentApi.get(id);
       setItem(contentRes.content);
     } catch (err) {
@@ -767,7 +766,6 @@ export default function ContentPage({ id, goBack }) {
           />
         )}
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(9,9,11,0.6) 0%, #09090b 60%)' }} />
-        {/* Colored atmospheric glow */}
         <div style={{
           position: 'absolute', top: 0, left: '10%', right: '10%', height: '50%',
           background: `radial-gradient(ellipse at 50% 0%, ${palette.glow} 0%, transparent 70%)`,
@@ -836,9 +834,7 @@ export default function ContentPage({ id, goBack }) {
              }
           `}</style>
 
-          {/* ════════════════════════════════
-              LEFT COLUMN — COVER + ACTIONS
-              ════════════════════════════════ */}
+          {/* LEFT COLUMN — COVER + ACTIONS */}
           <div style={{ position: 'sticky', top: 32, display: 'flex', flexDirection: 'column', gap: 16 }} className="content-left-col">
 
             {/* Cover Art */}
@@ -873,7 +869,6 @@ export default function ContentPage({ id, goBack }) {
                 </div>
               )}
 
-              {/* Category badge on cover */}
               <div style={{ position: 'absolute', top: 12, left: 12 }}>
                 <span style={{
                   display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -888,7 +883,6 @@ export default function ContentPage({ id, goBack }) {
                 </span>
               </div>
 
-              {/* Status badge if in library */}
               {entry && (
                 <div style={{
                   position: 'absolute', bottom: 12, right: 12,
@@ -896,7 +890,7 @@ export default function ContentPage({ id, goBack }) {
                   background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)',
                   border: `1px solid rgba(255,255,255,0.1)`,
                   fontFamily: 'var(--font-mono)', fontSize: '0.58rem', fontWeight: 700,
-                  color: entry.status === 'COMPLETED' ? '#34d399' : entry.status === 'CURRENT' ? '#22d3ee' : '#7C3AED',
+                  color: entry.status === 'COMPLETED' ? '#34d399' : entry.status === 'CURRENT' ? '#22d3ee' : '#9333EA',
                   textTransform: 'uppercase', letterSpacing: '0.1em',
                   display: 'flex', alignItems: 'center', gap: 5,
                 }}>
@@ -924,12 +918,12 @@ export default function ContentPage({ id, goBack }) {
                 onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02) translateY(-2px)'; e.currentTarget.style.boxShadow = `0 16px 40px ${palette.glow}`; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1) translateY(0)'; e.currentTarget.style.boxShadow = `0 12px 32px ${palette.glow}`; }}
               >
-                {item.category === 'Manga' ? <BookOpen size={18} /> : item.category === 'Movie' ? <Film size={18} /> : <Play size={18} fill="currentColor" />}
+                {item.category === 'Manga' ? <BookOpen size={18} weight="fill" /> : item.category === 'Movie' ? <FilmStrip size={18} weight="fill" /> : <Play size={18} weight="fill" />}
                 {item.category === 'Manga' ? 'Read Now' : 'Watch Now'}
               </a>
             </div>
 
-            {/* Mark All Completed (if series/seasons exist) */}
+            {/* Mark All Completed */}
             {(item.category === 'Anime' || item.category === 'TV' || item.category === 'Manga' || item.children?.length > 0 || item.parentId) && (
               <button
                 onClick={handleMarkAllCompleted}
@@ -951,7 +945,7 @@ export default function ContentPage({ id, goBack }) {
               </button>
             )}
 
-            {/* Quick meta info */}
+            {/* Meta info */}
             <div style={{
               display: 'flex', flexDirection: 'column', gap: 8,
               padding: '16px 18px',
@@ -1014,7 +1008,7 @@ export default function ContentPage({ id, goBack }) {
                   onMouseEnter={e => { e.currentTarget.style.background = '#5865F2'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(88,101,242,0.3)'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'rgba(88,101,242,0.1)'; e.currentTarget.style.color = '#5865F2'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
                 >
-                  <ExternalLink size={15} /> Join Community Discord
+                  <ArrowSquareOut size={15} weight="bold" /> Join Community Discord
                 </a>
               ) : showDiscordForm ? (
                 <form
@@ -1053,7 +1047,7 @@ export default function ContentPage({ id, goBack }) {
                       opacity: isSubmittingDiscord ? 0.6 : 1,
                     }}
                   >
-                    {isSubmittingDiscord ? <Loader2 size={12} className="animate-spin" /> : null}
+                    {isSubmittingDiscord ? <CircleNotch size={12} className="animate-spin" weight="bold" /> : null}
                     Submit Invite
                   </button>
                 </form>
@@ -1072,7 +1066,7 @@ export default function ContentPage({ id, goBack }) {
                   onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(88,101,242,0.4)'; e.currentTarget.style.color = '#5865F2'; e.currentTarget.style.background = 'rgba(88,101,242,0.06)'; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(88,101,242,0.2)'; e.currentTarget.style.color = '#4b5563'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
                 >
-                  <MessageCircle size={14} /> Recommend Discord
+                  <ChatCircle size={14} weight="duotone" /> Recommend Discord
                 </button>
               )}
 
@@ -1095,7 +1089,7 @@ export default function ContentPage({ id, goBack }) {
                   onMouseEnter={e => { e.currentTarget.style.background = '#FF4500'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(255,69,0,0.3)'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,69,0,0.1)'; e.currentTarget.style.color = '#FF4500'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
                 >
-                  <Zap size={15} /> Visit Subreddit
+                  <Lightning size={15} weight="fill" /> Visit Subreddit
                 </a>
               ) : showSubredditForm ? (
                 <form
@@ -1134,7 +1128,7 @@ export default function ContentPage({ id, goBack }) {
                       opacity: isSubmittingSubreddit ? 0.6 : 1,
                     }}
                   >
-                    {isSubmittingSubreddit ? <Loader2 size={12} className="animate-spin" /> : null}
+                    {isSubmittingSubreddit ? <CircleNotch size={12} className="animate-spin" weight="bold" /> : null}
                     Submit Reddit
                   </button>
                 </form>
@@ -1153,18 +1147,16 @@ export default function ContentPage({ id, goBack }) {
                   onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,69,0,0.4)'; e.currentTarget.style.color = '#FF4500'; e.currentTarget.style.background = 'rgba(255,69,0,0.06)'; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,69,0,0.2)'; e.currentTarget.style.color = '#4b5563'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
                 >
-                  <Search size={14} /> Recommend Subreddit
+                  <MagnifyingGlass size={14} weight="bold" /> Recommend Subreddit
                 </button>
               )}
             </div>
           </div>
 
-          {/* ════════════════════════════════
-              RIGHT COLUMN — CONTENT INFO
-              ════════════════════════════════ */}
+          {/* RIGHT COLUMN — CONTENT INFO */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0, paddingTop: 8 }}>
- 
-            {/* Category label + title */}
+
+            {/* Title */}
             <div style={{ marginBottom: 24, animation: 'slideInLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
                 <span style={{
@@ -1197,7 +1189,6 @@ export default function ContentPage({ id, goBack }) {
                 {item.title}
               </h1>
 
-              {/* Decorative line */}
               <div style={{
                 marginTop: 20, height: 3, width: 80, borderRadius: 99,
                 background: `linear-gradient(90deg, ${palette.primary}, transparent)`,
@@ -1205,7 +1196,7 @@ export default function ContentPage({ id, goBack }) {
               }} />
             </div>
 
-            {/* Rating display */}
+            {/* Ratings */}
             <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: 28 }}>
               {item.rating && (
                 <div style={{
@@ -1238,8 +1229,8 @@ export default function ContentPage({ id, goBack }) {
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: 14,
                 padding: '12px 20px', borderRadius: 12,
-                background: 'rgba(124,58,237,0.05)',
-                border: '1px solid rgba(124,58,237,0.15)',
+                background: 'rgba(147,51,234,0.05)',
+                border: '1px solid rgba(147,51,234,0.15)',
                 animation: 'fadeUp 0.5s 0.22s ease both',
               }}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -1252,8 +1243,8 @@ export default function ContentPage({ id, goBack }) {
                 <div>
                   <span style={{
                     fontFamily: 'var(--font-display)', fontWeight: 900,
-                    fontSize: '2rem', color: '#7C3AED', lineHeight: 1,
-                    filter: 'drop-shadow(0 0 12px rgba(124,58,237,0.4))',
+                    fontSize: '2rem', color: '#9333EA', lineHeight: 1,
+                    filter: 'drop-shadow(0 0 12px rgba(147,51,234,0.4))',
                   }}>
                     {Number(platformStats.average).toFixed(1)}
                   </span>
@@ -1294,7 +1285,7 @@ export default function ContentPage({ id, goBack }) {
 
             <div className="section-divider" />
 
-            {/* ── EPISODE & PROGRESS TRACKER ── */}
+            {/* EPISODE & PROGRESS TRACKER */}
             <EpisodeTracker
               item={item}
               entry={entry}
@@ -1302,7 +1293,7 @@ export default function ContentPage({ id, goBack }) {
               onUpdateProgress={handleProgressUpdate}
             />
 
-            {/* ── LIBRARY CONTROLS ── */}
+            {/* LIBRARY CONTROLS */}
             <div style={{
               padding: '28px 32px',
               background: 'rgba(255,255,255,0.02)',
@@ -1311,7 +1302,6 @@ export default function ContentPage({ id, goBack }) {
               position: 'relative', overflow: 'hidden',
               animation: 'fadeUp 0.5s 0.35s ease both',
             }}>
-              {/* Ambient corner glow */}
               <div style={{
                 position: 'absolute', top: -40, right: -40, width: 200, height: 200,
                 background: `radial-gradient(circle, ${palette.glow} 0%, transparent 70%)`,
@@ -1320,7 +1310,7 @@ export default function ContentPage({ id, goBack }) {
 
               <div style={{ position: 'relative', zIndex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-                  <Activity size={14} color={palette.primary} />
+                  <Fingerprint size={14} color={palette.primary} weight="duotone" />
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
                     Library Status
                   </span>
@@ -1336,11 +1326,10 @@ export default function ContentPage({ id, goBack }) {
                   )}
                 </div>
 
-                {/* Status buttons */}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
                   <LibraryButton
-                    status="PLANNING" label="Watchlist" icon={Bookmark}
-                    activeColor="#7C3AED" currentStatus={entry?.status}
+                    status="PLANNING" label="Watchlist" icon={BookmarkSimple}
+                    activeColor="#9333EA" currentStatus={entry?.status}
                     onClick={() => handleAction('PLANNING')}
                   />
                   <LibraryButton
@@ -1355,10 +1344,9 @@ export default function ContentPage({ id, goBack }) {
                   />
                 </div>
 
-                {/* Personal Rating */}
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                    <Zap size={12} color="#4b5563" />
+                    <Target size={12} color="#4b5563" weight="duotone" />
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
                       Your Rating
                     </span>
@@ -1390,7 +1378,7 @@ export default function ContentPage({ id, goBack }) {
               </div>
             </div>
 
-            {/* Source info */}
+            {/* Data Sourced Info */}
             {(item.source || item.externalId) && (
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 16, marginTop: 20,
@@ -1399,7 +1387,7 @@ export default function ContentPage({ id, goBack }) {
                 border: '1px solid rgba(255,255,255,0.05)',
                 animation: 'fadeUp 0.5s 0.4s ease both',
               }}>
-                <Layers size={13} color="#374151" />
+                <Stack size={13} color="#374151" weight="duotone" />
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                   Data sourced from <span style={{ color: '#4b5563' }}>{item.source}</span>
                   {item.externalId && <span style={{ color: '#2d2d3d' }}> · ID {item.externalId}</span>}
@@ -1413,7 +1401,7 @@ export default function ContentPage({ id, goBack }) {
             <div style={{ marginBottom: 80, animation: 'fadeUp 0.5s 0.45s ease both' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <MessageCircle size={16} color={palette.primary} />
+                  <ChatCircle size={16} color={palette.primary} weight="duotone" />
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 800 }}>
                     Platform Reviews ({platformStats.count})
                   </span>
@@ -1435,13 +1423,13 @@ export default function ContentPage({ id, goBack }) {
                     </div>
                     <span style={{ fontFamily: 'var(--font-display)', fontSize: '0.85rem', color: '#fff', fontWeight: 600 }}>Share your perspective</span>
                   </div>
-                  
+
                   <form onSubmit={handleReviewSubmit}>
                     <div style={{ marginBottom: 18 }}>
                       <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Rating</span>
                       <StarRating value={newReview.rating} interactive onRate={(r) => setNewReview(prev => ({ ...prev, rating: r }))} />
                     </div>
-                    
+
                     <textarea
                       placeholder="What did you think of this title? (Writing a review is highly encouraged!)"
                       value={newReview.comment}
@@ -1456,7 +1444,7 @@ export default function ContentPage({ id, goBack }) {
                       onFocus={e => { e.target.style.borderColor = palette.primary; e.target.style.background = 'rgba(255,255,255,0.05)'; }}
                       onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.08)'; e.target.style.background = 'rgba(255,255,255,0.03)'; }}
                     />
-                    
+
                     <button
                       type="submit"
                       disabled={isSubmittingReview}
@@ -1473,7 +1461,7 @@ export default function ContentPage({ id, goBack }) {
                       onMouseEnter={e => { if (!isSubmittingReview) e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 12px 28px ${palette.glow}`; }}
                       onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 8px 24px ${palette.glow}`; }}
                     >
-                      {isSubmittingReview ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />}
+                      {isSubmittingReview ? <CircleNotch size={15} className="animate-spin" weight="bold" /> : <Plus size={15} />}
                       Publish Review
                     </button>
                   </form>
@@ -1498,28 +1486,28 @@ export default function ContentPage({ id, goBack }) {
                     transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                     animation: `fadeUp 0.6s ${0.5 + idx * 0.05}s ease both`,
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.015)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)'; e.currentTarget.style.transform = 'none'; }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.015)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.04)'; e.currentTarget.style.transform = 'none'; }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                         <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}>
-                          {rev.user.avatarUrl ? <img src={rev.user.avatarUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : null}
+                          {rev.user?.avatarUrl ? <img src={rev.user.avatarUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : null}
                         </div>
                         <div>
-                          <h4 style={{ margin: 0, color: '#fff', fontSize: '0.95rem', fontWeight: 800, letterSpacing: '-0.01em' }}>{rev.user.username}</h4>
+                          <h4 style={{ margin: 0, color: '#fff', fontSize: '0.95rem', fontWeight: 800, letterSpacing: '-0.01em' }}>{rev.user?.username || 'Anonymous'}</h4>
                           <span style={{ color: '#4b5563', fontSize: '0.65rem', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                             {new Date(rev.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                           </span>
                         </div>
                       </div>
-                      <div style={{ 
-                        display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px', 
-                        background: 'rgba(124,58,237,0.08)', borderRadius: 10, 
-                        border: '1px solid rgba(124,58,237,0.25)',
-                        boxShadow: '0 4px 12px rgba(124,58,237,0.1)',
+                      <div style={{
+                        display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px',
+                        background: 'rgba(147,51,234,0.08)', borderRadius: 10,
+                        border: '1px solid rgba(147,51,234,0.25)',
+                        boxShadow: '0 4px 12px rgba(147,51,234,0.1)',
                       }}>
-                        <Star size={13} fill="#7C3AED" color="#7C3AED" />
+                        <Star size={13} color="#9333EA" weight="fill" />
                         <span style={{ fontFamily: 'var(--font-display)', fontWeight: 900, color: '#a78bfa', fontSize: '1rem' }}>{rev.rating}</span>
                         <span style={{ color: '#4c1d95', fontSize: '0.65rem', fontWeight: 800, marginLeft: -2 }}>/10</span>
                       </div>
@@ -1530,7 +1518,7 @@ export default function ContentPage({ id, goBack }) {
                   </div>
                 )) : (
                   <div style={{ textAlign: 'center', padding: '60px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-                    <MessageCircle size={32} color="#1f1f2e" />
+                    <ChatCircle size={32} color="#1f1f2e" weight="duotone" />
                     <p style={{ color: '#374151', fontSize: '0.9rem', fontStyle: 'italic', margin: 0 }}>No reviews yet. Be the first to share your thoughts!</p>
                   </div>
                 )}
@@ -1541,4 +1529,4 @@ export default function ContentPage({ id, goBack }) {
       </div>
     </div>
   );
-}
+}   

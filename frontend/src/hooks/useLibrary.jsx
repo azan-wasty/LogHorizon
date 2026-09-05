@@ -45,62 +45,104 @@ export function LibraryProvider({ children }) {
 
   // 6. COMPLEX STATE UPDATE ACTION (updateItem):
   // Updates or appends a library item.
+  //
+  // OPTIMISTIC UPDATE: mirrors the onboarding pipeline's toggle methodology —
+  // apply the change to local state synchronously (same render pass as the
+  // click) so the button reflects it instantly, THEN sync to the backend in
+  // the background. If the request fails, roll the local state back to what
+  // it was before the click and surface a toast. This is what makes onboarding
+  // feel instant while everywhere else was waiting on a network round-trip.
   const updateItem = async (contentId, status, rating = null, progress = undefined) => {
-    try {
-      // Send changes to backend
-      const payload = { contentId, status };
-      if (rating !== null && rating !== undefined) payload.rating = rating;
-      if (progress !== undefined && progress !== null) payload.progress = progress;
+    const payload = { contentId, status };
+    if (rating !== null && rating !== undefined) payload.rating = rating;
+    if (progress !== undefined && progress !== null) payload.progress = progress;
 
+    // Snapshot what we're overwriting so we can restore it on failure.
+    let previousEntry = null;
+    let wasNew = false;
+
+    // INSTANT LOCAL UPDATE — happens before the network call, not after.
+    setLibrary(prev => {
+      const index = prev.findIndex(item => item.contentId === contentId);
+
+      if (index > -1) {
+        previousEntry = prev[index];
+        const next = [...prev];
+        next[index] = { ...prev[index], ...payload };
+        return next;
+      }
+
+      wasNew = true;
+      return [...prev, { contentId, status, rating: rating ?? null, progress: progress ?? 0 }];
+    });
+
+    try {
       const res = await libraryApi.update(payload);
-      
-      // FUNCTIONAL STATE UPDATE:
-      // Passing a callback `prev => ...` ensures we are modifying the most recent state snapshot
-      // and avoids race conditions.
+
+      // Reconcile the optimistic guess with the authoritative server record
+      // (picks up server-computed fields like updatedAt, id, etc.).
       setLibrary(prev => {
         const index = prev.findIndex(item => item.contentId === contentId);
-        
         if (index > -1) {
-          // IMMUTABILITY PATTERN:
-          // In React, NEVER mutate state array directly (e.g. prev[index] = newValue).
-          // Instead, clone the array using the spread operator `[...prev]`, modify the copy, and return it.
           const next = [...prev];
           next[index] = res.entry;
           return next;
         }
-        
-        // Append new item to the cloned copy of library
         return [...prev, res.entry];
       });
 
       // Side Effect: Trigger Toast notifications if the backend rewards new achievements
       if (res.newUnlocks && res.newUnlocks.length > 0) {
-res.newUnlocks.forEach(ach => {
-            toast(`Achievement Unlocked: ${ach.title}`, 'success');
+        res.newUnlocks.forEach(ach => {
+          toast(`Achievement Unlocked: ${ach.title}`, 'success');
         });
         // Keep the global achievements list (used on the Profile page) in sync
         // without making every page do its own refetch-on-mount.
         refetchAuth?.();
-        }
+      }
       return { ok: true, entry: res.entry };
     } catch (err) {
+      // ROLLBACK: the optimistic guess didn't hold up, restore prior state.
+      setLibrary(prev => {
+        if (wasNew) return prev.filter(item => item.contentId !== contentId);
+        const index = prev.findIndex(item => item.contentId === contentId);
+        if (index > -1 && previousEntry) {
+          const next = [...prev];
+          next[index] = previousEntry;
+          return next;
+        }
+        return prev;
+      });
       toast(err.message || 'Transmission failed', 'error');
       return { ok: false };
     }
   };
 
   // 7. REMOVE ITEM ACTION:
-  // Removes an item from user library.
+  // Removes an item from user library. Also optimistic — see updateItem above.
   const removeItem = async (contentId) => {
+    let previousEntry = null;
+    let previousIndex = -1;
+
+    setLibrary(prev => {
+      previousIndex = prev.findIndex(item => item.contentId === contentId);
+      if (previousIndex > -1) previousEntry = prev[previousIndex];
+      return prev.filter(item => item.contentId !== contentId);
+    });
+
     try {
       await libraryApi.remove(contentId);
-      
-      // IMMUTABILITY WITH FILTER:
-      // Array.prototype.filter returns a BRAND NEW array containing only items
-      // that return true. This automatically satisfies React's immutability requirements.
-      setLibrary(prev => prev.filter(item => item.contentId !== contentId));
       return { ok: true };
     } catch (err) {
+      // ROLLBACK: re-insert at its original position if we can.
+      if (previousEntry) {
+        setLibrary(prev => {
+          const next = [...prev];
+          const at = Math.min(previousIndex, next.length);
+          next.splice(at < 0 ? next.length : at, 0, previousEntry);
+          return next;
+        });
+      }
       toast(err.message || 'Removal failed', 'error');
       return { ok: false };
     }
@@ -131,4 +173,3 @@ export function useLibrary() {
   if (!context) throw new Error('useLibrary must be used within LibraryProvider');
   return context;
 }
-
