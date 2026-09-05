@@ -18,12 +18,12 @@ const CAT = {
   Movie: { color: '#fbbf24', dim: 'rgba(251,191,36,0.12)', label: 'Movie', icon: Film },
   TV: { color: '#34d399', dim: 'rgba(52,211,153,0.12)', label: 'TV', icon: Monitor },
 };
-const fallbackPalette = { color: '#7C3AED', dim: 'rgba(124,58,237,0.12)', label: '—', icon: Film };
+const fallbackPalette = { color: '#9333EA', dim: 'rgba(147,51,234,0.12)', label: '—', icon: Film };
 
 const STATUS_CFG = {
   COMPLETED: { label: 'Completed', color: '#34d399', accent: 'rgba(52,211,153,0.15)', icon: CheckCircle2 },
   CURRENT: { label: 'Watching', color: '#22d3ee', accent: 'rgba(34,211,238,0.15)', icon: PlayCircle },
-  PLANNING: { label: 'Watchlist', color: '#7C3AED', accent: 'rgba(124,58,237,0.15)', icon: Bookmark },
+  PLANNING: { label: 'Watchlist', color: '#9333EA', accent: 'rgba(147,51,234,0.15)', icon: Bookmark },
 };
 
 const PAGE_SIZE = 12;
@@ -110,7 +110,7 @@ function DNABar({ library }) {
 function GridCard({ entry, onNavigate, onRemove }) {
   const item = entry.content;
   const [hovered, setHovered] = useState(false);
-  const cfg = CAT[item?.category] || { color: '#7C3AED', dim: 'rgba(124,58,237,0.12)' };
+  const cfg = CAT[item?.category] || { color: '#9333EA', dim: 'rgba(147,51,234,0.12)' };
   const sc = STATUS_CFG[entry.status] || STATUS_CFG.COMPLETED;
   const StatusIcon = sc.icon;
 
@@ -187,7 +187,7 @@ function GridCard({ entry, onNavigate, onRemove }) {
 function ListRow({ entry, index, onNavigate, onRemove }) {
   const item = entry.content;
   const [hovered, setHovered] = useState(false);
-  const cfg = CAT[item?.category] || { color: '#7C3AED', dim: 'rgba(124,58,237,0.12)' };
+  const cfg = CAT[item?.category] || { color: '#9333EA', dim: 'rgba(147,51,234,0.12)' };
 
   const isManga = item?.category === 'Manga';
   const total = item?.totalEpisodes || (isManga ? item?.totalChapters : null) || 0;
@@ -546,7 +546,7 @@ export default function ProfilePage({ onNavigate }) {
   if (libLoading || !user) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-        <Loader2 size={36} color="#7C3AED" className="animate-spin" />
+        <Loader2 size={36} color="#9333EA" className="animate-spin" />
       </div>
     );
   }
@@ -562,7 +562,7 @@ export default function ProfilePage({ onNavigate }) {
   const TABS = [
     { id: 'COMPLETED', label: 'Completed', count: completed.length, color: '#34d399' },
     { id: 'CURRENT', label: 'Watching', count: current.length, color: '#22d3ee' },
-    { id: 'PLANNING', label: 'Watchlist', count: planning.length, color: '#7C3AED' },
+    { id: 'PLANNING', label: 'Watchlist', count: planning.length, color: '#9333EA' },
   ];
 
   const allTabItems = activeTab === 'COMPLETED' ? completed : activeTab === 'CURRENT' ? current : planning;
@@ -648,10 +648,10 @@ export default function ProfilePage({ onNavigate }) {
               <div style={{ position: 'absolute', inset: 0, background: 'rgba(18,18,30,0.95)' }} />
             )}
 
-            <div style={{ position: 'absolute', top: -60, right: -60, width: 280, height: 280, background: 'radial-gradient(circle, rgba(124,58,237,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', bottom: -40, left: -40, width: 200, height: 200, background: 'radial-gradient(circle, rgba(34,211,238,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: -60, right: -60, width: 280, height: 280, background: 'radial-gradient(circle, rgba(147,51,234,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', bottom: -40, left: -40, width: 200, height: 200, background: 'radial-gradient(circle, rgba(245,158,11,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-            <div style={{ height: 3, background: 'linear-gradient(90deg, #7C3AED 0%, #22d3ee 50%, #f472b6 100%)' }} />
+            <div style={{ height: 3, background: 'linear-gradient(90deg, #9333EA 0%, #a855f7 50%, #f59e0b 100%)' }} />
 
             <div className="hero-inner" style={{ position: 'relative', zIndex: 1, padding: '28px 32px 32px' }}>
               <div className="hero-row" style={{ display: 'flex', gap: 28, flexWrap: 'wrap', alignItems: 'flex-start' }}>
@@ -662,11 +662,11 @@ export default function ProfilePage({ onNavigate }) {
                   style={{ position: 'relative', flexShrink: 0, cursor: 'pointer' }}
                   onClick={() => setIsEditing(true)}
                 >
-                  <div style={{ width: 100, height: 100, borderRadius: '50%', padding: 3, background: 'linear-gradient(135deg, #7C3AED, #22d3ee)', boxShadow: '0 0 40px rgba(124,58,237,0.4)' }}>
+                  <div style={{ width: 100, height: 100, borderRadius: '50%', padding: 3, background: 'linear-gradient(135deg, #9333EA, #a855f7)', boxShadow: '0 0 30px rgba(147,51,234,0.35)' }}>
                     <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', background: '#121212' }}>
                       {user.avatarUrl
                         ? <img src={user.avatarUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="avatar" />
-                        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontSize: '2.2rem', fontWeight: 900, color: '#7C3AED' }}>
+                        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontSize: '2.2rem', fontWeight: 900, color: '#9333EA' }}>
                           {user.username?.[0]?.toUpperCase()}
                         </div>
                       }
@@ -691,7 +691,7 @@ export default function ProfilePage({ onNavigate }) {
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Edit</span>
                     </button>
                   </div>
-                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#7C3AED', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 12 }}>
+                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#9333EA', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 12 }}>
                     @{user.username}
                   </p>
                   <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.6, maxWidth: 420, marginBottom: 24 }}>
@@ -933,8 +933,8 @@ export default function ProfilePage({ onNavigate }) {
                     style={{
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       width: 34, height: 34, borderRadius: 8, border: 'none', cursor: 'pointer',
-                      background: viewMode === mode ? 'rgba(124,58,237,0.2)' : 'transparent',
-                      color: viewMode === mode ? '#7C3AED' : '#4b5563',
+                      background: viewMode === mode ? 'rgba(147,51,234,0.2)' : 'transparent',
+                      color: viewMode === mode ? '#9333EA' : '#4b5563',
                       transition: 'all 0.15s',
                     }}
                   >
@@ -952,7 +952,7 @@ export default function ProfilePage({ onNavigate }) {
                 </p>
                 <button
                   onClick={() => onNavigate('discover')}
-                  style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#7C3AED', textTransform: 'uppercase', letterSpacing: '0.12em', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#9333EA', textTransform: 'uppercase', letterSpacing: '0.12em', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
                 >
                   Browse the index →
                 </button>
@@ -986,8 +986,8 @@ export default function ProfilePage({ onNavigate }) {
                   onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
                   style={{
                     fontFamily: 'var(--font-mono)', fontSize: '0.68rem', fontWeight: 700,
-                    textTransform: 'uppercase', letterSpacing: '0.12em', color: '#7C3AED',
-                    background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.25)',
+                    textTransform: 'uppercase', letterSpacing: '0.12em', color: '#9333EA',
+                    background: 'rgba(147,51,234,0.08)', border: '1px solid rgba(147,51,234,0.25)',
                     borderRadius: 20, padding: '10px 22px', cursor: 'pointer',
                   }}
                 >

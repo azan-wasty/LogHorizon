@@ -4,12 +4,12 @@ import { activity as activityApi, users as usersApi } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import {
-  Activity, Play, Check, Bookmark, Heart, Star,
-  MessageSquare, Users, User, Flame, Sparkles,
-  Send, Trash2, ChevronDown, ChevronRight, Loader2,
-  Database, ShieldCheck, Film, BookOpen, Monitor, Zap,
-  RefreshCw, Radio, Quote, ExternalLink, X, Award
-} from 'lucide-react';
+  Pulse, Play, Check, BookmarkSimple, Heart, Star,
+  ChatCircle, UsersThree, User, Flame,
+  PaperPlaneTilt, Trash, CaretDown, CaretRight, CircleNotch,
+  Database, ShieldCheck, FilmStrip, BookOpen, Television, Lightning,
+  ArrowsClockwise, Broadcast, Quotes, ArrowSquareOut, X, Trophy
+} from '@phosphor-icons/react';
 
 const REACTION_EMOJIS = ['🔥', '❤️', '🎉', '👏', '👀', '🚀'];
 
@@ -22,18 +22,18 @@ const FEED_CACHE_TTL = 45000; // 45s — after this, a cached view still renders
 const ACTIVITY_CFG = {
   WATCHING: { verb: 'started watching', icon: Play, color: '#22d3ee', bg: 'rgba(34,211,238,0.12)', border: 'rgba(34,211,238,0.25)' },
   COMPLETED: { verb: 'completed', icon: Check, color: '#34d399', bg: 'rgba(52,211,153,0.12)', border: 'rgba(52,211,153,0.25)' },
-  PLANNING: { verb: 'added to watchlist', icon: Bookmark, color: '#a78bfa', bg: 'rgba(167,139,250,0.12)', border: 'rgba(167,139,250,0.25)' },
+  PLANNING: { verb: 'added to watchlist', icon: BookmarkSimple, color: '#a78bfa', bg: 'rgba(167,139,250,0.12)', border: 'rgba(167,139,250,0.25)' },
   FAVOURITED: { verb: 'favourited', icon: Heart, color: '#f43f5e', bg: 'rgba(244,63,94,0.12)', border: 'rgba(244,63,94,0.25)' },
   RATED: { verb: 'rated', icon: Star, color: '#fbbf24', bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.25)' },
-  REVIEWED: { verb: 'reviewed', icon: MessageSquare, color: '#7C3AED', bg: 'rgba(124,58,237,0.12)', border: 'rgba(124,58,237,0.25)' },
-  DROPPED: { verb: 'dropped', icon: ChevronRight, color: '#6b7280', bg: 'rgba(107,114,128,0.12)', border: 'rgba(107,114,128,0.25)' },
+  REVIEWED: { verb: 'reviewed', icon: ChatCircle, color: '#9333EA', bg: 'rgba(147,51,234,0.12)', border: 'rgba(147,51,234,0.25)' },
+  DROPPED: { verb: 'dropped', icon: CaretRight, color: '#6b7280', bg: 'rgba(107,114,128,0.12)', border: 'rgba(107,114,128,0.25)' },
 };
 
 const CAT_CFG = {
-  Anime: { color: '#f472b6', dim: 'rgba(244,114,182,0.12)', border: 'rgba(244,114,182,0.25)', icon: Zap },
+  Anime: { color: '#f472b6', dim: 'rgba(244,114,182,0.12)', border: 'rgba(244,114,182,0.25)', icon: Lightning },
   Manga: { color: '#60a5fa', dim: 'rgba(96,165,250,0.12)', border: 'rgba(96,165,250,0.25)', icon: BookOpen },
-  Movie: { color: '#fbbf24', dim: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.25)', icon: Film },
-  TV: { color: '#34d399', dim: 'rgba(52,211,153,0.12)', border: 'rgba(52,211,153,0.25)', icon: Monitor },
+  Movie: { color: '#fbbf24', dim: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.25)', icon: FilmStrip },
+  TV: { color: '#34d399', dim: 'rgba(52,211,153,0.12)', border: 'rgba(52,211,153,0.25)', icon: Television },
 };
 
 function timeAgo(dateStr) {
@@ -111,14 +111,14 @@ function CommentSection({ activityId, initialCount, currentUser, onNavigate }) {
           background: 'none', border: 'none', cursor: 'pointer',
           padding: '4px 8px', borderRadius: 8,
           fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
-          color: open ? '#7C3AED' : '#9ca3af',
+          color: open ? '#9333EA' : '#9ca3af',
           textTransform: 'uppercase', letterSpacing: '0.08em',
           transition: 'all 0.2s', alignSelf: 'flex-start',
         }}
       >
-        <MessageSquare size={13} color={open ? '#7C3AED' : '#6b7280'} />
+        <ChatCircle size={14} color={open ? '#9333EA' : '#6b7280'} weight="duotone" />
         <span>{comments.length > 0 ? comments.length : initialCount || 0} Comments</span>
-        <ChevronDown size={12} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+        <CaretDown size={12} weight="bold" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
       </button>
 
       {open && (
@@ -130,7 +130,7 @@ function CommentSection({ activityId, initialCount, currentUser, onNavigate }) {
         }}>
           {loading ? (
             <div style={{ display: 'flex', justifyContent: 'center', padding: 12 }}>
-              <Loader2 size={16} color="#7C3AED" className="animate-spin" />
+              <CircleNotch size={16} color="#9333EA" className="animate-spin" weight="bold" />
             </div>
           ) : comments.length === 0 ? (
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', color: '#6b7280', textAlign: 'center', padding: '6px 0' }}>
@@ -144,7 +144,7 @@ function CommentSection({ activityId, initialCount, currentUser, onNavigate }) {
                   <div key={c.id} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                     <div style={{
                       width: 26, height: 26, borderRadius: '50%', flexShrink: 0,
-                      background: 'rgba(124,58,237,0.2)', border: '1px solid rgba(124,58,237,0.3)',
+                      background: 'rgba(147,51,234,0.2)', border: '1px solid rgba(147,51,234,0.3)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden'
                     }}>
                       {c.user?.avatarUrl ? (
@@ -170,7 +170,7 @@ function CommentSection({ activityId, initialCount, currentUser, onNavigate }) {
                               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center' }}
                               title="Delete comment"
                             >
-                              <Trash2 size={11} color="#f87171" />
+                              <Trash size={12} color="#f87171" weight="duotone" />
                             </button>
                           )}
                         </div>
@@ -197,7 +197,7 @@ function CommentSection({ activityId, initialCount, currentUser, onNavigate }) {
                 borderRadius: 10, padding: '8px 12px', fontFamily: 'var(--font-body)', fontSize: '0.78rem',
                 color: '#fff', outline: 'none',
               }}
-              onFocus={e => e.currentTarget.style.borderColor = 'rgba(124,58,237,0.4)'}
+              onFocus={e => e.currentTarget.style.borderColor = 'rgba(147,51,234,0.4)'}
               onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
             />
             <button
@@ -205,13 +205,13 @@ function CommentSection({ activityId, initialCount, currentUser, onNavigate }) {
               disabled={submitting || !text.trim()}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
-                padding: '8px 14px', borderRadius: 10, background: '#7C3AED', border: 'none',
+                padding: '8px 14px', borderRadius: 10, background: '#9333EA', border: 'none',
                 color: '#fff', fontFamily: 'var(--font-display)', fontSize: '0.7rem', fontWeight: 700,
                 cursor: submitting || !text.trim() ? 'default' : 'pointer',
                 opacity: submitting || !text.trim() ? 0.5 : 1, transition: 'all 0.2s',
               }}
             >
-              {submitting ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+              {submitting ? <CircleNotch size={12} className="animate-spin" weight="bold" /> : <PaperPlaneTilt size={12} weight="duotone" />}
               Send
             </button>
           </form>
@@ -223,8 +223,8 @@ function CommentSection({ activityId, initialCount, currentUser, onNavigate }) {
 
 // ── Single Activity Feed Card ──────────────────────────
 function ActivityCard({ item, onNavigate, currentUser, onReactionUpdate, onOpenProfile }) {
-  const cfg = ACTIVITY_CFG[item.type] || { verb: item.type?.toLowerCase(), icon: Activity, color: '#7C3AED', bg: 'rgba(124,58,237,0.12)', border: 'rgba(124,58,237,0.25)' };
-  const catCfg = item.content?.category ? (CAT_CFG[item.content.category] || { color: '#7C3AED', dim: 'rgba(124,58,237,0.12)', border: 'rgba(124,58,237,0.25)', icon: Film }) : null;
+  const cfg = ACTIVITY_CFG[item.type] || { verb: item.type?.toLowerCase(), icon: Pulse, color: '#9333EA', bg: 'rgba(147,51,234,0.12)', border: 'rgba(147,51,234,0.25)' };
+  const catCfg = item.content?.category ? (CAT_CFG[item.content.category] || { color: '#9333EA', dim: 'rgba(147,51,234,0.12)', border: 'rgba(147,51,234,0.25)', icon: FilmStrip }) : null;
   const Icon = cfg.icon;
   const toast = useToast();
   const [reacting, setReacting] = useState(false);
@@ -261,7 +261,7 @@ function ActivityCard({ item, onNavigate, currentUser, onReactionUpdate, onOpenP
       transition: 'border-color 0.25s, transform 0.25s, box-shadow 0.25s',
       boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
     }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(124,58,237,0.35)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(147,51,234,0.35)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.transform = 'none'; }}
     >
       {/* Top row: User info & Action Verb & Timestamp */}
@@ -271,11 +271,11 @@ function ActivityCard({ item, onNavigate, currentUser, onReactionUpdate, onOpenP
             onClick={() => onOpenProfile?.(item.user)}
             style={{
               width: 42, height: 42, borderRadius: '50%',
-              background: 'linear-gradient(135deg, rgba(124,58,237,0.4), rgba(34,211,238,0.3))',
-              border: '2px solid rgba(124,58,237,0.5)',
+              background: 'linear-gradient(135deg, rgba(147,51,234,0.4), rgba(245,158,11,0.25))',
+              border: '2px solid rgba(147,51,234,0.5)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               overflow: 'hidden', flexShrink: 0, cursor: 'pointer',
-              boxShadow: '0 0 16px rgba(124,58,237,0.25)',
+              boxShadow: '0 0 16px rgba(147,51,234,0.25)',
             }}
           >
             {item.user?.avatarUrl ? (
@@ -296,7 +296,7 @@ function ActivityCard({ item, onNavigate, currentUser, onReactionUpdate, onOpenP
                 @{item.user?.username}
               </span>
               {item.user?.role?.toUpperCase() === 'ADMIN' && (
-                <ShieldCheck size={14} color="#7C3AED" />
+                <ShieldCheck size={14} color="#9333EA" weight="duotone" />
               )}
               <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.82rem', color: '#9ca3af' }}>
                 {cfg.verb}
@@ -317,7 +317,7 @@ function ActivityCard({ item, onNavigate, currentUser, onReactionUpdate, onOpenP
             background: cfg.bg, border: `1px solid ${cfg.border}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <Icon size={16} color={cfg.color} />
+            <Icon size={16} color={cfg.color} weight="duotone" />
           </div>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', color: '#6b7280' }}>
             {timeAgo(item.createdAt)}
@@ -329,13 +329,13 @@ function ActivityCard({ item, onNavigate, currentUser, onReactionUpdate, onOpenP
       {(item.type === 'REVIEWED' || item.comment) && (
         <div style={{
           padding: '14px 16px', borderRadius: 14,
-          background: 'linear-gradient(135deg, rgba(124,58,237,0.08) 0%, rgba(18,18,36,0.6) 100%)',
-          border: '1px solid rgba(124,58,237,0.25)',
+          background: 'linear-gradient(135deg, rgba(147,51,234,0.08) 0%, rgba(18,18,36,0.6) 100%)',
+          border: '1px solid rgba(147,51,234,0.25)',
           display: 'flex', flexDirection: 'column', gap: 8,
           position: 'relative', overflow: 'hidden',
         }}>
           <div style={{ position: 'absolute', top: 10, right: 12, opacity: 0.15 }}>
-            <Quote size={36} color="#7C3AED" />
+            <Quotes size={36} color="#9333EA" weight="duotone" />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>
@@ -348,7 +348,7 @@ function ActivityCard({ item, onNavigate, currentUser, onReactionUpdate, onOpenP
                 background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.3)',
                 fontFamily: 'var(--font-mono)', fontSize: '0.62rem', fontWeight: 800, color: '#fbbf24',
               }}>
-                <Star size={10} fill="#fbbf24" color="#fbbf24" /> {item.rating}/10
+                <Star size={10} weight="fill" color="#fbbf24" /> {item.rating}/10
               </span>
             )}
           </div>
@@ -371,7 +371,7 @@ function ActivityCard({ item, onNavigate, currentUser, onReactionUpdate, onOpenP
             border: '1px solid rgba(255,255,255,0.06)',
             cursor: 'pointer', transition: 'all 0.25s', position: 'relative', overflow: 'hidden',
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(124,58,237,0.3)'; }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(147,51,234,0.3)'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.025)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}
         >
           {/* Thumbnail Image */}
@@ -390,7 +390,7 @@ function ActivityCard({ item, onNavigate, currentUser, onReactionUpdate, onOpenP
               />
             ) : (
               <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Film size={22} color="#4b5563" />
+                <FilmStrip size={22} color="#4b5563" weight="duotone" />
               </div>
             )}
           </div>
@@ -431,7 +431,7 @@ function ActivityCard({ item, onNavigate, currentUser, onReactionUpdate, onOpenP
                     padding: '2px 6px', borderRadius: 6, background: 'rgba(251,191,36,0.1)',
                     fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#fbbf24', fontWeight: 700,
                   }}>
-                    <Star size={9} fill="#fbbf24" color="#fbbf24" /> {item.content.rating.toFixed(1)}
+                    <Star size={9} weight="fill" color="#fbbf24" /> {item.content.rating.toFixed(1)}
                   </span>
                 )}
               </div>
@@ -453,9 +453,9 @@ function ActivityCard({ item, onNavigate, currentUser, onReactionUpdate, onOpenP
               )}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6, fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#7C3AED', fontWeight: 700, textTransform: 'uppercase' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6, fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#9333EA', fontWeight: 700, textTransform: 'uppercase' }}>
               <span>Inspect Portal</span>
-              <ExternalLink size={10} />
+              <ArrowSquareOut size={10} />
             </div>
           </div>
         </div>
@@ -478,8 +478,8 @@ function ActivityCard({ item, onNavigate, currentUser, onReactionUpdate, onOpenP
                   style={{
                     display: 'flex', alignItems: 'center', gap: 5,
                     padding: '5px 12px', borderRadius: 20, cursor: 'pointer',
-                    background: hasReacted ? 'rgba(124,58,237,0.25)' : 'rgba(255,255,255,0.04)',
-                    border: hasReacted ? '1px solid rgba(124,58,237,0.5)' : '1px solid rgba(255,255,255,0.08)',
+                    background: hasReacted ? 'rgba(147,51,234,0.25)' : 'rgba(255,255,255,0.04)',
+                    border: hasReacted ? '1px solid rgba(147,51,234,0.5)' : '1px solid rgba(255,255,255,0.08)',
                     fontFamily: 'var(--font-mono)', fontSize: '0.7rem', fontWeight: 700,
                     color: hasReacted ? '#c4b5fd' : '#9ca3af', transition: 'all 0.15s',
                   }}
@@ -503,7 +503,7 @@ function ActivityCard({ item, onNavigate, currentUser, onReactionUpdate, onOpenP
                       background: 'none', border: 'none', cursor: 'pointer',
                       fontSize: '0.9rem', padding: '2px 4px', borderRadius: 6,
                       transition: 'transform 0.15s',
-                      filter: hasReacted ? 'drop-shadow(0 0 4px rgba(124,58,237,0.8))' : 'grayscale(0.2)',
+                      filter: hasReacted ? 'drop-shadow(0 0 4px rgba(147,51,234,0.8))' : 'grayscale(0.2)',
                     }}
                     onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.3)'}
                     onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
@@ -652,8 +652,8 @@ export default function FeedPage({ onNavigate }) {
   };
 
   const FILTER_SCOPES = [
-    { id: 'all', label: 'Global Stream', icon: Radio, desc: 'All members' },
-    { id: 'friends', label: 'Friends Stream', icon: Users, desc: 'People you follow' },
+    { id: 'all', label: 'Global Stream', icon: Broadcast, desc: 'All members' },
+    { id: 'friends', label: 'Friends Stream', icon: UsersThree, desc: 'People you follow' },
     { id: 'me', label: 'My Logs', icon: User, desc: 'Your transmissions' },
   ];
 
@@ -661,10 +661,10 @@ export default function FeedPage({ onNavigate }) {
     { id: 'ALL', label: 'All Transmissions' },
     { id: 'WATCHING', label: 'Watching', icon: Play },
     { id: 'COMPLETED', label: 'Completed', icon: Check },
-    { id: 'PLANNING', label: 'Watchlist', icon: Bookmark },
+    { id: 'PLANNING', label: 'Watchlist', icon: BookmarkSimple },
     { id: 'FAVOURITED', label: 'Favourites', icon: Heart },
     { id: 'RATED', label: 'Ratings', icon: Star },
-    { id: 'REVIEWED', label: 'Reviews', icon: MessageSquare },
+    { id: 'REVIEWED', label: 'Reviews', icon: ChatCircle },
   ];
 
   return (
@@ -684,7 +684,7 @@ export default function FeedPage({ onNavigate }) {
           colors: {
             roadColor: 0x080808, islandColor: 0x0a0a0a, background: 0x000000,
             shoulderLines: 0x131318, brokenLines: 0x131318,
-            leftCars: [0x8B5CF6, 0x7C3AED, 0xA78BFA],
+            leftCars: [0x9333EA, 0xa855f7, 0xf59e0b],
             rightCars: [0x06b6d4, 0x0891b2, 0x22d3ee],
             sticks: 0x06b6d4,
           }
@@ -712,7 +712,7 @@ export default function FeedPage({ onNavigate }) {
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#34d399', boxShadow: '0 0 8px #34d399', animation: 'pulse 1.8s infinite' }} />
               <span style={{
                 padding: '3px 10px', borderRadius: 20,
-                background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.25)',
+                background: 'rgba(147,51,234,0.12)', border: '1px solid rgba(147,51,234,0.25)',
                 fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#a78bfa',
                 textTransform: 'uppercase', letterSpacing: '0.12em', fontWeight: 700,
               }}>
@@ -720,7 +720,7 @@ export default function FeedPage({ onNavigate }) {
               </span>
             </div>
             <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2.4rem', color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: 8 }}>
-              Activity <span style={{ color: '#7C3AED' }}>Feed</span>
+              Activity <span style={{ color: '#9333EA' }}>Feed</span>
             </h1>
             <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: '#6b7280', fontStyle: 'italic' }}>
               Real-time watch progress, reviews, community reactions, and ratings across LogHorizon.
@@ -736,10 +736,10 @@ export default function FeedPage({ onNavigate }) {
               fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#9ca3af',
               cursor: 'pointer', transition: 'all 0.2s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'rgba(124,58,237,0.4)'; }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'rgba(147,51,234,0.4)'; }}
             onMouseLeave={e => { e.currentTarget.style.color = '#9ca3af'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
           >
-            <RefreshCw size={13} style={loading ? { animation: 'spin 0.8s linear infinite' } : {}} />
+            <ArrowsClockwise size={13} weight="bold" style={loading ? { animation: 'spin 0.8s linear infinite' } : {}} />
             <span>Sync</span>
           </button>
         </header>
@@ -760,8 +760,8 @@ export default function FeedPage({ onNavigate }) {
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                   padding: '12px 14px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                  background: active ? 'rgba(124,58,237,0.2)' : 'transparent',
-                  borderBottom: active ? '2px solid #7C3AED' : '2px solid transparent',
+                  background: active ? 'rgba(147,51,234,0.2)' : 'transparent',
+                  borderBottom: active ? '2px solid #9333EA' : '2px solid transparent',
                   transition: 'all 0.2s',
                 }}
               >
@@ -790,15 +790,15 @@ export default function FeedPage({ onNavigate }) {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
                   padding: '6px 12px', borderRadius: 10, cursor: 'pointer',
-                  border: active ? '1px solid rgba(124,58,237,0.4)' : '1px solid rgba(255,255,255,0.06)',
-                  background: active ? 'rgba(124,58,237,0.15)' : 'rgba(255,255,255,0.02)',
+                  border: active ? '1px solid rgba(147,51,234,0.4)' : '1px solid rgba(255,255,255,0.06)',
+                  background: active ? 'rgba(147,51,234,0.15)' : 'rgba(255,255,255,0.02)',
                   color: active ? '#fff' : '#6b7280',
                   fontFamily: 'var(--font-mono)', fontSize: '0.65rem', fontWeight: 700,
                   textTransform: 'uppercase', letterSpacing: '0.08em',
                   whiteSpace: 'nowrap', transition: 'all 0.15s',
                 }}
               >
-                {chip.icon && <chip.icon size={10} color={active ? '#7C3AED' : '#6b7280'} />}
+                {chip.icon && <chip.icon size={10} color={active ? '#9333EA' : '#6b7280'} />}
                 {chip.label}
               </button>
             );
@@ -808,7 +808,7 @@ export default function FeedPage({ onNavigate }) {
         {/* ── Activity Cards List ────────────────────── */}
         {loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 80, gap: 14 }}>
-            <Loader2 size={32} color="#7C3AED" className="animate-spin" />
+            <CircleNotch size={32} color="#9333EA" className="animate-spin" weight="bold" />
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
               Synchronizing neural stream...
             </p>
@@ -819,7 +819,7 @@ export default function FeedPage({ onNavigate }) {
             background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.08)',
             borderRadius: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12,
           }}>
-            <Activity size={40} color="#374151" />
+            <Pulse size={40} color="#374151" weight="duotone" />
             <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem', color: '#fff' }}>
               No Activity Found
             </h3>
@@ -833,7 +833,7 @@ export default function FeedPage({ onNavigate }) {
                 onClick={() => onNavigate('community')}
                 style={{
                   marginTop: 6, padding: '9px 18px', borderRadius: 10,
-                  background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)',
+                  background: 'rgba(147,51,234,0.15)', border: '1px solid rgba(147,51,234,0.3)',
                   color: '#a78bfa', fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
                   fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer',
                 }}
@@ -863,7 +863,7 @@ export default function FeedPage({ onNavigate }) {
           <div ref={sentinelRef} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: 10, paddingBottom: 40, minHeight: 50 }}>
             {loadingMore && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Loader2 size={16} color="#7C3AED" className="animate-spin" />
+                <CircleNotch size={16} color="#9333EA" className="animate-spin" weight="bold" />
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                   Loading more transmissions...
                 </span>
@@ -889,17 +889,17 @@ export default function FeedPage({ onNavigate }) {
             background: '#0e0e16', borderLeft: '1px solid rgba(255,255,255,0.07)',
             overflowY: 'auto', animation: 'slideInRight 0.25s ease',
           }} className="profile-panel">
-            <div style={{ height: 2, background: 'linear-gradient(90deg, #7C3AED, #22d3ee)' }} />
+            <div style={{ height: 2, background: 'linear-gradient(90deg, #9333EA, #f59e0b)' }} />
             <div style={{ padding: '20px 22px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '0.95rem', color: '#fff' }}>Member Profile</h3>
               <button onClick={() => setSelectedUser(null)} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '6px 8px', cursor: 'pointer' }}>
-                <X size={15} color="#9ca3af" />
+                <X size={15} color="#9ca3af" weight="bold" />
               </button>
             </div>
 
             {profileLoading ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 0' }}>
-                <Loader2 size={28} color="#7C3AED" className="animate-spin" />
+                <CircleNotch size={28} color="#9333EA" className="animate-spin" weight="bold" />
               </div>
             ) : !profile ? (
               <div style={{ padding: '60px 24px', textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
@@ -908,13 +908,13 @@ export default function FeedPage({ onNavigate }) {
             ) : (
               <div style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 22 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#1a1a24', overflow: 'hidden', border: '2px solid rgba(124,58,237,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {profile.avatarUrl ? <img src={profile.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.2rem', color: '#7C3AED' }}>{profile.username?.[0]?.toUpperCase()}</span>}
+                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#1a1a24', overflow: 'hidden', border: '2px solid rgba(147,51,234,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {profile.avatarUrl ? <img src={profile.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.2rem', color: '#9333EA' }}>{profile.username?.[0]?.toUpperCase()}</span>}
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem', color: '#fff' }}>{profile.username}</span>
-                      {profile.role?.toUpperCase() === 'ADMIN' && <ShieldCheck size={14} color="#7C3AED" />}
+                      {profile.role?.toUpperCase() === 'ADMIN' && <ShieldCheck size={14} color="#9333EA" weight="duotone" />}
                     </div>
                     {profile.bio && <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.75rem', color: '#6b7280', fontStyle: 'italic' }}>{profile.bio}</p>}
                   </div>
@@ -923,7 +923,7 @@ export default function FeedPage({ onNavigate }) {
                 {/* Stats */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                   {[
-                    { label: 'Total', value: profile.stats?.total || 0, color: '#7C3AED' },
+                    { label: 'Total', value: profile.stats?.total || 0, color: '#9333EA' },
                     { label: 'Done', value: profile.stats?.completed || 0, color: '#34d399' },
                     { label: 'Active', value: profile.stats?.current || 0, color: '#22d3ee' },
                   ].map(s => (

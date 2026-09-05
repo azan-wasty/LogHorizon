@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AuthModal from '../components/AuthModal';
 import { content as contentApi } from '../api/client';
-import { ShieldCheck, Hexagon, ArrowUpRight } from 'lucide-react';
+import { ShieldCheck, Layers, ArrowUpRight } from 'lucide-react';
 
 const CATEGORY_COLORS = {
   Anime: '#f472b6',
@@ -122,7 +122,7 @@ export default function LandingPage({ onNavigate }) {
         }
 
         .lh-title-gradient {
-          background: linear-gradient(90deg, #FFFFFF, var(--accent-violet), var(--cyan));
+          background: linear-gradient(90deg, #FFFFFF 25%, var(--accent-violet) 70%, var(--accent-amber) 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
         }
@@ -135,7 +135,7 @@ export default function LandingPage({ onNavigate }) {
           overflow: hidden;
           background: var(--charcoal);
           border: 1px solid var(--glass-border);
-          box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7), 0 0 25px rgba(124, 58, 237, 0.25);
+          box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7), 0 0 25px rgba(147, 51, 234, 0.22);
           pointer-events: none;
           animation: trailSpawn 3.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
           will-change: transform, opacity;
@@ -204,10 +204,10 @@ export default function LandingPage({ onNavigate }) {
           className="lh-nav"
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 30, height: 30, borderRadius: 8, background: 'linear-gradient(135deg, var(--electric-purple), var(--accent-violet))', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(124,58,237,0.4)', flexShrink: 0 }}>
-              <Hexagon size={18} color="#fff" fill="#fff" />
+            <div style={{ width: 30, height: 30, borderRadius: 8, background: 'linear-gradient(135deg, var(--electric-purple), var(--accent-violet))', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(147,51,234,0.4)', flexShrink: 0 }}>
+              <Layers size={18} color="#fff" />
             </div>
-            <span className="lh-brand-text" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '0.75', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>
+            <span className="lh-brand-text" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1rem', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>
               LOG<span style={{ color: 'var(--electric-purple)' }}>HORIZON</span>
             </span>
           </div>
@@ -302,7 +302,7 @@ export default function LandingPage({ onNavigate }) {
           }}
         >
           <h1 className="lh-hero-title" style={{ marginBottom: 32 }}>
-            Organize Your Taste <br />
+            Log Your Taste <br />
             <span className="lh-title-gradient">All In One Place</span>
           </h1>
 

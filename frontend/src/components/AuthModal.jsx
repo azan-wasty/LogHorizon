@@ -1,31 +1,26 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
-import { Loader2, X, Hexagon } from 'lucide-react';
+import { Loader2, X, Layers } from 'lucide-react';
 
-export default function AuthModal({ mode, onClose, onSwitch, onSuccess }) {
+export default function AuthModal({ mode = 'login', onClose, onSwitch, onSuccess }) {
   const { login, register } = useAuth();
   const toast = useToast();
-
-  const [form, setForm] = useState({ username: '', email: '', password: '' });
-  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ email: '', password: '', username: '' });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
-  const set = (key) => (e) => {
-    setForm(f => ({ ...f, [key]: e.target.value }));
-    if (errors[key]) setErrors(e => ({ ...e, [key]: '' }));
-  };
+  const set = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
 
   const validate = () => {
-    const e = {};
-    if (mode === 'register' && form.username.trim().length < 3)
-      e.username = 'Username must be at least 3 characters';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      e.email = 'Enter a valid email address';
-    if (form.password.length < 8)
-      e.password = 'Password must be at least 8 characters';
-    setErrors(e);
-    return Object.keys(e).length === 0;
+    const errs = {};
+    if (!form.email) errs.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Invalid email';
+    if (!form.password) errs.password = 'Password is required';
+    else if (form.password.length < 6) errs.password = 'At least 6 characters';
+    if (mode === 'register' && !form.username) errs.username = 'Username is required';
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
   };
 
   const handleSubmit = async (e) => {
@@ -33,40 +28,62 @@ export default function AuthModal({ mode, onClose, onSwitch, onSuccess }) {
     if (!validate()) return;
     setLoading(true);
     try {
-      let user;
       if (mode === 'login') {
         const data = await login(form.email, form.password);
-        user = data.user;
         toast('Welcome back!', 'success');
-        onSuccess({ ...user, newUser: false });
+        if (onSuccess) onSuccess({ ...data?.user, newUser: false });
       } else {
-        await register(form.username, form.email, form.password);
+        const data = await register(form.username, form.email, form.password);
         toast('Account created!', 'success');
-        onSuccess({ newUser: true });
+        if (onSuccess) onSuccess({ ...data?.user, newUser: true });
       }
+      onClose();
     } catch (err) {
-      toast(err.message || 'Something went wrong', 'error');
-      if (err.message?.includes('email')) setErrors({ email: err.message });
-      if (err.message?.includes('username')) setErrors({ username: err.message });
+      toast(err.message || 'Authentication failed', 'error');
+      setErrors({ global: err.message || 'Authentication failed' });
     } finally {
       setLoading(false);
     }
   };
 
   const inputStyle = {
-    width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: 12, padding: '12px 16px', fontSize: '0.9rem', fontFamily: 'var(--font-body)',
-    color: '#fff', outline: 'none', transition: 'border-color 0.2s',
+    width: '100%',
+    padding: '12px 16px',
+    borderRadius: 12,
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    color: '#fff',
+    fontFamily: 'var(--font-body)',
+    fontSize: '0.9rem',
+    outline: 'none',
+    transition: 'all 0.2s',
+    boxSizing: 'border-box',
   };
 
   const labelStyle = {
-    fontFamily: 'var(--font-mono)', fontSize: '0.6rem', textTransform: 'uppercase',
-    letterSpacing: '0.15em', color: '#6b7280', marginBottom: 6, display: 'block',
+    display: 'block',
+    fontFamily: 'var(--font-body)',
+    fontSize: '0.68rem',
+    fontWeight: 600,
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
+    color: '#9ca3af',
+    marginBottom: 6,
   };
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(12px)' }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.75)',
+        backdropFilter: 'blur(10px)',
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
+      }}
       onClick={e => e.target === e.currentTarget && onClose()}
     >
       <div style={{
@@ -75,18 +92,18 @@ export default function AuthModal({ mode, onClose, onSwitch, onSuccess }) {
         animation: 'fadeUp 0.3s ease',
       }}>
         {/* Accent bar */}
-        <div style={{ height: 3, background: 'linear-gradient(90deg, #7C3AED, #22d3ee)' }} />
+        <div style={{ height: 3, background: 'linear-gradient(90deg, #9333EA, #f59e0b)' }} />
 
         <div style={{ padding: '32px 36px' }} className="auth-modal-content">
           {/* Logo + heading */}
           <div style={{ textAlign: 'center', marginBottom: 28 }} className="auth-header">
             <div style={{
               width: 44, height: 44, borderRadius: 12, margin: '0 auto 14px',
-              background: 'linear-gradient(135deg, #7C3AED, #8B5CF6)',
+              background: 'linear-gradient(135deg, #9333EA, #a855f7)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 24px rgba(124,58,237,0.4)',
+              boxShadow: '0 0 24px rgba(147,51,234,0.35)',
             }}>
-              <Hexagon size={22} color="#fff" fill="#fff" />
+              <Layers size={22} color="#fff" />
             </div>
             <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem', color: '#fff', letterSpacing: '-0.02em', marginBottom: 6 }}>
               {mode === 'login' ? 'Welcome back' : 'Join LogHorizon'}
@@ -102,20 +119,20 @@ export default function AuthModal({ mode, onClose, onSwitch, onSuccess }) {
               <div>
                 <label style={labelStyle}>Username</label>
                 <input style={inputStyle} type="text" placeholder="your_handle" value={form.username} onChange={set('username')} autoFocus
-                  onFocus={e => e.target.style.borderColor = 'rgba(124,58,237,0.4)'} onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
+                  onFocus={e => e.target.style.borderColor = 'rgba(147,51,234,0.4)'} onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
                 {errors.username && <FieldError msg={errors.username} />}
               </div>
             )}
             <div>
               <label style={labelStyle}>Email</label>
               <input style={inputStyle} type="email" placeholder="you@example.com" value={form.email} onChange={set('email')} autoFocus={mode === 'login'}
-                onFocus={e => e.target.style.borderColor = 'rgba(124,58,237,0.4)'} onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
+                onFocus={e => e.target.style.borderColor = 'rgba(147,51,234,0.4)'} onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
               {errors.email && <FieldError msg={errors.email} />}
             </div>
             <div>
               <label style={labelStyle}>Password</label>
               <input style={inputStyle} type="password" placeholder="••••••••" value={form.password} onChange={set('password')}
-                onFocus={e => e.target.style.borderColor = 'rgba(124,58,237,0.4)'} onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
+                onFocus={e => e.target.style.borderColor = 'rgba(147,51,234,0.4)'} onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'} />
               {errors.password && <FieldError msg={errors.password} />}
             </div>
 
@@ -126,11 +143,9 @@ export default function AuthModal({ mode, onClose, onSwitch, onSuccess }) {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               marginTop: 8, transition: 'all 0.2s', opacity: loading ? 0.6 : 1,
               boxShadow: '0 4px 20px rgba(255,255,255,0.1)',
-            }}
-              onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#e5e7eb'; }}
-              onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
+            }}>
               {loading && <Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} />}
-              {loading ? (mode === 'login' ? 'Signing in...' : 'Creating account...') : (mode === 'login' ? 'Sign In' : 'Create Account')}
+              {loading ? 'Please wait...' : (mode === 'login' ? 'Sign In' : 'Create Account')}
             </button>
           </form>
 
@@ -141,7 +156,7 @@ export default function AuthModal({ mode, onClose, onSwitch, onSuccess }) {
           <p style={{ textAlign: 'center', fontSize: '0.82rem', margin: 0, color: '#6b7280', fontFamily: 'var(--font-body)' }}>
             {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
             <button onClick={() => onSwitch(mode === 'login' ? 'register' : 'login')} style={{
-              background: 'none', border: 'none', cursor: 'pointer', color: '#7C3AED',
+              background: 'none', border: 'none', cursor: 'pointer', color: '#9333EA',
               fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 600,
             }}>
               {mode === 'login' ? 'Sign up' : 'Sign in'}

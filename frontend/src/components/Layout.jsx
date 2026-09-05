@@ -1,36 +1,34 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import {
-  LayoutDashboard,
+  House,
+  Broadcast,
   Compass,
   User,
-  Users,
+  UsersThree,
   ShieldCheck,
-  Settings,
-  LogOut,
-  Menu,
+  Gear,
+  SignOut,
+  List,
   X,
-  Hexagon,
-  ChevronRight,
-  Activity,
-  Zap,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Home,
-} from 'lucide-react';
+  Stack,
+  CaretRight,
+  SidebarSimple,
+  IconContext,
+} from '@phosphor-icons/react';
 
 const NAV_ITEMS = [
-  { id: 'home', label: 'Home', icon: Home, desc: 'Overview & picks' },
-  { id: 'feed', label: 'Feed', icon: Activity, desc: 'Social stream' },
+  { id: 'home', label: 'Home', icon: House, desc: 'Overview & picks' },
+  { id: 'feed', label: 'Feed', icon: Broadcast, desc: 'Social stream' },
   { id: 'discover', label: 'Discover', icon: Compass, desc: 'Browse index' },
   { id: 'profile', label: 'My Profile', icon: User, desc: 'Library & stats' },
-  { id: 'community', label: 'Community', icon: Users, desc: 'Events & members' },
+  { id: 'community', label: 'Community', icon: UsersThree, desc: 'Events & members' },
 ];
 
 function ProfileIcon({ user, size = 16, active, hovered }) {
   const handle = user?.username || 'user';
   const initial = handle[0]?.toUpperCase() || 'U';
-  const color = active ? '#7C3AED' : hovered ? '#d1d5db' : '#6b7280';
+  const color = active ? '#9333EA' : hovered ? '#d1d5db' : '#6b7280';
 
   if (user?.avatarUrl) {
     return (
@@ -43,7 +41,7 @@ function ProfileIcon({ user, size = 16, active, hovered }) {
           borderRadius: '50%',
           objectFit: 'cover',
           flexShrink: 0,
-          border: `1px solid ${active ? 'rgba(124,58,237,0.6)' : 'rgba(255,255,255,0.15)'}`,
+          border: `1px solid ${active ? 'rgba(147,51,234,0.6)' : 'rgba(255,255,255,0.15)'}`,
         }}
       />
     );
@@ -58,8 +56,8 @@ function ProfileIcon({ user, size = 16, active, hovered }) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'rgba(124,58,237,0.2)',
-      border: `1px solid ${active ? 'rgba(124,58,237,0.6)' : 'rgba(255,255,255,0.15)'}`,
+      background: 'rgba(147,51,234,0.2)',
+      border: `1px solid ${active ? 'rgba(147,51,234,0.6)' : 'rgba(255,255,255,0.15)'}`,
       fontFamily: 'var(--font-display)',
       fontWeight: 800,
       fontSize: size * 0.5,
@@ -87,9 +85,9 @@ function NavItem({ item, active, onClick, isCollapsed, user }) {
         padding: isCollapsed ? '11px 0' : '11px 14px',
         justifyContent: isCollapsed ? 'center' : 'flex-start',
         borderRadius: 12,
-        border: active ? '1px solid rgba(124,58,237,0.25)' : '1px solid transparent',
+        border: active ? '1px solid rgba(147,51,234,0.25)' : '1px solid transparent',
         background: active
-          ? 'rgba(124,58,237,0.12)'
+          ? 'rgba(147,51,234,0.12)'
           : hovered
             ? 'rgba(255,255,255,0.04)'
             : 'transparent',
@@ -104,7 +102,7 @@ function NavItem({ item, active, onClick, isCollapsed, user }) {
       {active && (
         <div style={{
           position: 'absolute', inset: 0,
-          background: 'linear-gradient(90deg, rgba(124,58,237,0.08) 0%, transparent 100%)',
+          background: 'linear-gradient(90deg, rgba(147,51,234,0.08) 0%, transparent 100%)',
           pointerEvents: 'none',
         }} />
       )}
@@ -118,20 +116,20 @@ function NavItem({ item, active, onClick, isCollapsed, user }) {
         justifyContent: 'center',
         flexShrink: 0,
         background: active
-          ? 'rgba(124,58,237,0.2)'
+          ? 'rgba(147,51,234,0.2)'
           : hovered
             ? 'rgba(255,255,255,0.06)'
             : 'rgba(255,255,255,0.04)',
-        border: active ? '1px solid rgba(124,58,237,0.3)' : '1px solid rgba(255,255,255,0.06)',
+        border: active ? '1px solid rgba(147,51,234,0.3)' : '1px solid rgba(255,255,255,0.06)',
         transition: 'all 0.2s',
-        boxShadow: active ? '0 0 12px rgba(124,58,237,0.3)' : 'none',
+        boxShadow: active ? '0 0 12px rgba(147,51,234,0.3)' : 'none',
       }}>
         {isProfile ? (
           <ProfileIcon user={user} size={20} active={active} hovered={hovered} />
         ) : (
           <Icon
             size={16}
-            color={active ? '#7C3AED' : hovered ? '#d1d5db' : '#6b7280'}
+            color={active ? '#9333EA' : hovered ? '#d1d5db' : '#6b7280'}
             style={{ transition: 'color 0.2s' }}
           />
         )}
@@ -153,7 +151,7 @@ function NavItem({ item, active, onClick, isCollapsed, user }) {
           <p style={{
             fontFamily: 'var(--font-body)',
             fontSize: '0.62rem',
-            color: active ? 'rgba(124,58,237,0.8)' : '#4b5563',
+            color: active ? 'rgba(147,51,234,0.85)' : '#4b5563',
             transition: 'color 0.2s',
           }}>
             {item.desc}
@@ -162,7 +160,7 @@ function NavItem({ item, active, onClick, isCollapsed, user }) {
       )}
 
       {active && !isCollapsed && (
-        <ChevronRight size={13} color="rgba(124,58,237,0.6)" style={{ flexShrink: 0 }} />
+        <CaretRight size={13} color="rgba(147,51,234,0.6)" style={{ flexShrink: 0 }} />
       )}
     </button>
   );
@@ -209,7 +207,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
         transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
       }}
     >
-      <div style={{ height: 2, background: 'linear-gradient(90deg, #7C3AED, #22d3ee, #f472b6)', flexShrink: 0 }} />
+      <div style={{ height: 2, background: 'linear-gradient(90deg, #9333EA, #a855f7, #f59e0b)', flexShrink: 0 }} />
 
       <div style={{
         padding: isCollapsed ? '20px 0' : '20px 20px 16px',
@@ -230,14 +228,14 @@ export default function Layout({ children, currentPage, onNavigate }) {
             width: 34,
             height: 34,
             borderRadius: 10,
-            background: 'linear-gradient(135deg, #7C3AED, #8B5CF6)',
+            background: 'linear-gradient(135deg, #9333EA, #a855f7)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 0 20px rgba(124,58,237,0.5)',
+            boxShadow: '0 0 20px rgba(147,51,234,0.4)',
             flexShrink: 0,
           }}>
-            <Hexagon size={18} color="#fff" fill="white" />
+            <Stack size={18} color="#fff" weight="duotone" />
           </div>
           {!isCollapsed && (
             <div>
@@ -248,7 +246,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
                 letterSpacing: '-0.03em',
                 color: '#fff',
               }}>
-                Log<span style={{ color: '#7C3AED' }}>Horizon</span>
+                Log<span style={{ color: '#9333EA' }}>Horizon</span>
               </span>
             </div>
           )}
@@ -287,8 +285,8 @@ export default function Layout({ children, currentPage, onNavigate }) {
           gap: 10,
           padding: isCollapsed ? '10px 0' : '10px 12px',
           justifyContent: isCollapsed ? 'center' : 'flex-start',
-          background: 'rgba(124,58,237,0.06)',
-          border: '1px solid rgba(124,58,237,0.12)',
+          background: 'rgba(147,51,234,0.06)',
+          border: '1px solid rgba(147,51,234,0.12)',
           borderRadius: 12,
           cursor: 'pointer',
           transition: 'all 0.2s',
@@ -297,23 +295,23 @@ export default function Layout({ children, currentPage, onNavigate }) {
           title={isCollapsed ? `@${handle}` : ''}
         >
           {user?.avatarUrl ? (
-            <img src={user.avatarUrl} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid rgba(124,58,237,0.4)' }} />
+            <img src={user.avatarUrl} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid rgba(147,51,234,0.4)' }} />
           ) : (
             <div style={{
               width: 36,
               height: 36,
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, rgba(124,58,237,0.4), rgba(139,92,246,0.3))',
-              border: '2px solid rgba(124,58,237,0.4)',
+              background: 'linear-gradient(135deg, rgba(147,51,234,0.4), rgba(168,85,247,0.3))',
+              border: '2px solid rgba(147,51,234,0.4)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontFamily: 'var(--font-display)',
               fontWeight: 900,
               fontSize: '0.9rem',
-              color: '#8B5CF6',
+              color: '#a855f7',
               flexShrink: 0,
-              boxShadow: '0 0 12px rgba(124,58,237,0.3)',
+              boxShadow: '0 0 12px rgba(147,51,234,0.3)',
             }}>
               {initial}
             </div>
@@ -335,7 +333,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
               <p style={{
                 fontFamily: 'var(--font-body)',
                 fontSize: '0.55rem',
-                color: '#7C3AED',
+                color: '#9333EA',
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
               }}>
@@ -343,7 +341,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
               </p>
             </div>
           )}
-          {!isCollapsed && <ChevronRight size={12} color="rgba(124,58,237,0.5)" />}
+          {!isCollapsed && <CaretRight size={12} color="rgba(147,51,234,0.5)" />}
         </div>
       </div>
 
@@ -428,7 +426,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = '#9ca3af'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#6b7280'; }}
         >
-          <Settings size={15} color="currentColor" />
+          <Gear size={16} color="currentColor" weight="duotone" />
           {!isCollapsed && <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.8rem' }}>Preferences</span>}
         </button>
 
@@ -452,7 +450,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
           onMouseEnter={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.08)'; e.currentTarget.style.color = '#f87171'; e.currentTarget.style.borderColor = 'rgba(248,113,113,0.15)'; }}
           onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'rgba(248,113,113,0.6)'; e.currentTarget.style.borderColor = 'transparent'; }}
         >
-          <LogOut size={15} color="currentColor" />
+          <SignOut size={16} color="currentColor" weight="duotone" />
           {!isCollapsed && <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.8rem' }}>Sign Out</span>}
         </button>
 
@@ -466,20 +464,20 @@ export default function Layout({ children, currentPage, onNavigate }) {
             width: 24,
             height: 24,
             borderRadius: '50%',
-            background: '#7C3AED',
+            background: '#9333EA',
             border: '3px solid #0f0f16',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
             zIndex: 1001,
-            boxShadow: '0 0 15px rgba(124,58,237,0.4)',
+            boxShadow: '0 0 15px rgba(147,51,234,0.4)',
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             padding: 0,
           }}
           title={isCollapsed ? 'Expand Navigation' : 'Collapse Navigation'}
         >
-          {isCollapsed ? <PanelLeftOpen size={10} color="#fff" /> : <PanelLeftClose size={10} color="#fff" />}
+          <SidebarSimple size={14} color="#fff" weight="duotone" style={{ transform: isCollapsed ? 'rotate(180deg)' : 'none' }} />
         </button>
 
         {!isCollapsed && (
@@ -494,6 +492,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
   );
 
   return (
+    <IconContext.Provider value={{ weight: 'duotone' }}>
     <div style={{ display: 'flex', minHeight: '100vh', background: 'transparent', overflow: 'hidden', fontFamily: 'var(--font-body)' }}>
       <style>{`
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
@@ -575,13 +574,13 @@ export default function Layout({ children, currentPage, onNavigate }) {
             }}
             className="mobile-menu-btn"
           >
-            <Menu size={20} color="#9ca3af" />
+            <List size={20} color="#9ca3af" weight="bold" />
           </button>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Hexagon size={18} color="#7C3AED" fill="#7C3AED" />
+            <Stack size={18} color="#9333EA" weight="duotone" />
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '0.95rem', color: '#fff' }}>
-              Log<span style={{ color: '#7C3AED' }}>Horizon</span>
+              Log<span style={{ color: '#9333EA' }}>Horizon</span>
             </span>
           </div>
 
@@ -590,7 +589,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
               onClick={() => onNavigate('profile')}
               style={{
                 width: 32, height: 32, borderRadius: '50%',
-                background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)',
+                background: 'rgba(147,51,234,0.1)', border: '1px solid rgba(147,51,234,0.2)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 overflow: 'hidden', padding: 0,
               }}
@@ -598,7 +597,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
               {user?.avatarUrl ? (
                 <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
-                <User size={16} color="#7C3AED" />
+                <User size={16} color="#9333EA" />
               )}
             </button>
 
@@ -618,7 +617,7 @@ export default function Layout({ children, currentPage, onNavigate }) {
               }}
               title="Sign Out"
             >
-              <LogOut size={16} />
+              <SignOut size={16} weight="duotone" />
             </button>
           </div>
         </header>
@@ -669,14 +668,14 @@ export default function Layout({ children, currentPage, onNavigate }) {
                   gap: 4,
                   background: 'none',
                   border: 'none',
-                  color: active ? '#7C3AED' : '#6b7280',
+                  color: active ? '#9333EA' : '#6b7280',
                   transition: 'all 0.2s'
                 }}
               >
                 <div style={{
                   padding: '6px 16px',
                   borderRadius: 20,
-                  background: active ? 'rgba(124,58,237,0.12)' : 'transparent',
+                  background: active ? 'rgba(147,51,234,0.12)' : 'transparent',
                   transition: 'all 0.2s'
                 }}>
                   {isProfile ? (
@@ -694,5 +693,6 @@ export default function Layout({ children, currentPage, onNavigate }) {
         </nav>
       </div>
     </div>
+    </IconContext.Provider>
   );
 }

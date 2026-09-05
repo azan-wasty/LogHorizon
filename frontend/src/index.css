@@ -10,36 +10,39 @@
 
 :root {
   --void: #070709;
-  --dark: #0a0a0f;
-  --charcoal: #12121a;
-  --midnight: #0e0e16;
+  --dark: #09090e;
+  --charcoal: #111118;
+  --midnight: #0d0d14;
 
-  /* Vibrant Accents */
-  --electric-purple: #7C3AED;
-  --accent-violet: #8B5CF6;
-  --violet: #7C3AED;
-  --violet-bright: #9461FB;
-  --violet-glow: rgba(124, 58, 237, 0.45);
+  /* Accent palette — magenta-violet + amber, not generic AI purple */
+  --electric-purple: #9333EA;
+  --accent-violet: #a855f7;
+  --violet: #9333EA;
+  --violet-bright: #b060ff;
+  --violet-glow: rgba(147, 51, 234, 0.4);
+  --accent-amber: #F59E0B;
+  --accent-rose: #f43f5e;
   --cyan: #22d3ee;
   --spotify-green: #1DB954;
   --discord-blue: #5865F2;
   --error: #f87171;
 
-  --text-primary: #ffffff;
-  --text-secondary: #a1a1aa;
-  --text-muted: #6b7280;
+  --text-primary: #f4f4f6;
+  --text-secondary: #9ca3b0;
+  --text-muted: #5f6474;
 
-  --glass-bg: rgba(22, 22, 32, 0.75);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(20, 20, 30, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.08);
 
   --radius-sm: 8px;
   --radius: 12px;
   --radius-lg: 18px;
 
-  /* Typography Scale - Replaced Space Mono with Inter/Bebas Neue */
+  /* Typography — DM Sans body, Outfit display, Bebas superheadings */
   --font-superhead: 'Bebas Neue', sans-serif;
-  --font-display: 'Chakra Petch', sans-serif;
-  --font-body: 'Inter', system-ui, sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'DM Sans', system-ui, sans-serif;
 }
 
 html {
@@ -57,10 +60,13 @@ body {
   background-color: var(--dark);
   color: var(--text-primary);
   font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
-  background-image: radial-gradient(circle at 50% 30%, rgba(124, 58, 237, 0.12) 0%, transparent 70%);
+  background-image: radial-gradient(ellipse at 60% 0%, rgba(147, 51, 234, 0.1) 0%, transparent 65%),
+                    radial-gradient(ellipse at 10% 80%, rgba(245, 158, 11, 0.05) 0%, transparent 50%);
   background-attachment: fixed;
   position: relative;
   overflow-x: hidden;
@@ -71,7 +77,7 @@ body::before {
   position: fixed;
   inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  opacity: 0.012;
+  opacity: 0.014;
   pointer-events: none;
   z-index: 100;
 }
@@ -84,16 +90,17 @@ h4,
 h5,
 h6 {
   font-family: var(--font-display);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   line-height: 1.1;
+  font-weight: 700;
 }
 
 .font-superhead {
   font-family: var(--font-superhead);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
 }
 
-/* Utility classes updated from mono to body/sans */
+/* Utility classes */
 .font-mono {
   font-family: var(--font-body) !important;
 }
@@ -112,17 +119,17 @@ h6 {
   text-transform: uppercase;
   letter-spacing: .05em;
   background-color: #ffffff;
-  color: #000000;
+  color: #0a0007;
   border: none;
   cursor: pointer;
-  box-shadow: 0 0 25px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.18);
   transition: all .25s ease;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #f3f3f3;
+  background-color: #f0f0f0;
   transform: scale(1.04);
-  box-shadow: 0 0 35px rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 35px rgba(255, 255, 255, 0.3);
 }
 
 .btn-ghost {
@@ -159,9 +166,9 @@ h6 {
 }
 
 .premium-card:hover {
-  border-color: rgba(124, 58, 237, 0.5);
+  border-color: rgba(147, 51, 234, 0.45);
   transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(124, 58, 237, 0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(147, 51, 234, 0.18);
 }
 
 /* Scrollbars */

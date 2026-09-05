@@ -3,10 +3,10 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { content as contentApi, tags as tagsApi } from '../api/client';
 import { useToast } from '../hooks/useToast';
 import {
-  Search, Star, ExternalLink, Database, Hash,
-  Loader2, SlidersHorizontal, X, Bookmark,
-  Check, Play, ChevronDown, Rocket, Filter,
-} from 'lucide-react';
+  MagnifyingGlass, Star, ArrowSquareOut, Database, Hash,
+  CircleNotch, SlidersHorizontal, X, BookmarkSimple,
+  Check, Play, CaretDown, RocketLaunch, Funnel,
+} from '@phosphor-icons/react';
 import { useLibrary } from '../hooks/useLibrary';
 
 const CATEGORIES = ['All', 'Anime', 'Manga', 'Movie', 'TV'];
@@ -21,7 +21,7 @@ const CAT = {
   Movie: { color: '#fbbf24', dim: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.2)' },
   TV: { color: '#34d399', dim: 'rgba(52,211,153,0.1)', border: 'rgba(52,211,153,0.2)' },
 };
-const fallbackCat = { color: '#7C3AED', dim: 'rgba(124,58,237,0.1)', border: 'rgba(124,58,237,0.2)' };
+const fallbackCat = { color: '#9333EA', dim: 'rgba(147,51,234,0.1)', border: 'rgba(147,51,234,0.2)' };
 const PAGE_SIZE = 24;
 
 function useDebounce(value, delay) {
@@ -99,7 +99,7 @@ function ContentCard({ item, index, onNavigate }) {
           opacity: hovered ? 1 : 0, transition: 'opacity 0.25s',
         }}>
           {[
-            { status: 'PLANNING', icon: Bookmark, activeColor: '#7C3AED', label: 'Watchlist' },
+            { status: 'PLANNING', icon: BookmarkSimple, activeColor: '#9333EA', label: 'Watchlist' },
             { status: 'CURRENT', icon: Play, activeColor: '#22d3ee', label: 'Watching' },
             { status: 'COMPLETED', icon: Check, activeColor: '#34d399', label: 'Done' },
           ].map(({ status, icon: Icon, activeColor, label }) => (
@@ -115,7 +115,7 @@ function ContentCard({ item, index, onNavigate }) {
                 boxShadow: entry?.status === status ? `0 0 16px ${activeColor}60` : 'none',
               }}
             >
-              <Icon size={18} color={entry?.status === status ? '#fff' : '#d1d5db'} fill={entry?.status === status && status !== 'CURRENT' ? 'currentColor' : 'none'} />
+              <Icon size={18} color={entry?.status === status ? '#fff' : '#d1d5db'} weight={entry?.status === status ? 'fill' : 'duotone'} />
             </button>
           ))}
         </div>
@@ -168,7 +168,7 @@ function ContentCard({ item, index, onNavigate }) {
           <div style={{
             fontFamily: 'var(--font-mono)', fontSize: '0.58rem', fontWeight: 700,
             textTransform: 'uppercase', letterSpacing: '0.08em',
-            color: entry.status === 'COMPLETED' ? '#34d399' : entry.status === 'PLANNING' ? '#7C3AED' : '#22d3ee',
+            color: entry.status === 'COMPLETED' ? '#34d399' : entry.status === 'PLANNING' ? '#9333EA' : '#22d3ee',
             display: 'flex', alignItems: 'center', gap: 4,
           }}>
             <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} />
@@ -178,7 +178,7 @@ function ContentCard({ item, index, onNavigate }) {
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(124,58,237,0.5)', flexShrink: 0 }} />
+            <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(147,51,234,0.5)', flexShrink: 0 }} />
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
               {item.tags?.[0]?.name || 'Untagged'}
             </span>
@@ -189,7 +189,7 @@ function ContentCard({ item, index, onNavigate }) {
               onClick={e => e.stopPropagation()}
               style={{ display: 'flex', alignItems: 'center', gap: 3, color: '#5865F2', fontSize: '0.58rem', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.07em' }}
             >
-              <ExternalLink size={9} /> Portal
+              <ArrowSquareOut size={10} weight="duotone" /> Portal
             </a>
           )}
         </div>
@@ -298,8 +298,8 @@ export default function DiscoverPage({ onNavigate }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
           <span style={{
             padding: '3px 10px', borderRadius: 20,
-            background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)',
-            fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#7C3AED',
+            background: 'rgba(147,51,234,0.1)', border: '1px solid rgba(147,51,234,0.2)',
+            fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#9333EA',
             textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700,
           }}>
             Transmission Feed
@@ -328,8 +328,8 @@ export default function DiscoverPage({ onNavigate }) {
           <div style={{ position: 'relative', flex: 1, minWidth: 220, maxWidth: 400 }} className="search-box">
             <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }}>
               {searching
-                ? <Loader2 size={16} color="#7C3AED" style={{ animation: 'spin 0.8s linear infinite' }} />
-                : <Search size={16} color="#6b7280" />
+                ? <CircleNotch size={16} color="#9333EA" style={{ animation: 'spin 0.8s linear infinite' }} weight="bold" />
+                : <MagnifyingGlass size={16} color="#6b7280" weight="bold" />
               }
             </div>
             <input
@@ -340,13 +340,13 @@ export default function DiscoverPage({ onNavigate }) {
               style={{
                 width: '100%',
                 background: 'rgba(255,255,255,0.04)',
-                border: search ? '1px solid rgba(124,58,237,0.3)' : '1px solid rgba(255,255,255,0.07)',
+                border: search ? '1px solid rgba(147,51,234,0.3)' : '1px solid rgba(255,255,255,0.07)',
                 borderRadius: 12, padding: '11px 14px 11px 42px',
                 fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: '#fff',
                 outline: 'none', transition: 'all 0.2s',
               }}
-              onFocus={e => { e.target.style.background = 'rgba(255,255,255,0.06)'; e.target.style.borderColor = 'rgba(124,58,237,0.4)'; }}
-              onBlur={e => { e.target.style.background = 'rgba(255,255,255,0.04)'; e.target.style.borderColor = search ? 'rgba(124,58,237,0.3)' : 'rgba(255,255,255,0.07)'; }}
+              onFocus={e => { e.target.style.background = 'rgba(255,255,255,0.06)'; e.target.style.borderColor = 'rgba(147,51,234,0.4)'; }}
+              onBlur={e => { e.target.style.background = 'rgba(255,255,255,0.04)'; e.target.style.borderColor = search ? 'rgba(147,51,234,0.3)' : 'rgba(255,255,255,0.07)'; }}
             />
             {search && (
               <button
@@ -377,10 +377,10 @@ export default function DiscoverPage({ onNavigate }) {
                     textTransform: 'uppercase', letterSpacing: '0.05em',
                     border: 'none', cursor: 'pointer', transition: 'all 0.2s',
                     background: active
-                      ? (cfg ? cfg.dim : 'rgba(124,58,237,0.15)')
+                      ? (cfg ? cfg.dim : 'rgba(147,51,234,0.15)')
                       : 'transparent',
                     color: active
-                      ? (cfg ? cfg.color : '#7C3AED')
+                      ? (cfg ? cfg.color : '#9333EA')
                       : '#6b7280',
                     boxShadow: active && cfg ? `0 0 10px ${cfg.color}20` : 'none',
                     flexShrink: 0
@@ -418,14 +418,14 @@ export default function DiscoverPage({ onNavigate }) {
             style={{
               display: 'flex', alignItems: 'center', gap: 7,
               padding: '11px 16px', borderRadius: 12,
-              background: showFilters || selectedTags.length > 0 ? 'rgba(124,58,237,0.12)' : 'rgba(255,255,255,0.04)',
-              border: showFilters || selectedTags.length > 0 ? '1px solid rgba(124,58,237,0.3)' : '1px solid rgba(255,255,255,0.07)',
-              color: showFilters || selectedTags.length > 0 ? '#7C3AED' : '#6b7280',
+              background: showFilters || selectedTags.length > 0 ? 'rgba(147,51,234,0.12)' : 'rgba(255,255,255,0.04)',
+              border: showFilters || selectedTags.length > 0 ? '1px solid rgba(147,51,234,0.3)' : '1px solid rgba(255,255,255,0.07)',
+              color: showFilters || selectedTags.length > 0 ? '#9333EA' : '#6b7280',
               fontFamily: 'var(--font-display)', fontSize: '0.75rem', fontWeight: 700,
               cursor: 'pointer', transition: 'all 0.2s',
             }}
           >
-            <Filter size={14} />
+            <Funnel size={14} weight="duotone" />
             Tags {selectedTags.length > 0 && `(${selectedTags.length})`}
           </button>
 
@@ -458,7 +458,7 @@ export default function DiscoverPage({ onNavigate }) {
             {Object.entries(tagsByType).map(([type, typeTags]) => (
               <div key={type} style={{ marginBottom: 14 }}>
                 <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#7C3AED' }} />
+                  <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#9333EA' }} />
                   {type}s
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -474,12 +474,12 @@ export default function DiscoverPage({ onNavigate }) {
                           fontFamily: 'var(--font-mono)', fontSize: '0.62rem',
                           textTransform: 'uppercase', letterSpacing: '0.08em',
                           border: 'none', cursor: 'pointer', transition: 'all 0.2s',
-                          background: active ? 'rgba(124,58,237,0.2)' : 'rgba(255,255,255,0.05)',
+                          background: active ? 'rgba(147,51,234,0.2)' : 'rgba(255,255,255,0.05)',
                           color: active ? '#a78bfa' : '#6b7280',
-                          outline: active ? '1px solid rgba(124,58,237,0.4)' : '1px solid transparent',
+                          outline: active ? '1px solid rgba(147,51,234,0.4)' : '1px solid transparent',
                         }}
                       >
-                        <Hash size={8} />
+                        <Hash size={10} weight="bold" />
                         {tag.name}
                       </button>
                     );
@@ -513,7 +513,7 @@ export default function DiscoverPage({ onNavigate }) {
           border: '1px dashed rgba(255,255,255,0.07)', borderRadius: 20,
           animation: 'fadeUp 0.4s ease',
         }}>
-          <Rocket size={44} color="#374151" style={{ margin: '0 auto 16px' }} />
+          <RocketLaunch size={44} color="#374151" weight="duotone" style={{ margin: '0 auto 16px' }} />
           <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.2rem', color: '#fff', marginBottom: 8 }}>Sector Uncharted</h3>
           <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: '#6b7280', fontStyle: 'italic', marginBottom: 20 }}>
             No nodes match your current scanning parameters.
@@ -522,7 +522,7 @@ export default function DiscoverPage({ onNavigate }) {
             <button
               onClick={clearFilters}
               style={{
-                fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#7C3AED',
+                fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#9333EA',
                 textTransform: 'uppercase', letterSpacing: '0.1em',
                 background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline',
               }}
@@ -546,15 +546,15 @@ export default function DiscoverPage({ onNavigate }) {
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
                   padding: '10px 18px', borderRadius: 12,
-                  background: 'rgba(124,58,237,0.1)',
-                  border: '1px solid rgba(124,58,237,0.25)',
+                  background: 'rgba(147,51,234,0.1)',
+                  border: '1px solid rgba(147,51,234,0.25)',
                   color: '#a78bfa',
                   fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.8rem',
                   cursor: loadingMore ? 'not-allowed' : 'pointer',
                   opacity: loadingMore ? 0.7 : 1,
                 }}
               >
-                {loadingMore ? <Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> : <ChevronDown size={14} />}
+                {loadingMore ? <CircleNotch size={14} style={{ animation: 'spin 0.8s linear infinite' }} weight="bold" /> : <CaretDown size={14} weight="bold" />}
                 {loadingMore ? 'Loading more...' : 'Load more'}
               </button>
             </div>

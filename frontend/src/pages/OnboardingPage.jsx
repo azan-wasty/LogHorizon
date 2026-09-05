@@ -3,7 +3,7 @@ import { preferences as prefApi, favourites as favouritesApi, library as library
 import { useToast } from '../hooks/useToast';
 import {
   Swords, Compass, Laugh, Drama, Sparkles, Rocket, Palmtree, Zap, Moon, Droplet,
-  Users, Sprout, Skull, Search, Check, ChevronRight, ChevronLeft, Loader2, Hexagon,
+  Users, Sprout, Skull, Search, Check, ChevronRight, ChevronLeft, Loader2, Layers, Tag,
   Heart, Star, Film, Bookmark, RefreshCw
 } from 'lucide-react';
 
@@ -24,7 +24,7 @@ const CAT_PALETTES = {
   Movie: { primary: '#fbbf24', glow: 'rgba(251, 191, 36, 0.35)' },
   TV: { primary: '#34d399', glow: 'rgba(52, 211, 153, 0.35)' },
 };
-const fallbackPalette = { primary: '#7C3AED', glow: 'rgba(124, 58, 237, 0.35)' };
+const fallbackPalette = { primary: '#9333EA', glow: 'rgba(147, 51, 234, 0.35)' };
 
 const WATCHED_COLOR = '#34d399';
 const FAV_COLOR = '#ef4444';
@@ -264,7 +264,7 @@ export default function PreferenceWizard({ onComplete }) {
     return (
       <div style={{ minHeight: '100vh', width: '100%', background: '#09090b', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', padding: '16px' }}>
         <Loader2 style={{ width: 32, height: 32, color: '#a855f7' }} className="animate-spin" />
-        <p style={{ fontFamily: 'monospace', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#666' }}>Initializing Codex...</p>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#666' }}>Initializing Codex...</p>
       </div>
     );
   }
@@ -291,21 +291,21 @@ export default function PreferenceWizard({ onComplete }) {
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(124,58,237,0.4)' }}>
-              <Hexagon size={16} color="#fff" fill="white" />
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #9333EA, #a855f7)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(147,51,234,0.4)' }}>
+              <Layers size={16} color="#fff" />
             </div>
             <span style={{ fontWeight: 900, fontSize: '18px', letterSpacing: '-0.5px' }}>
               Log<span style={{ color: '#a855f7' }}>Horizon</span>
             </span>
           </div>
-          <span style={{ fontFamily: 'monospace', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#666' }}>Taste Profile</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#666' }}>Taste Profile</span>
         </div>
 
         {/* Step Info */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', marginBottom: '8px' }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#a855f7', boxShadow: '0 0 8px #a855f7' }} />
-            <span style={{ fontFamily: 'monospace', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#888' }}>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#888' }}>
               Step {step + 1} of {STEPS.length}
             </span>
           </div>
@@ -330,13 +330,13 @@ export default function PreferenceWizard({ onComplete }) {
                     borderRadius: '999px',
                     transition: 'all 0.3s ease',
                     width: i <= step ? '100%' : '0%',
-                    background: i <= step ? 'linear-gradient(90deg, #7C3AED, #06b6d4)' : 'transparent',
+                    background: i <= step ? 'linear-gradient(90deg, #9333EA, #f59e0b)' : 'transparent',
                   }}
                 />
               </div>
               <div style={{
                 marginTop: '4px',
-                fontFamily: 'monospace',
+                fontFamily: 'var(--font-body)',
                 fontSize: '9px',
                 textTransform: 'uppercase',
                 textAlign: 'center',
@@ -365,10 +365,10 @@ export default function PreferenceWizard({ onComplete }) {
             <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <div>
-                  <p style={{ fontFamily: 'monospace', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#a855f7', margin: '0 0 2px 0' }}>{currentType}</p>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#a855f7', margin: '0 0 2px 0' }}>{currentType}</p>
                   <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>What fits your taste?</h2>
                 </div>
-                <span style={{ fontFamily: 'monospace', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#666' }}>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#666' }}>
                   {selected.filter(id => currentOptions.some(opt => opt.id === id)).length} selected
                 </span>
               </div>
@@ -376,12 +376,12 @@ export default function PreferenceWizard({ onComplete }) {
               {currentOptions.length === 0 ? (
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px' }}>
                   <Search size={20} color="#555" style={{ marginBottom: '8px' }} />
-                  <p style={{ fontFamily: 'monospace', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#666', margin: 0 }}>No options available</p>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#666', margin: 0 }}>No options available</p>
                 </div>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
                   {currentOptions.map(opt => {
-                    const Icon = ICONS[opt.value] || Hexagon;
+                    const Icon = ICONS[opt.value] || Tag;
                     const isSelected = selected.includes(opt.id);
                     return (
                       <button
@@ -401,12 +401,12 @@ export default function PreferenceWizard({ onComplete }) {
                           cursor: 'pointer',
                           transition: 'all 0.2s ease',
                           minWidth: 0,
-                          boxShadow: isSelected ? '0 0 15px rgba(124,58,237,0.15)' : 'none',
+                          boxShadow: isSelected ? '0 0 15px rgba(147,51,234,0.18)' : 'none',
                         }}
                       >
                         <div style={{
                           width: 32, height: 32, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                          background: isSelected ? '#7c3aed' : 'rgba(255,255,255,0.05)',
+                          background: isSelected ? '#9333EA' : 'rgba(255,255,255,0.05)',
                           color: isSelected ? '#fff' : '#888'
                         }}>
                           <Icon size={16} />
@@ -433,16 +433,16 @@ export default function PreferenceWizard({ onComplete }) {
               {titleLoading && titleOptions.length === 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                   <Loader2 size={28} color="#a855f7" className="animate-spin" />
-                  <p style={{ fontFamily: 'monospace', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#666', margin: 0 }}>Fetching titles...</p>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#666', margin: 0 }}>Fetching titles...</p>
                 </div>
               ) : !currentTitle ? (
                 <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                   <Film size={28} color="#555" />
-                  <p style={{ fontFamily: 'monospace', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#666', margin: 0 }}>No titles found</p>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#666', margin: 0 }}>No titles found</p>
                   <button
                     type="button"
                     onClick={fetchMoreTitles}
-                    style={{ marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '8px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontFamily: 'monospace', fontSize: '11px', textTransform: 'uppercase', cursor: 'pointer' }}
+                    style={{ marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '8px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontFamily: 'var(--font-body)', fontSize: '11px', textTransform: 'uppercase', cursor: 'pointer' }}
                   >
                     <RefreshCw size={13} /> Retry
                   </button>
@@ -477,13 +477,13 @@ export default function PreferenceWizard({ onComplete }) {
                       ) : (
                         <div style={{ width: '100%', height: '100%', background: 'rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#555', gap: '6px' }}>
                           <Film size={28} />
-                          <span style={{ fontFamily: 'monospace', fontSize: '8px', textTransform: 'uppercase' }}>No Poster</span>
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', textTransform: 'uppercase' }}>No Poster</span>
                         </div>
                       )}
 
                       <div style={{ position: 'absolute', top: '8px', left: '8px', padding: '2px 8px', borderRadius: '999px', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <span style={{ width: 6, height: 6, borderRadius: '50%', background: palette.primary }} />
-                        <span style={{ fontFamily: 'monospace', fontSize: '8px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', color: palette.primary }}>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', color: palette.primary }}>
                           {currentTitle.category}
                         </span>
                       </div>
@@ -536,7 +536,7 @@ export default function PreferenceWizard({ onComplete }) {
 
                   {/* Rating */}
                   <div style={{ width: '100%', padding: '10px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ fontFamily: 'monospace', fontSize: '8px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#666' }}>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#666' }}>
                       Rating {currentAction.rating ? `(${currentAction.rating}/5)` : ''}
                     </span>
                     <GlowStars
@@ -546,7 +546,7 @@ export default function PreferenceWizard({ onComplete }) {
                   </div>
 
                   {/* Counter */}
-                  <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', padding: '0 4px', fontFamily: 'monospace', fontSize: '9px', textTransform: 'uppercase', color: '#555' }}>
+                  <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', padding: '0 4px', fontFamily: 'var(--font-body)', fontSize: '9px', textTransform: 'uppercase', color: '#555' }}>
                     <span>{titleIndex + 1} of {titleOptions.length}</span>
                     <span>{Object.values(titleActions).filter(a => a.watched || a.favourite || a.watchlist).length} logged</span>
                   </div>
@@ -555,16 +555,24 @@ export default function PreferenceWizard({ onComplete }) {
             </div>
           )}
 
-          {/* Integrated Footer Bar */}
-          <div style={{ width: '100%', padding: '14px 20px', borderTop: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.01)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
+          {/* Footer Navigation */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '16px 24px',
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+            background: 'rgba(255,255,255,0.01)',
+          }}>
             <button
               type="button"
               onClick={handleBack}
-              disabled={step === 0}
+              disabled={step === 0 || saving}
               style={{
-                display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: 600,
-                textTransform: 'uppercase', letterSpacing: '0.05em', border: 'none', background: 'none',
-                color: step === 0 ? 'transparent' : '#888', cursor: step === 0 ? 'default' : 'pointer', transition: 'color 0.2s ease',
+                display: 'flex', alignItems: 'center', gap: '6px', border: 'none', background: 'none',
+                color: step === 0 ? '#444' : '#888', cursor: step === 0 ? 'default' : 'pointer',
+                fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
+                transition: 'color 0.2s ease',
               }}
             >
               <ChevronLeft size={15} /> Back
@@ -587,7 +595,7 @@ export default function PreferenceWizard({ onComplete }) {
                 disabled={saving}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: '8px',
-                  background: '#7c3aed', color: '#fff', border: 'none', fontSize: '11px', fontWeight: 'bold',
+                  background: '#9333EA', color: '#fff', border: 'none', fontSize: '11px', fontWeight: 'bold',
                   textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer', transition: 'all 0.2s ease',
                   opacity: saving ? 0.6 : 1,
                 }}

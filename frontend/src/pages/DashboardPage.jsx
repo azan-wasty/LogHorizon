@@ -6,12 +6,12 @@ import { useAuth } from '../hooks/useAuth';
 import { useLibrary } from '../hooks/useLibrary';
 import { useToast } from '../hooks/useToast';
 import {
-    Sparkles, Star, ExternalLink, Zap, Compass,
-    ChevronRight, Loader2, TrendingUp, Database,
-    Hash, Settings2, BarChart3, Activity,
-    Play, Bookmark, Check, ArrowUpRight, Heart,
-    MessageSquare, Users, ChevronDown,
-} from 'lucide-react';
+    Stack, Star, ArrowSquareOut, Compass,
+    CaretRight, CircleNotch, TrendUp, Database,
+    Hash, SlidersHorizontal, ChartBar, Broadcast,
+    Play, BookmarkSimple, Check, ArrowUpRight, Heart,
+    ChatCircle, CaretDown, Fingerprint, Target,
+} from '@phosphor-icons/react';
 
 // ── Category styles ────────────────────────────────
 const CAT = {
@@ -20,17 +20,17 @@ const CAT = {
     Movie: { color: '#fbbf24', dim: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.2)', label: 'Movie' },
     TV: { color: '#34d399', dim: 'rgba(52,211,153,0.1)', border: 'rgba(52,211,153,0.2)', label: 'TV' },
 };
-const fallbackCat = { color: '#7C3AED', dim: 'rgba(124,58,237,0.1)', border: 'rgba(124,58,237,0.2)', label: '—' };
+const fallbackCat = { color: '#9333EA', dim: 'rgba(147,51,234,0.1)', border: 'rgba(147,51,234,0.2)', label: '—' };
 
 // ── Activity feed ───────────────────────────────────
 const ACTIVITY_CFG = {
     WATCHING: { verb: 'started watching', icon: Play, color: '#22d3ee' },
     COMPLETED: { verb: 'completed', icon: Check, color: '#34d399' },
-    PLANNING: { verb: 'added to their watchlist', icon: Bookmark, color: '#f472b6' },
+    PLANNING: { verb: 'added to their watchlist', icon: BookmarkSimple, color: '#f472b6' },
     FAVOURITED: { verb: 'favourited', icon: Heart, color: '#ef4444' },
     RATED: { verb: 'rated', icon: Star, color: '#fbbf24' },
-    REVIEWED: { verb: 'reviewed', icon: MessageSquare, color: '#7C3AED' },
-    DROPPED: { verb: 'dropped', icon: ChevronRight, color: '#6b7280' },
+    REVIEWED: { verb: 'reviewed', icon: ChatCircle, color: '#9333EA' },
+    DROPPED: { verb: 'dropped', icon: CaretRight, color: '#6b7280' },
 };
 
 function timeAgo(dateStr) {
@@ -46,7 +46,7 @@ function timeAgo(dateStr) {
 }
 
 function ActivityRow({ item, onNavigate, i }) {
-    const cfg = ACTIVITY_CFG[item.type] || { verb: item.type?.toLowerCase(), icon: Activity, color: '#7C3AED' };
+    const cfg = ACTIVITY_CFG[item.type] || { verb: item.type?.toLowerCase(), icon: Activity, color: '#9333EA' };
     const Icon = cfg.icon;
     return (
         <div
@@ -86,7 +86,7 @@ function ActivityRow({ item, onNavigate, i }) {
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                     <div style={{ width: 16, height: 16, borderRadius: 5, background: `${cfg.color}18`, border: `1px solid ${cfg.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <Icon size={9} color={cfg.color} />
+                        <Icon size={10} color={cfg.color} weight="duotone" />
                     </div>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: '#4b5563' }}>{timeAgo(item.createdAt)}</span>
                 </div>
@@ -128,8 +128,8 @@ function ActivityFeedSection({ onNavigate }) {
         <section style={{ animation: 'fadeUp 0.4s 0.05s ease both', minWidth: 0, maxWidth: '100%', width: '100%', overflow: 'hidden', boxSizing: 'border-box' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ padding: '6px 8px', borderRadius: 10, background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.2)' }}>
-                        <Activity size={15} color="#7C3AED" />
+                    <div style={{ padding: '6px 8px', borderRadius: 10, background: 'rgba(147,51,234,0.12)', border: '1px solid rgba(147,51,234,0.2)' }}>
+                        <Broadcast size={16} color="#9333EA" weight="duotone" />
                     </div>
                     <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem', color: '#fff', letterSpacing: '-0.02em' }}>
                         Live Activity Stream
@@ -141,23 +141,23 @@ function ActivityFeedSection({ onNavigate }) {
                         style={{
                             display: 'flex', alignItems: 'center', gap: 5,
                             padding: '6px 12px', borderRadius: 8,
-                            background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.25)',
+                            background: 'rgba(147,51,234,0.12)', border: '1px solid rgba(147,51,234,0.25)',
                             fontFamily: 'var(--font-mono)', fontSize: '0.62rem', fontWeight: 700,
                             color: '#a78bfa', textTransform: 'uppercase', letterSpacing: '0.08em',
                             cursor: 'pointer', transition: 'all 0.2s',
                         }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(124,58,237,0.25)'; e.currentTarget.style.color = '#fff'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(124,58,237,0.12)'; e.currentTarget.style.color = '#a78bfa'; }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(147,51,234,0.25)'; e.currentTarget.style.color = '#fff'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(147,51,234,0.12)'; e.currentTarget.style.color = '#a78bfa'; }}
                     >
                         <span>Open Full Feed</span>
-                        <ChevronRight size={12} />
+                        <CaretRight size={12} weight="bold" />
                     </button>
                 </div>
             </div>
 
             {loading ? (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}>
-                    <Loader2 size={22} color="#7C3AED" className="animate-spin" />
+                    <CircleNotch size={22} color="#9333EA" className="animate-spin" weight="bold" />
                 </div>
             ) : activities.length === 0 ? (
                 <div style={{
@@ -182,13 +182,13 @@ function ActivityFeedSection({ onNavigate }) {
                         style={{
                             display: 'flex', alignItems: 'center', gap: 6,
                             fontFamily: 'var(--font-mono)', fontSize: '0.65rem', fontWeight: 700,
-                            textTransform: 'uppercase', letterSpacing: '0.1em', color: '#7C3AED',
-                            background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.25)',
+                            textTransform: 'uppercase', letterSpacing: '0.1em', color: '#9333EA',
+                            background: 'rgba(147,51,234,0.08)', border: '1px solid rgba(147,51,234,0.25)',
                             borderRadius: 20, padding: '9px 20px', cursor: loadingMore ? 'default' : 'pointer',
                             opacity: loadingMore ? 0.6 : 1,
                         }}
                     >
-                        {loadingMore ? <Loader2 size={12} className="animate-spin" /> : <ChevronDown size={12} />}
+                        {loadingMore ? <CircleNotch size={12} className="animate-spin" weight="bold" /> : <CaretDown size={12} weight="bold" />}
                         Load more
                     </button>
                 </div>
@@ -199,8 +199,8 @@ function ActivityFeedSection({ onNavigate }) {
 
 // Score badge
 function scoreBadge(score) {
-    if (score >= 9) return { bg: '#7C3AED', color: '#fff', shadow: '0 0 12px rgba(124,58,237,0.5)' };
-    if (score >= 6) return { bg: 'rgba(124,58,237,0.2)', color: '#a78bfa', shadow: 'none' };
+    if (score >= 9) return { bg: '#9333EA', color: '#fff', shadow: '0 0 12px rgba(147,51,234,0.5)' };
+    if (score >= 6) return { bg: 'rgba(147,51,234,0.2)', color: '#a78bfa', shadow: 'none' };
     return { bg: 'rgba(255,255,255,0.08)', color: '#6b7280', shadow: 'none' };
 }
 
@@ -304,7 +304,7 @@ function RecCard({ item, index, onNavigate }) {
                         background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)',
                         border: '1px solid rgba(255,255,255,0.1)',
                     }}>
-                        <Star size={9} color="#fbbf24" fill="#fbbf24" />
+                        <Star size={9} color="#fbbf24" weight="fill" />
                         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', fontWeight: 700, color: '#fbbf24' }}>
                             {item.rating.toFixed(1)}
                         </span>
@@ -320,7 +320,7 @@ function RecCard({ item, index, onNavigate }) {
                         background: sb.bg, color: sb.color, boxShadow: sb.shadow,
                         fontFamily: 'var(--font-mono)', fontSize: '0.6rem', fontWeight: 700,
                     }}>
-                        <Zap size={9} fill="currentColor" />
+                        <Target size={10} weight="duotone" />
                         {item._score.toFixed(3)}
                     </div>
                 )}
@@ -353,7 +353,7 @@ function RecCard({ item, index, onNavigate }) {
                             onClick={e => e.stopPropagation()}
                             style={{ display: 'flex', alignItems: 'center', gap: 3, color: '#5865F2', fontSize: '0.58rem', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.07em' }}
                         >
-                            <ExternalLink size={9} /> Portal
+                            <ArrowSquareOut size={10} weight="duotone" /> Portal
                         </a>
                     )}
                 </div>
@@ -364,7 +364,7 @@ function RecCard({ item, index, onNavigate }) {
                         {item._matchedTags.slice(0, 3).map(t => (
                             <span key={t.id} style={{
                                 padding: '2px 7px', borderRadius: 20,
-                                background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)',
+                                background: 'rgba(147,51,234,0.1)', border: '1px solid rgba(147,51,234,0.2)',
                                 fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: '#a78bfa',
                                 textTransform: 'uppercase', letterSpacing: '0.07em',
                             }}>
@@ -463,7 +463,7 @@ function StatCard({ label, value, sub, icon: Icon, color, dim }) {
                 flexShrink: 0,
                 border: `1px solid ${color}20`,
             }}>
-                <Icon size={20} color={color} />
+                <Icon size={20} color={color} weight="duotone" />
             </div>
             <div>
                 <p style={{
@@ -556,9 +556,9 @@ export default function DashboardPage({ onNavigate }) {
     if (loadingRecs) {
         return (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: 16 }}>
-                <Loader2 size={36} color="#7C3AED" style={{ animation: 'spin 0.8s linear infinite' }} />
+                <CircleNotch size={36} color="#9333EA" style={{ animation: 'spin 0.8s linear infinite' }} weight="bold" />
                 <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#374151' }}>
-                    Calibrating neural feed...
+                    Calibrating media feed...
                 </p>
                 <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
@@ -581,7 +581,7 @@ export default function DashboardPage({ onNavigate }) {
                     colors: {
                         roadColor: 0x080808, islandColor: 0x0a0a0a, background: 0x000000,
                         shoulderLines: 0x131318, brokenLines: 0x131318,
-                        leftCars: [0x8B5CF6, 0x7C3AED, 0xA78BFA],
+                        leftCars: [0x9333EA, 0xa855f7, 0xf59e0b],
                         rightCars: [0x06b6d4, 0x0891b2, 0x22d3ee],
                         sticks: 0x06b6d4,
                     }
@@ -637,11 +637,11 @@ export default function DashboardPage({ onNavigate }) {
                             </span>
                         </div>
                         <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2.2rem', color: '#fff', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 8 }}>
-                            Welcome back, <span style={{ color: '#7C3AED' }}>@{handle}</span>
+                            Welcome back, <span style={{ color: '#9333EA' }}>@{handle}</span>
                         </h1>
                         <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: '#6b7280', fontStyle: 'italic' }}>
                             {hasPrefs
-                                ? `Your neural profile matched ${totalRecs} titles from the global index.`
+                                ? `Your curated profile matched ${totalRecs} titles from the global index.`
                                 : 'Configure your taste profile to unlock personalised picks.'}
                         </p>
                     </div>
@@ -651,27 +651,27 @@ export default function DashboardPage({ onNavigate }) {
                         style={{
                             display: 'flex', alignItems: 'center', gap: 8,
                             padding: '10px 18px', borderRadius: 12,
-                            background: 'rgba(124,58,237,0.08)',
-                            border: '1px solid rgba(124,58,237,0.2)',
+                            background: 'rgba(147,51,234,0.08)',
+                            border: '1px solid rgba(147,51,234,0.2)',
                             cursor: 'pointer', transition: 'all 0.2s',
                             fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.8rem', color: '#9ca3af',
                         }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(124,58,237,0.15)'; e.currentTarget.style.color = '#fff'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(124,58,237,0.08)'; e.currentTarget.style.color = '#9ca3af'; }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(147,51,234,0.15)'; e.currentTarget.style.color = '#fff'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(147,51,234,0.08)'; e.currentTarget.style.color = '#9ca3af'; }}
                     >
-                        <Settings2 size={15} />
+                        <SlidersHorizontal size={15} weight="duotone" />
                         Tune Profile
-                        <ChevronRight size={13} color="rgba(124,58,237,0.5)" />
+                        <CaretRight size={13} color="rgba(147,51,234,0.5)" weight="bold" />
                     </button>
                 </header>
 
                 {/* ── Library quick stats ─────────────────────── */}
                 {stats?.libraryStats && (
                     <div className="dashboard-grid">
-                        <StatCard label="Archive Total" value={<AnimNum target={stats.libraryStats.total} />} icon={Database} color="#8B5CF6" dim="rgba(139,92,246,0.12)" />
+                        <StatCard label="Archive Total" value={<AnimNum target={stats.libraryStats.total} />} icon={Database} color="#a855f7" dim="rgba(168,85,247,0.12)" />
                         <StatCard label="Completed" value={<AnimNum target={stats.libraryStats.completed} />} icon={Check} color="#34d399" dim="rgba(52,211,153,0.12)" />
                         <StatCard label="Active Watch" value={<AnimNum target={stats.libraryStats.current} />} icon={Play} color="#22d3ee" dim="rgba(34,211,238,0.12)" />
-                        <StatCard label="Watchlist" value={<AnimNum target={stats.libraryStats.planning || 0} />} icon={Bookmark} color="#f472b6" dim="rgba(244,114,182,0.12)" />
+                        <StatCard label="Watchlist" value={<AnimNum target={stats.libraryStats.planning || 0} />} icon={BookmarkSimple} color="#f472b6" dim="rgba(244,114,182,0.12)" />
                     </div>
                 )}
 
@@ -684,7 +684,7 @@ export default function DashboardPage({ onNavigate }) {
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                                 <div style={{ padding: '6px 8px', borderRadius: 10, background: 'rgba(34,211,238,0.12)', border: '1px solid rgba(34,211,238,0.2)' }}>
-                                    <Play size={15} color="#22d3ee" fill="#22d3ee" />
+                                    <Play size={15} color="#22d3ee" weight="fill" />
                                 </div>
                                 <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem', color: '#fff', letterSpacing: '-0.02em' }}>
                                     Continue Watching & Reading
@@ -775,9 +775,9 @@ export default function DashboardPage({ onNavigate }) {
 
                 {/* ── Stats row ───────────────────────────────── */}
                 <div className="dashboard-grid">
-                    <StatCard label="Matched Titles" value={<AnimNum target={totalRecs} />} icon={Sparkles} color="#7C3AED" dim="rgba(124,58,237,0.12)" />
-                    <StatCard label="Index Match Rate" value={loadingStats ? '...' : <><AnimNum target={matchRate} />%</>} sub="of total library" icon={BarChart3} color="#22d3ee" dim="rgba(34,211,238,0.12)" />
-                    <StatCard label="Top Genre" value={topGenre} icon={TrendingUp} color="#f59e0b" dim="rgba(245,158,11,0.12)" />
+                    <StatCard label="Matched Titles" value={<AnimNum target={totalRecs} />} icon={Stack} color="#9333EA" dim="rgba(147,51,234,0.12)" />
+                    <StatCard label="Index Match Rate" value={loadingStats ? '...' : <><AnimNum target={matchRate} />%</>} sub="of total library" icon={ChartBar} color="#22d3ee" dim="rgba(34,211,238,0.12)" />
+                    <StatCard label="Top Genre" value={topGenre} icon={TrendUp} color="#f59e0b" dim="rgba(245,158,11,0.12)" />
                     <StatCard label="Preference Nodes" value={loadingPrefs ? '...' : <AnimNum target={Object.values(prefs).flat().length} />} icon={Hash} color="#f472b6" dim="rgba(244,114,182,0.12)" />
                 </div>
 
@@ -785,14 +785,14 @@ export default function DashboardPage({ onNavigate }) {
                 {!hasPrefs && (
                     <div style={{
                         padding: '56px 32px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 20,
-                        background: 'rgba(124,58,237,0.04)', border: '1px dashed rgba(124,58,237,0.2)', borderRadius: 20,
+                        background: 'rgba(147,51,234,0.04)', border: '1px dashed rgba(147,51,234,0.2)', borderRadius: 20,
                         animation: 'fadeUp 0.4s ease',
                     }}>
-                        <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 30px rgba(124,58,237,0.15)' }}>
-                            <Activity size={28} color="#7C3AED" />
+                        <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'rgba(147,51,234,0.1)', border: '1px solid rgba(147,51,234,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 30px rgba(147,51,234,0.15)' }}>
+                            <Fingerprint size={28} color="#9333EA" weight="duotone" />
                         </div>
                         <div>
-                            <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem', color: '#fff', marginBottom: 8 }}>Neural Profile Empty</h3>
+                            <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem', color: '#fff', marginBottom: 8 }}>Taste Profile Empty</h3>
                             <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: '#6b7280', maxWidth: 360, margin: '0 auto', fontStyle: 'italic' }}>
                                 Select your genres, moods and themes to unlock the full recommendation engine.
                             </p>
@@ -802,16 +802,16 @@ export default function DashboardPage({ onNavigate }) {
                             style={{
                                 display: 'flex', alignItems: 'center', gap: 8,
                                 padding: '12px 28px', borderRadius: 12,
-                                background: '#7C3AED', color: '#fff',
+                                background: '#9333EA', color: '#fff',
                                 fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.9rem',
                                 border: 'none', cursor: 'pointer',
-                                boxShadow: '0 0 25px rgba(124,58,237,0.4)',
+                                boxShadow: '0 0 25px rgba(147,51,234,0.4)',
                                 transition: 'all 0.2s',
                             }}
-                            onMouseEnter={e => { e.currentTarget.style.background = '#8B5CF6'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = '#7C3AED'; e.currentTarget.style.transform = 'none'; }}
+                            onMouseEnter={e => { e.currentTarget.style.background = '#a855f7'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = '#9333EA'; e.currentTarget.style.transform = 'none'; }}
                         >
-                            Initialize Profile <ChevronRight size={16} />
+                            Initialize Profile <CaretRight size={16} weight="bold" />
                         </button>
                     </div>
                 )}
@@ -821,13 +821,13 @@ export default function DashboardPage({ onNavigate }) {
                     <section>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                <div style={{ padding: '6px 8px', borderRadius: 10, background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.2)' }}>
-                                    <Zap size={15} color="#7C3AED" fill="#7C3AED" />
+                                <div style={{ padding: '6px 8px', borderRadius: 10, background: 'rgba(147,51,234,0.12)', border: '1px solid rgba(147,51,234,0.2)' }}>
+                                    <Compass size={16} color="#9333EA" weight="duotone" />
                                 </div>
                                 <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem', color: '#fff', letterSpacing: '-0.02em' }}>
                                     For You
                                 </h2>
-                                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#7C3AED', background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)', padding: '2px 8px', borderRadius: 20 }}>
+                                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#9333EA', background: 'rgba(147,51,234,0.1)', border: '1px solid rgba(147,51,234,0.2)', padding: '2px 8px', borderRadius: 20 }}>
                                     {recs.length} matches
                                 </span>
                             </div>
@@ -840,10 +840,10 @@ export default function DashboardPage({ onNavigate }) {
                                     background: 'none', border: 'none', cursor: 'pointer',
                                     transition: 'color 0.2s',
                                 }}
-                                onMouseEnter={e => e.currentTarget.style.color = '#7C3AED'}
+                                onMouseEnter={e => e.currentTarget.style.color = '#9333EA'}
                                 onMouseLeave={e => e.currentTarget.style.color = '#4b5563'}
                             >
-                                Browse All <ChevronRight size={13} />
+                                Browse All <CaretRight size={13} weight="bold" />
                             </button>
                         </div>
 
@@ -855,12 +855,12 @@ export default function DashboardPage({ onNavigate }) {
                     </section>
                 )}
 
-                {/* ── Explore Beyond ──────────────────────────── */}
+                {/* ── Explore Beyond ──────────────────── */}
                 {explore.length > 0 && (
                     <section>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
                             <div style={{ padding: '6px 8px', borderRadius: 10, background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.2)' }}>
-                                <Compass size={15} color="#22d3ee" />
+                                <Compass size={16} color="#22d3ee" weight="duotone" />
                             </div>
                             <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem', color: '#fff', letterSpacing: '-0.02em' }}>
                                 Explore Beyond
@@ -882,8 +882,8 @@ export default function DashboardPage({ onNavigate }) {
                 {stats?.hasPreferences && Object.keys(stats.stats || {}).length > 0 && (
                     <section>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-                            <div style={{ padding: '6px 8px', borderRadius: 10, background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)' }}>
-                                <BarChart3 size={15} color="#8B5CF6" />
+                            <div style={{ padding: '6px 8px', borderRadius: 10, background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)' }}>
+                                <ChartBar size={16} color="#a855f7" weight="duotone" />
                             </div>
                             <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem', color: '#fff', letterSpacing: '-0.02em' }}>
                                 Match Breakdown
