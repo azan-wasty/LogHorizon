@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
-import { Loader2, X, Layers } from 'lucide-react';
+import { CircleNotch, Stack } from '@phosphor-icons/react';
 
 export default function AuthModal({ mode = 'login', onClose, onSwitch, onSuccess }) {
   const { login, register } = useAuth();
@@ -103,7 +103,7 @@ export default function AuthModal({ mode = 'login', onClose, onSwitch, onSuccess
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 0 24px rgba(147,51,234,0.35)',
             }}>
-              <Layers size={22} color="#fff" />
+              <Stack size={22} color="#fff" weight="duotone" />
             </div>
             <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.3rem', color: '#fff', letterSpacing: '-0.02em', marginBottom: 6 }}>
               {mode === 'login' ? 'Welcome back' : 'Join LogHorizon'}
@@ -144,7 +144,7 @@ export default function AuthModal({ mode = 'login', onClose, onSwitch, onSuccess
               marginTop: 8, transition: 'all 0.2s', opacity: loading ? 0.6 : 1,
               boxShadow: '0 4px 20px rgba(255,255,255,0.1)',
             }}>
-              {loading && <Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} />}
+              {loading && <CircleNotch size={16} weight="bold" style={{ animation: 'spin 0.8s linear infinite' }} />}
               {loading ? 'Please wait...' : (mode === 'login' ? 'Sign In' : 'Create Account')}
             </button>
           </form>

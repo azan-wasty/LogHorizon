@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import Radar from '../components/Radar';
 import {
-  Calendar, Users, MessageSquare, Plus, RefreshCw,
-  Search, ExternalLink, X, ChevronRight, Loader2, Star,
-  Database, ShieldCheck, Clock, CheckCircle, Activity,
-  UserPlus, UserCheck, Radio, Heart, Award,
-} from 'lucide-react';
+  Calendar, UsersThree, ChatCircle, Plus, ArrowsClockwise,
+  MagnifyingGlass, ArrowSquareOut, X, CaretRight, CircleNotch, Star,
+  Database, ShieldCheck, Clock,
+  UserPlus, UserCheck, Radio, Heart, Trophy, IconContext,
+} from '@phosphor-icons/react';
 import { events as eventsApi, users as usersApi, content as contentApi, friends as friendsApi } from '../api/client';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
@@ -156,7 +156,7 @@ function EventsSection({ currentUser, isAdmin }) {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={fetchEvents} style={{ padding: '9px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, color: '#6b7280' }}>
-            <RefreshCw size={15} style={loading ? { animation: 'spin 0.8s linear infinite' } : {}} />
+            <ArrowsClockwise size={15} weight="bold" style={loading ? { animation: 'spin 0.8s linear infinite' } : {}} />
           </button>
           {currentUser && (
             <button onClick={() => setShowCreate(true)} style={{
@@ -168,7 +168,7 @@ function EventsSection({ currentUser, isAdmin }) {
               onMouseEnter={e => { e.currentTarget.style.background = '#8B5CF6'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = '#7C3AED'; e.currentTarget.style.transform = 'none'; }}
             >
-              <Plus size={15} /> Create Event
+              <Plus size={15} weight="bold" /> Create Event
             </button>
           )}
         </div>
@@ -183,7 +183,7 @@ function EventsSection({ currentUser, isAdmin }) {
         </div>
       ) : eventsList.length === 0 ? (
         <div style={{ padding: '60px 32px', textAlign: 'center', border: '1px dashed rgba(255,255,255,0.06)', borderRadius: 20 }}>
-          <Calendar size={40} color="#374151" style={{ margin: '0 auto 12px' }} />
+          <Calendar size={40} color="#374151" weight="duotone" style={{ margin: '0 auto 12px' }} />
           <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem', color: '#fff', marginBottom: 6 }}>No Events Scheduled</h3>
           <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: '#6b7280', fontStyle: 'italic' }}>Be the first to create a community gathering.</p>
         </div>
@@ -248,7 +248,7 @@ function EventsSection({ currentUser, isAdmin }) {
                       onMouseEnter={e => { e.currentTarget.style.background = '#5865F2'; e.currentTarget.style.color = '#fff'; }}
                       onMouseLeave={e => { e.currentTarget.style.background = 'rgba(88,101,242,0.1)'; e.currentTarget.style.color = '#5865F2'; }}
                     >
-                      <ExternalLink size={10} /> Discord Server
+                      <ArrowSquareOut size={10} weight="duotone" /> Discord Server
                     </a>
                   )}
                 </div>
@@ -261,7 +261,7 @@ function EventsSection({ currentUser, isAdmin }) {
                     </span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#4b5563' }}>
-                    <Clock size={11} />
+                    <Clock size={11} weight="duotone" />
                     {new Date(event.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
@@ -294,7 +294,7 @@ function EventsSection({ currentUser, isAdmin }) {
             <div style={{ padding: '22px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1rem', color: '#fff' }}>Create Event</h2>
               <button onClick={() => setShowCreate(false)} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '6px 8px', cursor: 'pointer' }}>
-                <X size={16} color="#9ca3af" />
+                <X size={16} color="#9ca3af" weight="bold" />
               </button>
             </div>
             <form onSubmit={handleCreate} style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -323,7 +323,7 @@ function EventsSection({ currentUser, isAdmin }) {
               <div style={{ display: 'flex', gap: 10, paddingTop: 4 }}>
                 <button type="button" onClick={() => setShowCreate(false)} style={{ flex: 1, padding: '11px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: '0.82rem', color: '#9ca3af' }}>Cancel</button>
                 <button type="submit" disabled={creating} style={{ flex: 1, padding: '11px', borderRadius: 10, background: '#7C3AED', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.82rem', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 0 20px rgba(124,58,237,0.3)', opacity: creating ? 0.6 : 1 }}>
-                  {creating && <Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} />}
+                  {creating && <CircleNotch size={14} weight="bold" style={{ animation: 'spin 0.8s linear infinite' }} />}
                   Create
                 </button>
               </div>
@@ -423,8 +423,8 @@ function MembersSection({ currentUser }) {
       <div style={{ position: 'relative', maxWidth: 400 }}>
         <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }}>
           {loading
-            ? <Loader2 size={16} color="#7C3AED" style={{ animation: 'spin 0.8s linear infinite' }} />
-            : <Search size={16} color="#6b7280" />
+            ? <CircleNotch size={16} color="#7C3AED" weight="bold" style={{ animation: 'spin 0.8s linear infinite' }} />
+            : <MagnifyingGlass size={16} color="#6b7280" weight="duotone" />
           }
         </div>
         <input
@@ -440,7 +440,7 @@ function MembersSection({ currentUser }) {
         />
         {query && (
           <button onClick={() => setQuery('')} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}>
-            <X size={13} color="#6b7280" />
+            <X size={13} color="#6b7280" weight="bold" />
           </button>
         )}
       </div>
@@ -448,7 +448,7 @@ function MembersSection({ currentUser }) {
       {/* Top contributors label */}
       {isTop && !query && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Star size={14} color="#fbbf24" fill="#fbbf24" />
+          <Star size={14} color="#fbbf24" weight="fill" />
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
             Top Contributors
           </span>
@@ -459,7 +459,7 @@ function MembersSection({ currentUser }) {
       {/* Results */}
       {results.length === 0 && !loading ? (
         <div style={{ padding: '48px 24px', textAlign: 'center', border: '1px dashed rgba(255,255,255,0.06)', borderRadius: 20 }}>
-          <Users size={36} color="#374151" style={{ margin: '0 auto 12px' }} />
+          <UsersThree size={36} color="#374151" weight="duotone" style={{ margin: '0 auto 12px' }} />
           <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: '#6b7280', fontStyle: 'italic' }}>
             {query ? `No members found for "${query}"` : 'No members yet'}
           </p>
@@ -485,7 +485,7 @@ function MembersSection({ currentUser }) {
                   <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.88rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {user.username}
                   </span>
-                  {user.role?.toUpperCase() === 'ADMIN' && <ShieldCheck size={13} color="#7C3AED" />}
+                  {user.role?.toUpperCase() === 'ADMIN' && <ShieldCheck size={13} color="#7C3AED" weight="duotone" />}
                 </div>
                 {user.bio && (
                   <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.72rem', color: '#6b7280', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 4 }}>
@@ -511,11 +511,11 @@ function MembersSection({ currentUser }) {
                   }}
                 >
                   {pendingFriendId === user.id
-                    ? <Loader2 size={13} color={friendIds.has(user.id) ? '#34d399' : '#7C3AED'} className="animate-spin" />
-                    : friendIds.has(user.id) ? <UserCheck size={13} color="#34d399" /> : <UserPlus size={13} color="#7C3AED" />}
+                    ? <CircleNotch size={13} color={friendIds.has(user.id) ? '#34d399' : '#7C3AED'} weight="bold" className="animate-spin" />
+                    : friendIds.has(user.id) ? <UserCheck size={13} color="#34d399" weight="duotone" /> : <UserPlus size={13} color="#7C3AED" weight="duotone" />}
                 </button>
               )}
-              <ChevronRight size={15} color="#374151" style={{ flexShrink: 0 }} />
+              <CaretRight size={15} color="#374151" weight="bold" style={{ flexShrink: 0 }} />
             </div>
           ))}
         </div>
@@ -534,13 +534,13 @@ function MembersSection({ currentUser }) {
             <div style={{ padding: '20px 22px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '0.95rem', color: '#fff' }}>Member Profile</h3>
               <button onClick={() => setSelectedUserId(null)} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '6px 8px', cursor: 'pointer' }}>
-                <X size={15} color="#9ca3af" />
+                <X size={15} color="#9ca3af" weight="bold" />
               </button>
             </div>
 
             {profileLoading ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 0' }}>
-                <Loader2 size={28} color="#7C3AED" style={{ animation: 'spin 0.8s linear infinite' }} />
+                <CircleNotch size={28} color="#7C3AED" weight="bold" style={{ animation: 'spin 0.8s linear infinite' }} />
               </div>
             ) : !profile ? (
               <div style={{ padding: '60px 24px', textAlign: 'center', fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
@@ -554,7 +554,7 @@ function MembersSection({ currentUser }) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
                       <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem', color: '#fff' }}>{profile.username}</span>
-                      {profile.role?.toUpperCase() === 'ADMIN' && <ShieldCheck size={14} color="#7C3AED" />}
+                      {profile.role?.toUpperCase() === 'ADMIN' && <ShieldCheck size={14} color="#7C3AED" weight="duotone" />}
                     </div>
                     {profile.bio && <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.75rem', color: '#6b7280', fontStyle: 'italic', lineHeight: 1.5 }}>{profile.bio}</p>}
                   </div>
@@ -574,8 +574,8 @@ function MembersSection({ currentUser }) {
                       }}
                     >
                       {pendingFriendId === profile.id
-                        ? <Loader2 size={12} className="animate-spin" />
-                        : friendIds.has(profile.id) ? <UserCheck size={12} /> : <UserPlus size={12} />}
+                        ? <CircleNotch size={12} weight="bold" className="animate-spin" />
+                        : friendIds.has(profile.id) ? <UserCheck size={12} weight="duotone" /> : <UserPlus size={12} weight="duotone" />}
                       {friendIds.has(profile.id) ? 'Friends' : 'Add'}
                     </button>
                   )}
@@ -622,7 +622,7 @@ function MembersSection({ currentUser }) {
                 {profile.achievements?.length > 0 && (
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
-                      <Award size={13} color="#fbbf24" fill="rgba(251,191,36,0.3)" />
+                      <Trophy size={13} color="#fbbf24" weight="duotone" />
                       <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Achievements — {profile.achievements.length}</p>
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -631,7 +631,7 @@ function MembersSection({ currentUser }) {
                           display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px',
                           background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.15)', borderRadius: 8,
                         }}>
-                          <Star size={10} color="#fbbf24" fill="rgba(251,191,36,0.4)" />
+                          <Star size={10} color="#fbbf24" weight="fill" />
                           <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.65rem', color: '#fbbf24' }}>{ach.title}</span>
                         </div>
                       ))}
@@ -639,31 +639,31 @@ function MembersSection({ currentUser }) {
                   </div>
                 )}
 
-                     {/* Favourites */}
-                     {profile.favourites?.length > 0 && (
-                       <div>
-                         <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
-                           <Heart size={13} color="#f472b6" fill="rgba(244,114,182,0.3)" />
-                           <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#f472b6', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Favourites</p>
-                         </div>
-                         <div className="profile-covers" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
-                           {profile.favourites.slice(0, 8).map(c => (
-                             <div key={c.id} style={{ aspectRatio: '3/4', borderRadius: 8, overflow: 'hidden', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(244,114,182,0.15)', position: 'relative' }}>
-                               {c.coverImage ? <img src={c.coverImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={c.title} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Heart size={10} color="#f472b6" /></div>}
-                             </div>
-                           ))}
-                         </div>
-                       </div>
-                     )}
+                {/* Favourites */}
+                {profile.favourites?.length > 0 && (
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+                      <Heart size={13} color="#f472b6" weight="duotone" />
+                      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#f472b6', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Favourites</p>
+                    </div>
+                    <div className="profile-covers" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+                      {profile.favourites.slice(0, 8).map(c => (
+                        <div key={c.id} style={{ aspectRatio: '3/4', borderRadius: 8, overflow: 'hidden', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(244,114,182,0.15)', position: 'relative' }}>
+                          {c.coverImage ? <img src={c.coverImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={c.title} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Heart size={10} color="#f472b6" weight="duotone" /></div>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-                     {/* Completed covers */}
-                     {profile.completed.length > 0 && (
-                       <div>
-                         <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 10 }}>Completed</p>
-                         <div className="profile-covers" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+                {/* Completed covers */}
+                {profile.completed.length > 0 && (
+                  <div>
+                    <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 10 }}>Completed</p>
+                    <div className="profile-covers" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
                       {profile.completed.slice(0, 12).map(c => (
                         <div key={c.id} style={{ aspectRatio: '3/4', borderRadius: 8, overflow: 'hidden', background: 'rgba(255,255,255,0.05)' }}>
-                          {c.coverImage ? <img src={c.coverImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={c.title} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Database size={12} color="#374151" /></div>}
+                          {c.coverImage ? <img src={c.coverImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={c.title} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Database size={12} color="#374151" weight="duotone" /></div>}
                         </div>
                       ))}
                       {profile.completed.length > 12 && (
@@ -735,7 +735,7 @@ function SocialHubSection({ onNavigate }) {
         </div>
       ) : items.length === 0 ? (
         <div style={{ padding: '64px 32px', textAlign: 'center', border: '1px dashed rgba(255,255,255,0.06)', borderRadius: 20 }}>
-          <Radio size={40} color="#374151" style={{ margin: '0 auto 12px' }} />
+          <Radio size={40} color="#374151" weight="duotone" style={{ margin: '0 auto 12px' }} />
           <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.1rem', color: '#fff', marginBottom: 6 }}>Social Nexus Empty</h3>
           <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.85rem', color: '#6b7280', fontStyle: 'italic', marginBottom: 16 }}>
             No Discord or Reddit communities have been linked yet.
@@ -763,7 +763,7 @@ function SocialHubSection({ onNavigate }) {
                 <div style={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden' }}>
                   {item.coverImage
                     ? <img src={item.coverImage} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <div style={{ width: '100%', height: '100%', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Database size={32} color="#374151" /></div>
+                    : <div style={{ width: '100%', height: '100%', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Database size={32} color="#374151" weight="duotone" /></div>
                   }
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(14,14,22,0.9) 0%, transparent 55%)' }} />
                   <div style={{ position: 'absolute', top: 8, right: 8 }}>
@@ -773,7 +773,7 @@ function SocialHubSection({ onNavigate }) {
                   </div>
                   {item.rating && (
                     <div style={{ position: 'absolute', bottom: 8, left: 8, display: 'flex', alignItems: 'center', gap: 3, padding: '3px 7px', borderRadius: 20, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}>
-                      <Star size={9} color="#fbbf24" fill="#fbbf24" />
+                      <Star size={9} color="#fbbf24" weight="fill" />
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#fbbf24', fontWeight: 700 }}>{item.rating.toFixed(1)}</span>
                     </div>
                   )}
@@ -798,7 +798,7 @@ function SocialHubSection({ onNavigate }) {
                         onMouseEnter={e => { e.currentTarget.style.background = '#5865F2'; e.currentTarget.style.color = '#fff'; }}
                         onMouseLeave={e => { e.currentTarget.style.background = 'rgba(88,101,242,0.08)'; e.currentTarget.style.color = '#5865F2'; }}
                       >
-                        <MessageSquare size={11} /> Discord
+                        <ChatCircle size={11} weight="duotone" /> Discord
                       </a>
                     )}
                     {item.redditLink && (
@@ -816,7 +816,7 @@ function SocialHubSection({ onNavigate }) {
                         onMouseEnter={e => { e.currentTarget.style.background = '#FF4500'; e.currentTarget.style.color = '#fff'; }}
                         onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,69,0,0.08)'; e.currentTarget.style.color = '#FF4500'; }}
                       >
-                        <Radio size={11} /> Subreddit
+                        <Radio size={11} weight="duotone" /> Subreddit
                       </a>
                     )}
                   </div>
@@ -835,7 +835,7 @@ function SocialHubSection({ onNavigate }) {
 // ══════════════════════════════════════════════════
 const TABS = [
   { id: 'events', label: 'Events', icon: Calendar },
-  { id: 'members', label: 'Members', icon: Users },
+  { id: 'members', label: 'Members', icon: UsersThree },
   { id: 'social', label: 'Social Hub', icon: Radio },
 ];
 
@@ -844,28 +844,29 @@ export default function CommunityPage({ onNavigate }) {
   const [activeTab, setActiveTab] = useState('events');
 
   return (
-    <div style={{ position: 'relative' }}>
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.1 }}>
-        <Radar
-          speed={1}
-          scale={0.5}
-          ringCount={10}
-          spokeCount={10}
-          ringThickness={0.05}
-          spokeThickness={0.01}
-          sweepSpeed={1}
-          sweepWidth={2}
-          sweepLobes={1}
-          color="#9f29ff"
-          backgroundColor="#000000"
-          falloff={2}
-          brightness={1}
-          enableMouseInteraction={false}
-          mouseInfluence={0.1}
-        />
-      </div>
-      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 32 }} className="community-content">
-        <style>{`
+    <IconContext.Provider value={{ weight: 'duotone' }}>
+      <div style={{ position: 'relative' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.1 }}>
+          <Radar
+            speed={1}
+            scale={0.5}
+            ringCount={10}
+            spokeCount={10}
+            ringThickness={0.05}
+            spokeThickness={0.01}
+            sweepSpeed={1}
+            sweepWidth={2}
+            sweepLobes={1}
+            color="#9f29ff"
+            backgroundColor="#000000"
+            falloff={2}
+            brightness={1}
+            enableMouseInteraction={false}
+            mouseInfluence={0.1}
+          />
+        </div>
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 32 }} className="community-content">
+          <style>{`
         @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
         @keyframes spin { to { transform:rotate(360deg); } }
@@ -894,61 +895,62 @@ export default function CommunityPage({ onNavigate }) {
          }
       `}</style>
 
-        {/* Header */}
-        <header style={{ animation: 'fadeUp 0.4s ease' }} className="community-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <span style={{
-              padding: '3px 10px', borderRadius: 20,
-              background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)',
-              fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#7C3AED',
-              textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700,
-            }}>
-              Community Nexus
-            </span>
+          {/* Header */}
+          <header style={{ animation: 'fadeUp 0.4s ease' }} className="community-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <span style={{
+                padding: '3px 10px', borderRadius: 20,
+                background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)',
+                fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#7C3AED',
+                textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700,
+              }}>
+                Community Nexus
+              </span>
+            </div>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2.2rem', color: '#fff', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 8 }}>
+              The <span style={{ color: '#7C3AED' }}>Community</span>
+            </h1>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: '#6b7280', fontStyle: 'italic' }}>
+              Connect, discover, and sync with your community.
+            </p>
+          </header>
+
+          {/* Tab Navigation */}
+          <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.06)', gap: 2 }} className="tab-container">
+            {TABS.map(tab => {
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '12px 20px', border: 'none', cursor: 'pointer',
+                    fontFamily: 'var(--font-display)', fontSize: '0.82rem', fontWeight: 700,
+                    textTransform: 'uppercase', letterSpacing: '0.05em',
+                    background: 'transparent', transition: 'all 0.2s',
+                    color: active ? '#fff' : '#6b7280',
+                    position: 'relative',
+                    borderBottom: active ? '2px solid #7C3AED' : '2px solid transparent',
+                    marginBottom: -1,
+                    flexShrink: 0
+                  }}
+                >
+                  <tab.icon size={15} color={active ? '#7C3AED' : '#4b5563'} weight="duotone" />
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '2.2rem', color: '#fff', letterSpacing: '-0.03em', lineHeight: 1, marginBottom: 8 }}>
-            The <span style={{ color: '#7C3AED' }}>Community</span>
-          </h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: '#6b7280', fontStyle: 'italic' }}>
-            Connect, discover, and sync with your community.
-          </p>
-        </header>
 
-        {/* Tab Navigation */}
-        <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.06)', gap: 2 }} className="tab-container">
-          {TABS.map(tab => {
-            const active = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '12px 20px', border: 'none', cursor: 'pointer',
-                  fontFamily: 'var(--font-display)', fontSize: '0.82rem', fontWeight: 700,
-                  textTransform: 'uppercase', letterSpacing: '0.05em',
-                  background: 'transparent', transition: 'all 0.2s',
-                  color: active ? '#fff' : '#6b7280',
-                  position: 'relative',
-                  borderBottom: active ? '2px solid #7C3AED' : '2px solid transparent',
-                  marginBottom: -1,
-                  flexShrink: 0
-                }}
-              >
-                <tab.icon size={15} color={active ? '#7C3AED' : '#4b5563'} />
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Tab Content */}
-        <div key={activeTab} style={{ animation: 'fadeUp 0.3s ease' }}>
-          {activeTab === 'events' && <EventsSection currentUser={user} isAdmin={isAdmin} />}
-          {activeTab === 'members' && <MembersSection currentUser={user} />}
-          {activeTab === 'social' && <SocialHubSection onNavigate={onNavigate} />}
+          {/* Tab Content */}
+          <div key={activeTab} style={{ animation: 'fadeUp 0.3s ease' }}>
+            {activeTab === 'events' && <EventsSection currentUser={user} isAdmin={isAdmin} />}
+            {activeTab === 'members' && <MembersSection currentUser={user} />}
+            {activeTab === 'social' && <SocialHubSection onNavigate={onNavigate} />}
+          </div>
         </div>
       </div>
-    </div>
+    </IconContext.Provider>
   );
 }

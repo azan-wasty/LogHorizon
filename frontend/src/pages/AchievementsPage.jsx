@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { achievementsApi } from '../api/client';
-import { Award, ArrowLeft, Pin, PinOff, Loader2 } from 'lucide-react';
+import { Trophy, ArrowLeft, PushPin, PushPinSlash, CircleNotch, IconContext } from '@phosphor-icons/react';
 
 const MAX_PINNED = 6;
 
@@ -19,7 +19,7 @@ function AchievementCard({ ach, onTogglePin, busy }) {
       }}
     >
       <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 0 16px rgba(251,191,36,0.15)' }}>
-        <Award size={20} color="#fbbf24" fill="rgba(251,191,36,0.3)" />
+        <Trophy size={20} color="#fbbf24" weight="duotone" />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.85rem', color: '#fbbf24', marginBottom: 2 }}>{ach.title}</p>
@@ -44,7 +44,7 @@ function AchievementCard({ ach, onTogglePin, busy }) {
           opacity: busy ? 0.6 : 1,
         }}
       >
-        {busy ? <Loader2 size={12} className="animate-spin" /> : ach.pinned ? <PinOff size={12} /> : <Pin size={12} />}
+        {busy ? <CircleNotch size={12} className="animate-spin" weight="bold" /> : ach.pinned ? <PushPinSlash size={12} weight="duotone" /> : <PushPin size={12} weight="duotone" />}
         {ach.pinned ? 'Pinned' : 'Pin'}
       </button>
     </div>
@@ -75,7 +75,7 @@ export default function AchievementsPage({ onNavigate }) {
   };
 
   return (
-    <>
+    <IconContext.Provider value={{ weight: 'duotone' }}>
       <style>{`
         @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
         @media (max-width: 768px) {
@@ -86,46 +86,46 @@ export default function AchievementsPage({ onNavigate }) {
         }
       `}</style>
       <div className="ach-page" style={{ maxWidth: 820, margin: '0 auto', padding: '32px 20px 80px' }}>
-      <button
-        onClick={() => onNavigate?.('profile')}
-        className="back-link"
-        style={{
-          display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24,
-          background: 'none', border: 'none', cursor: 'pointer',
-          fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--text-muted)',
-          textTransform: 'uppercase', letterSpacing: '0.12em',
-        }}
-      >
-        <ArrowLeft size={14} /> Back to profile
-      </button>
+        <button
+          onClick={() => onNavigate?.('profile')}
+          className="back-link"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24,
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--text-muted)',
+            textTransform: 'uppercase', letterSpacing: '0.12em',
+          }}
+        >
+          <ArrowLeft size={14} weight="bold" /> Back to profile
+        </button>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-        <Award size={22} color="#fbbf24" fill="rgba(251,191,36,0.3)" />
-        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.4rem', color: '#fff' }}>Achievements</h1>
-      </div>
-      <p className="ach-count" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 28 }}>
-        {(achievements || []).length} unlocked · {pinnedCount}/{MAX_PINNED} pinned to your profile
-      </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+          <Trophy size={22} color="#fbbf24" weight="duotone" />
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.4rem', color: '#fff' }}>Achievements</h1>
+        </div>
+        <p className="ach-count" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: 28 }}>
+          {(achievements || []).length} unlocked · {pinnedCount}/{MAX_PINNED} pinned to your profile
+        </p>
 
-      {(achievements || []).length === 0 ? (
-        <div style={{
-          padding: '48px 24px', textAlign: 'center',
-          background: 'rgba(251,191,36,0.02)', border: '1px dashed rgba(251,191,36,0.1)', borderRadius: 20,
-        }}>
-          <Award size={32} color="#374151" style={{ margin: '0 auto 12x' }} />
-          <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.95rem', color: '#4b5563' }}>No achievements yet</p>
-          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', color: '#2d2d3d', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 6 }}>
-            Complete entries, rate content, and build your library to unlock badges
-          </p>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {achievements.map(ach => (
-            <AchievementCard key={ach.key} ach={ach} onTogglePin={handleTogglePin} busy={pendingKey === ach.key} />
-          ))}
-        </div>
-      )}
+        {(achievements || []).length === 0 ? (
+          <div style={{
+            padding: '48px 24px', textAlign: 'center',
+            background: 'rgba(251,191,36,0.02)', border: '1px dashed rgba(251,191,36,0.1)', borderRadius: 20,
+          }}>
+            <Trophy size={32} color="#374151" weight="duotone" style={{ margin: '0 auto 12x' }} />
+            <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.95rem', color: '#4b5563' }}>No achievements yet</p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', color: '#2d2d3d', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 6 }}>
+              Complete entries, rate content, and build your library to unlock badges
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {achievements.map(ach => (
+              <AchievementCard key={ach.key} ach={ach} onTogglePin={handleTogglePin} busy={pendingKey === ach.key} />
+            ))}
+          </div>
+        )}
       </div>
-    </>
+    </IconContext.Provider>
   );
 }

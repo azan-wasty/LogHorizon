@@ -5,25 +5,25 @@ import { useAuth } from '../hooks/useAuth';
 import { useLibrary } from '../hooks/useLibrary';
 import { useToast } from '../hooks/useToast';
 import {
-  Edit3, Bookmark, PlayCircle, CheckCircle2,
-  Star, Zap, Loader2, Camera, X, Check,
-  Award, Film, BookOpen, Monitor, LayoutGrid,
-  List, Compass, Settings, Heart
-} from 'lucide-react';
+  PencilSimple, BookmarkSimple, PlayCircle, CheckCircle,
+  Star, Lightning, CircleNotch, Camera, X, Check,
+  Trophy, FilmStrip, BookOpen, Monitor, SquaresFour,
+  List, Compass, Heart, IconContext
+} from '@phosphor-icons/react';
 
 // ── Category config ──────────────────────────────────────────
 const CAT = {
-  Anime: { color: '#f472b6', dim: 'rgba(244,114,182,0.12)', label: 'Anime', icon: Zap },
+  Anime: { color: '#f472b6', dim: 'rgba(244,114,182,0.12)', label: 'Anime', icon: Lightning },
   Manga: { color: '#60a5fa', dim: 'rgba(96,165,250,0.12)', label: 'Manga', icon: BookOpen },
-  Movie: { color: '#fbbf24', dim: 'rgba(251,191,36,0.12)', label: 'Movie', icon: Film },
+  Movie: { color: '#fbbf24', dim: 'rgba(251,191,36,0.12)', label: 'Movie', icon: FilmStrip },
   TV: { color: '#34d399', dim: 'rgba(52,211,153,0.12)', label: 'TV', icon: Monitor },
 };
-const fallbackPalette = { color: '#9333EA', dim: 'rgba(147,51,234,0.12)', label: '—', icon: Film };
+const fallbackPalette = { color: '#9333EA', dim: 'rgba(147,51,234,0.12)', label: '—', icon: FilmStrip };
 
 const STATUS_CFG = {
-  COMPLETED: { label: 'Completed', color: '#34d399', accent: 'rgba(52,211,153,0.15)', icon: CheckCircle2 },
+  COMPLETED: { label: 'Completed', color: '#34d399', accent: 'rgba(52,211,153,0.15)', icon: CheckCircle },
   CURRENT: { label: 'Watching', color: '#22d3ee', accent: 'rgba(34,211,238,0.15)', icon: PlayCircle },
-  PLANNING: { label: 'Watchlist', color: '#9333EA', accent: 'rgba(147,51,234,0.15)', icon: Bookmark },
+  PLANNING: { label: 'Watchlist', color: '#9333EA', accent: 'rgba(147,51,234,0.15)', icon: BookmarkSimple },
 };
 
 const PAGE_SIZE = 12;
@@ -91,7 +91,7 @@ function DNABar({ library }) {
               border: `1px solid ${cfg.color}30`,
               borderRadius: 99,
             }}>
-              <Icon size={10} color={cfg.color} />
+              <Icon size={10} color={cfg.color} weight="duotone" />
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', color: cfg.color, fontWeight: 700 }}>
                 {cat}
               </span>
@@ -129,7 +129,7 @@ function GridCard({ entry, onNavigate, onRemove }) {
       <div style={{ aspectRatio: '3/4', background: '#1e1e1e', overflow: 'hidden' }}>
         {item?.coverImage
           ? <img src={item.coverImage} alt={item.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s', transform: hovered ? 'scale(1.08)' : 'scale(1)' }} />
-          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Film size={28} color="#374151" /></div>
+          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FilmStrip size={28} color="#374151" weight="duotone" /></div>
         }
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)' }} />
 
@@ -146,14 +146,14 @@ function GridCard({ entry, onNavigate, onRemove }) {
 
         {item?.rating && (
           <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', alignItems: 'center', gap: 3, padding: '2px 7px', borderRadius: 6, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}>
-            <Star size={9} color="#fbbf24" fill="#fbbf24" />
+            <Star size={9} color="#fbbf24" weight="fill" />
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', color: '#fbbf24', fontWeight: 700 }}>{Number(item.rating).toFixed(1)}</span>
           </div>
         )}
 
         <div style={{ position: 'absolute', bottom: 12, right: 8 }}>
           <div style={{ width: 24, height: 24, borderRadius: '50%', background: sc.accent, border: `1px solid ${sc.color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <StatusIcon size={12} color={sc.color} />
+            <StatusIcon size={12} color={sc.color} weight="duotone" />
           </div>
         </div>
 
@@ -175,7 +175,7 @@ function GridCard({ entry, onNavigate, onRemove }) {
             onClick={e => { e.stopPropagation(); onRemove(item.id); }}
             style={{ position: 'absolute', top: 8, right: item?.rating ? 44 : 8, width: 24, height: 24, borderRadius: '50%', background: 'rgba(248,113,113,0.2)', border: '1px solid rgba(248,113,113,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
           >
-            <X size={11} color="#f87171" />
+            <X size={11} color="#f87171" weight="bold" />
           </button>
         )}
       </div>
@@ -217,7 +217,7 @@ function ListRow({ entry, index, onNavigate, onRemove }) {
       <div style={{ width: 40, height: 56, borderRadius: 8, overflow: 'hidden', background: '#1e1e1e', border: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
         {item?.coverImage
           ? <img src={item.coverImage} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
-          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Film size={14} color="#374151" /></div>
+          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><FilmStrip size={14} color="#374151" weight="duotone" /></div>
         }
       </div>
 
@@ -231,7 +231,7 @@ function ListRow({ entry, index, onNavigate, onRemove }) {
           </span>
           {item?.rating && (
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#fbbf24', display: 'flex', alignItems: 'center', gap: 3 }}>
-              <Star size={9} fill="currentColor" /> {item.rating}
+              <Star size={9} weight="fill" /> {item.rating}
             </span>
           )}
         </div>
@@ -245,7 +245,7 @@ function ListRow({ entry, index, onNavigate, onRemove }) {
       {entry.rating ? (
         <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
           {[1, 2, 3, 4, 5].map(i => (
-            <Star key={i} size={11} color="#fbbf24" fill={entry.rating >= i * 2 ? '#fbbf24' : 'transparent'} />
+            <Star key={i} size={11} color="#fbbf24" weight={entry.rating >= i * 2 ? 'fill' : 'regular'} />
           ))}
         </div>
       ) : <div />}
@@ -255,7 +255,7 @@ function ListRow({ entry, index, onNavigate, onRemove }) {
           onClick={e => { e.stopPropagation(); onRemove(item.id); }}
           style={{ padding: '4px 7px', background: 'rgba(248,113,113,0.15)', border: '1px solid rgba(248,113,113,0.25)', borderRadius: 7, cursor: 'pointer', flexShrink: 0 }}
         >
-          <X size={12} color="#f87171" />
+          <X size={12} color="#f87171" weight="bold" />
         </button>
       ) : <div style={{ width: 32 }} />}
     </div>
@@ -279,7 +279,7 @@ function AchBadge({ ach, i }) {
       onMouseLeave={e => { e.currentTarget.style.background = 'rgba(251,191,36,0.04)'; e.currentTarget.style.borderColor = 'rgba(251,191,36,0.12)'; e.currentTarget.style.transform = 'none'; }}
     >
       <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 0 16px rgba(251,191,36,0.15)' }}>
-        <Award size={20} color="#fbbf24" fill="rgba(251,191,36,0.3)" />
+        <Trophy size={20} color="#fbbf24" weight="duotone" />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.85rem', color: '#fbbf24', marginBottom: 2 }}>{ach.title}</p>
@@ -381,7 +381,7 @@ function EditModal({ user, onSave, onClose }) {
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
-              <X size={20} color="#6b7280" />
+              <X size={20} color="#6b7280" weight="bold" />
             </button>
           </div>
 
@@ -410,11 +410,11 @@ function EditModal({ user, onSave, onClose }) {
                     backgroundColor: 'var(--dark)'
                   }}>
                     {uploading ? (
-                      <Loader2 size={32} color="var(--electric-purple)" className="animate-spin" />
+                      <CircleNotch size={32} color="var(--electric-purple)" weight="bold" className="animate-spin" />
                     ) : avatar ? (
                       <img src={avatar} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="preview" />
                     ) : (
-                      <Camera size={32} color="#4b5563" />
+                      <Camera size={32} color="#4b5563" weight="duotone" />
                     )}
                   </div>
                 </div>
@@ -432,7 +432,7 @@ function EditModal({ user, onSave, onClose }) {
                   onMouseEnter={e => e.currentTarget.style.opacity = 1}
                   onMouseLeave={e => e.currentTarget.style.opacity = 0}
                 >
-                  <Camera size={20} color="#fff" />
+                  <Camera size={20} color="#fff" weight="duotone" />
                 </div>
               </div>
               <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} accept="image/*" />
@@ -508,7 +508,7 @@ function EditModal({ user, onSave, onClose }) {
               onMouseEnter={e => { if (!saving && !uploading && !urlError) e.currentTarget.style.backgroundColor = '#e5e7eb'; }}
               onMouseLeave={e => { if (!saving && !uploading && !urlError) e.currentTarget.style.backgroundColor = '#fff'; }}
             >
-              {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+              {saving ? <CircleNotch size={16} weight="bold" className="animate-spin" /> : <Check size={16} weight="bold" />}
               {saving ? 'Synchronizing...' : 'Save Changes'}
             </button>
           </div>
@@ -545,9 +545,11 @@ export default function ProfilePage({ onNavigate }) {
 
   if (libLoading || !user) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-        <Loader2 size={36} color="#9333EA" className="animate-spin" />
-      </div>
+      <IconContext.Provider value={{ weight: 'duotone' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+          <CircleNotch size={36} color="#9333EA" weight="bold" className="animate-spin" />
+        </div>
+      </IconContext.Provider>
     );
   }
 
@@ -572,8 +574,9 @@ export default function ProfilePage({ onNavigate }) {
   const heroCover = (current[0] || completed[0])?.content?.coverImage;
 
   return (
-    <>
-      <style>{`
+    <IconContext.Provider value={{ weight: 'duotone' }}>
+      <>
+        <style>{`
          @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
          .profile-page { display:flex; flex-direction:column; gap:24px; animation:fadeUp 0.5s ease; }
          .avatar-wrap:hover .avatar-overlay { opacity:1; }
@@ -614,392 +617,393 @@ export default function ProfilePage({ onNavigate }) {
          }
        `}</style>
 
-      <div className="profile-page" style={{ position: 'relative' }}>
-        <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.2 }}>
-          <Hyperspeed effectOptions={{
-            distortion: 'turbulentDistortion', length: 400, roadWidth: 10, islandWidth: 2,
-            lanesPerRoad: 4, fov: 90, fovSpeedUp: 150, speedUp: 2, carLightsFade: 0.4,
-            totalSideLightSticks: 20, lightPairsPerRoadWay: 40,
-            shoulderLinesWidthPercentage: 0.05, brokenLinesWidthPercentage: 0.1,
-            brokenLinesLengthPercentage: 0.5, lightStickWidth: [0.12, 0.5],
-            lightStickHeight: [1.3, 1.7], movingAwaySpeed: [60, 80],
-            movingCloserSpeed: [-120, -160], carLightsLength: [12, 80],
-            carLightsRadius: [0.05, 0.14], carWidthPercentage: [0.3, 0.5],
-            carShiftX: [-0.8, 0.8], carFloorSeparation: [0, 5],
-            colors: {
-              roadColor: 0x080808, islandColor: 0x0a0a0a, background: 0x000000,
-              shoulderLines: 0x131318, brokenLines: 0x131318,
-              leftCars: [0x8B5CF6, 0x7C3AED, 0xA78BFA],
-              rightCars: [0x06b6d4, 0x0891b2, 0x22d3ee],
-              sticks: 0x06b6d4,
-            }
-          }} />
-        </div>
-        <div style={{ position: 'relative', zIndex: 1, pointerEvents: 'all' }}>
+        <div className="profile-page" style={{ position: 'relative' }}>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.2 }}>
+            <Hyperspeed effectOptions={{
+              distortion: 'turbulentDistortion', length: 400, roadWidth: 10, islandWidth: 2,
+              lanesPerRoad: 4, fov: 90, fovSpeedUp: 150, speedUp: 2, carLightsFade: 0.4,
+              totalSideLightSticks: 20, lightPairsPerRoadWay: 40,
+              shoulderLinesWidthPercentage: 0.05, brokenLinesWidthPercentage: 0.1,
+              brokenLinesLengthPercentage: 0.5, lightStickWidth: [0.12, 0.5],
+              lightStickHeight: [1.3, 1.7], movingAwaySpeed: [60, 80],
+              movingCloserSpeed: [-120, -160], carLightsLength: [12, 80],
+              carLightsRadius: [0.05, 0.14], carWidthPercentage: [0.3, 0.5],
+              carShiftX: [-0.8, 0.8], carFloorSeparation: [0, 5],
+              colors: {
+                roadColor: 0x080808, islandColor: 0x0a0a0a, background: 0x000000,
+                shoulderLines: 0x131318, brokenLines: 0x131318,
+                leftCars: [0x8B5CF6, 0x7C3AED, 0xA78BFA],
+                rightCars: [0x06b6d4, 0x0891b2, 0x22d3ee],
+                sticks: 0x06b6d4,
+              }
+            }} />
+          </div>
+          <div style={{ position: 'relative', zIndex: 1, pointerEvents: 'all' }}>
 
-          {/* ── HERO CARD ── */}
-          <div style={{ position: 'relative', borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)' }}>
-            {heroCover ? (
-              <>
-                <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${heroCover})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(40px) brightness(0.18) saturate(180%)', transform: 'scale(1.1)' }} />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(18,18,36,0.92) 0%, rgba(18,18,28,0.85) 100%)' }} />
-              </>
-            ) : (
-              <div style={{ position: 'absolute', inset: 0, background: 'rgba(18,18,30,0.95)' }} />
-            )}
+            {/* ── HERO CARD ── */}
+            <div style={{ position: 'relative', borderRadius: 24, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)' }}>
+              {heroCover ? (
+                <>
+                  <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${heroCover})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(40px) brightness(0.18) saturate(180%)', transform: 'scale(1.1)' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(18,18,36,0.92) 0%, rgba(18,18,28,0.85) 100%)' }} />
+                </>
+              ) : (
+                <div style={{ position: 'absolute', inset: 0, background: 'rgba(18,18,30,0.95)' }} />
+              )}
 
-            <div style={{ position: 'absolute', top: -60, right: -60, width: 280, height: 280, background: 'radial-gradient(circle, rgba(147,51,234,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', bottom: -40, left: -40, width: 200, height: 200, background: 'radial-gradient(circle, rgba(245,158,11,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', top: -60, right: -60, width: 280, height: 280, background: 'radial-gradient(circle, rgba(147,51,234,0.18) 0%, transparent 70%)', pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', bottom: -40, left: -40, width: 200, height: 200, background: 'radial-gradient(circle, rgba(245,158,11,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-            <div style={{ height: 3, background: 'linear-gradient(90deg, #9333EA 0%, #a855f7 50%, #f59e0b 100%)' }} />
+              <div style={{ height: 3, background: 'linear-gradient(90deg, #9333EA 0%, #a855f7 50%, #f59e0b 100%)' }} />
 
-            <div className="hero-inner" style={{ position: 'relative', zIndex: 1, padding: '28px 32px 32px' }}>
-              <div className="hero-row" style={{ display: 'flex', gap: 28, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+              <div className="hero-inner" style={{ position: 'relative', zIndex: 1, padding: '28px 32px 32px' }}>
+                <div className="hero-row" style={{ display: 'flex', gap: 28, flexWrap: 'wrap', alignItems: 'flex-start' }}>
 
-                {/* Avatar */}
-                <div
-                  className="avatar-wrap"
-                  style={{ position: 'relative', flexShrink: 0, cursor: 'pointer' }}
-                  onClick={() => setIsEditing(true)}
-                >
-                  <div style={{ width: 100, height: 100, borderRadius: '50%', padding: 3, background: 'linear-gradient(135deg, #9333EA, #a855f7)', boxShadow: '0 0 30px rgba(147,51,234,0.35)' }}>
-                    <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', background: '#121212' }}>
-                      {user.avatarUrl
-                        ? <img src={user.avatarUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="avatar" />
-                        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontSize: '2.2rem', fontWeight: 900, color: '#9333EA' }}>
-                          {user.username?.[0]?.toUpperCase()}
-                        </div>
-                      }
-                    </div>
-                  </div>
-                  <div className="avatar-overlay" style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Camera size={22} color="#fff" />
-                  </div>
-                </div>
-
-                {/* Identity + DNA */}
-                <div className="identity-block" style={{ flex: 1, minWidth: 240 }}>
-                  <div className="hero-username-row" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 6 }}>
-                    <h1 className="hero-username" style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.8rem', color: '#fff', lineHeight: 1 }}>
-                      {user.username}
-                    </h1>
-                    <button
-                      onClick={() => setIsEditing(true)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, cursor: 'pointer' }}
-                    >
-                      <Edit3 size={12} color="#6b7280" />
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Edit</span>
-                    </button>
-                  </div>
-                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#9333EA', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 12 }}>
-                    @{user.username}
-                  </p>
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.6, maxWidth: 420, marginBottom: 24 }}>
-                    {user.bio || 'A wanderer across the media horizon.'}
-                  </p>
-
-                  {library.length > 0 && <DNABar library={library} />}
-                </div>
-
-                {/* Stats cluster */}
-                <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, flexShrink: 0 }}>
-                  {[
-                    { label: 'Total', value: library.length, color: '#8B5CF6' },
-                    { label: 'Completed', value: completed.length, color: '#34d399' },
-                    { label: 'Watching', value: current.length, color: '#22d3ee' },
-                    { label: 'Avg Rating', value: avgRating || '—', color: '#fbbf24', raw: true },
-                  ].map(s => (
-                    <div key={s.label} style={{
-                      padding: '14px 18px',
-                      background: 'rgba(255,255,255,0.04)',
-                      border: '1px solid rgba(255,255,255,0.07)',
-                      borderRadius: 14,
-                      textAlign: 'center',
-                      minWidth: 90,
-                    }}>
-                      <p style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.6rem', lineHeight: 1, marginBottom: 4, color: s.color }}>
-                        {s.raw ? s.value : <AnimNum target={s.value} color={s.color} />}
-                      </p>
-                      <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                        {s.label}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Currently watching strip */}
-              {current.length > 0 && (
-                <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22d3ee', boxShadow: '0 0 8px #22d3ee', animation: 'pulse 2s infinite' }} />
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#22d3ee', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Now Watching</span>
-                  </div>
-                  <div className="now-watching-row" style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
-                    {current.slice(0, 8).map(e => (
-                      <div
-                        key={e.id}
-                        title={e.content?.title}
-                        onClick={() => onNavigate(`content/${e.content?.id}`)}
-                        style={{ width: 48, height: 68, borderRadius: 8, overflow: 'hidden', flexShrink: 0, cursor: 'pointer', border: '1px solid rgba(34,211,238,0.2)', transition: 'transform 0.2s', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}
-                        onMouseEnter={el => el.currentTarget.style.transform = 'scale(1.08)'}
-                        onMouseLeave={el => el.currentTarget.style.transform = 'none'}
-                      >
-                        {e.content?.coverImage
-                          ? <img src={e.content.coverImage} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
-                          : <div style={{ width: '100%', height: '100%', background: '#1e1e1e' }} />
+                  {/* Avatar */}
+                  <div
+                    className="avatar-wrap"
+                    style={{ position: 'relative', flexShrink: 0, cursor: 'pointer' }}
+                    onClick={() => setIsEditing(true)}
+                  >
+                    <div style={{ width: 100, height: 100, borderRadius: '50%', padding: 3, background: 'linear-gradient(135deg, #9333EA, #a855f7)', boxShadow: '0 0 30px rgba(147,51,234,0.35)' }}>
+                      <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', background: '#121212' }}>
+                        {user.avatarUrl
+                          ? <img src={user.avatarUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="avatar" />
+                          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontSize: '2.2rem', fontWeight: 900, color: '#9333EA' }}>
+                            {user.username?.[0]?.toUpperCase()}
+                          </div>
                         }
                       </div>
-                    ))}
-                    {current.length > 8 && (
-                      <div style={{ width: 48, height: 68, borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: 'var(--text-muted)' }}>+{current.length - 8}</span>
+                    </div>
+                    <div className="avatar-overlay" style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Camera size={22} color="#fff" weight="duotone" />
+                    </div>
+                  </div>
+
+                  {/* Identity + DNA */}
+                  <div className="identity-block" style={{ flex: 1, minWidth: 240 }}>
+                    <div className="hero-username-row" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 6 }}>
+                      <h1 className="hero-username" style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.8rem', color: '#fff', lineHeight: 1 }}>
+                        {user.username}
+                      </h1>
+                      <button
+                        onClick={() => setIsEditing(true)}
+                        style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, cursor: 'pointer' }}
+                      >
+                        <PencilSimple size={12} color="#6b7280" weight="duotone" />
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Edit</span>
+                      </button>
+                    </div>
+                    <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#9333EA', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 12 }}>
+                      @{user.username}
+                    </p>
+                    <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.9rem', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.6, maxWidth: 420, marginBottom: 24 }}>
+                      {user.bio || 'A wanderer across the media horizon.'}
+                    </p>
+
+                    {library.length > 0 && <DNABar library={library} />}
+                  </div>
+
+                  {/* Stats cluster */}
+                  <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, flexShrink: 0 }}>
+                    {[
+                      { label: 'Total', value: library.length, color: '#8B5CF6' },
+                      { label: 'Completed', value: completed.length, color: '#34d399' },
+                      { label: 'Watching', value: current.length, color: '#22d3ee' },
+                      { label: 'Avg Rating', value: avgRating || '—', color: '#fbbf24', raw: true },
+                    ].map(s => (
+                      <div key={s.label} style={{
+                        padding: '14px 18px',
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.07)',
+                        borderRadius: 14,
+                        textAlign: 'center',
+                        minWidth: 90,
+                      }}>
+                        <p style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: '1.6rem', lineHeight: 1, marginBottom: 4, color: s.color }}>
+                          {s.raw ? s.value : <AnimNum target={s.value} color={s.color} />}
+                        </p>
+                        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                          {s.label}
+                        </p>
                       </div>
-                    )}
+                    ))}
+                  </div>
+                </div>
+
+                {/* Currently watching strip */}
+                {current.length > 0 && (
+                  <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22d3ee', boxShadow: '0 0 8px #22d3ee', animation: 'pulse 2s infinite' }} />
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#22d3ee', textTransform: 'uppercase', letterSpacing: '0.15em' }}>Now Watching</span>
+                    </div>
+                    <div className="now-watching-row" style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
+                      {current.slice(0, 8).map(e => (
+                        <div
+                          key={e.id}
+                          title={e.content?.title}
+                          onClick={() => onNavigate(`content/${e.content?.id}`)}
+                          style={{ width: 48, height: 68, borderRadius: 8, overflow: 'hidden', flexShrink: 0, cursor: 'pointer', border: '1px solid rgba(34,211,238,0.2)', transition: 'transform 0.2s', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}
+                          onMouseEnter={el => el.currentTarget.style.transform = 'scale(1.08)'}
+                          onMouseLeave={el => el.currentTarget.style.transform = 'none'}
+                        >
+                          {e.content?.coverImage
+                            ? <img src={e.content.coverImage} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                            : <div style={{ width: '100%', height: '100%', background: '#1e1e1e' }} />
+                          }
+                        </div>
+                      ))}
+                      {current.length > 8 && (
+                        <div style={{ width: 48, height: 68, borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: 'var(--text-muted)' }}>+{current.length - 8}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ── ACHIEVEMENTS ── profile only shows the ones the user pinned; full list lives on its own page */}
+            <div style={{ marginTop: 20, animation: 'fadeUp 0.5s 0.08s ease both' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                <Trophy size={16} color="#fbbf24" weight="duotone" />
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-muted)' }}>
+                  Achievements
+                </span>
+                <span style={{
+                  padding: '2px 8px', borderRadius: 20,
+                  background: achievements?.length > 0 ? 'rgba(251,191,36,0.1)' : 'rgba(255,255,255,0.04)',
+                  border: achievements?.length > 0 ? '1px solid rgba(251,191,36,0.2)' : '1px solid rgba(255,255,255,0.06)',
+                  fontFamily: 'var(--font-mono)', fontSize: '0.55rem', fontWeight: 700,
+                  color: achievements?.length > 0 ? '#fbbf24' : '#374151',
+                  letterSpacing: '0.08em',
+                }}>
+                  {achievements?.length || 0} unlocked
+                </span>
+                <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.05)' }} />
+                <button
+                  onClick={() => onNavigate?.('achievements')}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    background: 'transparent', border: '1px solid rgba(251,191,36,0.2)',
+                    borderRadius: 20, padding: '4px 12px', cursor: 'pointer',
+                    fontFamily: 'var(--font-mono)', fontSize: '0.6rem', fontWeight: 700,
+                    color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '0.08em',
+                  }}
+                >
+                  Manage
+                </button>
+              </div>
+
+              {pinnedAchievements?.length > 0 ? (
+                <div className="pinned-ach-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
+                  {pinnedAchievements.map((ach, i) => <AchBadge key={ach.key || ach.title} ach={ach} i={i} />)}
+                </div>
+              ) : (
+                <div style={{
+                  padding: '28px 24px',
+                  background: 'rgba(251,191,36,0.02)',
+                  border: '1px dashed rgba(251,191,36,0.1)',
+                  borderRadius: 16,
+                  display: 'flex', alignItems: 'center', gap: 16,
+                }}>
+                  <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Trophy size={18} color="#374151" weight="duotone" />
+                  </div>
+                  <div>
+                    <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.85rem', color: '#4b5563', marginBottom: 3 }}>
+                      {achievements?.length > 0 ? 'No achievements pinned' : 'No achievements yet'}
+                    </p>
+                    <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#2d2d3d', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                      {achievements?.length > 0
+                        ? 'Pick up to 6 to show here from the Achievements page'
+                        : 'Complete entries, rate content, and build your library to unlock badges'}
+                    </p>
                   </div>
                 </div>
               )}
             </div>
-          </div>
 
-          {/* ── ACHIEVEMENTS ── profile only shows the ones the user pinned; full list lives on its own page */}
-          <div style={{ marginTop: 20, animation: 'fadeUp 0.5s 0.08s ease both' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-              <Award size={16} color="#fbbf24" fill="rgba(251,191,36,0.3)" />
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-muted)' }}>
-                Achievements
-              </span>
-              <span style={{
-                padding: '2px 8px', borderRadius: 20,
-                background: achievements?.length > 0 ? 'rgba(251,191,36,0.1)' : 'rgba(255,255,255,0.04)',
-                border: achievements?.length > 0 ? '1px solid rgba(251,191,36,0.2)' : '1px solid rgba(255,255,255,0.06)',
-                fontFamily: 'var(--font-mono)', fontSize: '0.55rem', fontWeight: 700,
-                color: achievements?.length > 0 ? '#fbbf24' : '#374151',
-                letterSpacing: '0.08em',
-              }}>
-                {achievements?.length || 0} unlocked
-              </span>
-              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.05)' }} />
-              <button
-                onClick={() => onNavigate?.('achievements')}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  background: 'transparent', border: '1px solid rgba(251,191,36,0.2)',
-                  borderRadius: 20, padding: '4px 12px', cursor: 'pointer',
-                  fontFamily: 'var(--font-mono)', fontSize: '0.6rem', fontWeight: 700,
-                  color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '0.08em',
-                }}
-              >
-                Manage
-              </button>
+            {/* ── TOP PROTOCOL: FAVOURITES ── */}
+            <div style={{ marginTop: 20, animation: 'fadeUp 0.5s 0.1s ease both' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+                <Heart size={16} color="#ef4444" weight="duotone" />
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-muted)' }}>
+                  Top Protocol: Favourites
+                </span>
+                <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.05)' }} />
+              </div>
+
+              {favourites?.length > 0 ? (
+                <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 10, scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                  {favourites.map((fav, i) => {
+                    const item = fav.content || fav;
+                    if (!item || !item.id) return null;
+                    const p = CAT[item.category] || fallbackPalette;
+                    return (
+                      <div
+                        key={fav.id || item.id}
+                        className="fav-card"
+                        onClick={() => onNavigate(`content/${item.id}`)}
+                        style={{
+                          flexShrink: 0, width: 200, position: 'relative', cursor: 'pointer',
+                          borderRadius: 16, overflow: 'hidden',
+                          background: '#121212', border: '1px solid rgba(255,255,255,0.08)',
+                          animation: `fadeUp 0.4s ${i * 80}ms ease both`,
+                          transition: 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03) translateY(-4px)'; e.currentTarget.style.borderColor = p.color; }}
+                        onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+                      >
+                        <div style={{ aspectRatio: '2/3', position: 'relative', background: '#1a1a24' }}>
+                          {item.coverImage ? (
+                            <img src={item.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          ) : (
+                            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <FilmStrip size={28} color="#4b5563" weight="duotone" />
+                            </div>
+                          )}
+                          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
+                          <div style={{ position: 'absolute', top: 8, right: 8, width: 22, height: 22, borderRadius: '50%', background: 'rgba(239,68,68,0.2)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Heart size={10} color="#ef4444" weight="fill" />
+                          </div>
+                        </div>
+                        <div style={{ padding: 12 }}>
+                          <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.72rem', color: '#fff', marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {item.title}
+                          </p>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: p.color, textTransform: 'uppercase' }}>{item.category || 'General'}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                              <Star size={8} color="#fbbf24" weight="fill" />
+                              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#fbbf24', fontWeight: 700 }}>{item.rating || '—'}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.06)', borderRadius: 16, textAlign: 'center' }}>
+                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                    Your top protocol remains empty. Heart your favorite titles to see them here.
+                  </p>
+                </div>
+              )}
             </div>
 
-            {pinnedAchievements?.length > 0 ? (
-              <div className="pinned-ach-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
-                {pinnedAchievements.map((ach, i) => <AchBadge key={ach.key || ach.title} ach={ach} i={i} />)}
-              </div>
-            ) : (
-              <div style={{
-                padding: '28px 24px',
-                background: 'rgba(251,191,36,0.02)',
-                border: '1px dashed rgba(251,191,36,0.1)',
-                borderRadius: 16,
-                display: 'flex', alignItems: 'center', gap: 16,
-              }}>
-                <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Award size={18} color="#374151" />
-                </div>
-                <div>
-                  <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.85rem', color: '#4b5563', marginBottom: 3 }}>
-                    {achievements?.length > 0 ? 'No achievements pinned' : 'No achievements yet'}
-                  </p>
-                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#2d2d3d', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                    {achievements?.length > 0
-                      ? 'Pick up to 6 to show here from the Achievements page'
-                      : 'Complete entries, rate content, and build your library to unlock badges'}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
+            {/* ── LIBRARY SECTION ── */}
+            <div style={{ marginTop: 20, animation: 'fadeUp 0.5s 0.14s ease both' }}>
 
-          {/* ── TOP PROTOCOL: FAVOURITES ── */}
-          <div style={{ marginTop: 20, animation: 'fadeUp 0.5s 0.1s ease both' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-              <Heart size={16} color="#ef4444" fill="rgba(239,68,68,0.3)" />
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-muted)' }}>
-                Top Protocol: Favourites
-              </span>
-              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.05)' }} />
-            </div>
-
-            {favourites?.length > 0 ? (
-              <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 10, scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                {favourites.map((fav, i) => {
-                  const item = fav.content || fav;
-                  if (!item || !item.id) return null;
-                  const p = CAT[item.category] || fallbackPalette;
-                  return (
-                    <div
-                      key={fav.id || item.id}
-                      className="fav-card"
-                      onClick={() => onNavigate(`content/${item.id}`)}
+              <div className="library-tabs-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, flexWrap: 'wrap', gap: 12 }}>
+                <div style={{ display: 'flex', gap: 4, padding: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 14, border: '1px solid rgba(255,255,255,0.06)' }}>
+                  {TABS.map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
                       style={{
-                        flexShrink: 0, width: 200, position: 'relative', cursor: 'pointer',
-                        borderRadius: 16, overflow: 'hidden',
-                        background: '#121212', border: '1px solid rgba(255,255,255,0.08)',
-                        animation: `fadeUp 0.4s ${i * 80}ms ease both`,
-                        transition: 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '9px 18px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                        fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.8rem',
+                        textTransform: 'uppercase', letterSpacing: '0.05em',
+                        background: activeTab === tab.id ? `${tab.color}18` : 'transparent',
+                        color: activeTab === tab.id ? tab.color : 'var(--text-muted)',
+                        borderBottom: activeTab === tab.id ? `2px solid ${tab.color}` : '2px solid transparent',
+                        transition: 'all 0.2s',
                       }}
-                      onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03) translateY(-4px)'; e.currentTarget.style.borderColor = p.color; }}
-                      onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
                     >
-                      <div style={{ aspectRatio: '2/3', position: 'relative', background: '#1a1a24' }}>
-                        {item.coverImage ? (
-                          <img src={item.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Film size={28} color="#4b5563" />
-                          </div>
-                        )}
-                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%)' }} />
-                        <div style={{ position: 'absolute', top: 8, right: 8, width: 22, height: 22, borderRadius: '50%', background: 'rgba(239,68,68,0.2)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Heart size={10} color="#ef4444" fill="#ef4444" />
-                        </div>
-                      </div>
-                      <div style={{ padding: 12 }}>
-                        <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.72rem', color: '#fff', marginBottom: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {item.title}
-                        </p>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: p.color, textTransform: 'uppercase' }}>{item.category || 'General'}</span>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                            <Star size={8} color="#fbbf24" fill="#fbbf24" />
-                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#fbbf24', fontWeight: 700 }}>{item.rating || '—'}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.06)', borderRadius: 16, textAlign: 'center' }}>
-                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                  Your top protocol remains empty. Heart your favorite titles to see them here.
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* ── LIBRARY SECTION ── */}
-          <div style={{ marginTop: 20, animation: 'fadeUp 0.5s 0.14s ease both' }}>
-
-            <div className="library-tabs-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, flexWrap: 'wrap', gap: 12 }}>
-              <div style={{ display: 'flex', gap: 4, padding: 4, background: 'rgba(255,255,255,0.03)', borderRadius: 14, border: '1px solid rgba(255,255,255,0.06)' }}>
-                {TABS.map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 8,
-                      padding: '9px 18px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                      fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.8rem',
-                      textTransform: 'uppercase', letterSpacing: '0.05em',
-                      background: activeTab === tab.id ? `${tab.color}18` : 'transparent',
-                      color: activeTab === tab.id ? tab.color : 'var(--text-muted)',
-                      borderBottom: activeTab === tab.id ? `2px solid ${tab.color}` : '2px solid transparent',
-                      transition: 'all 0.2s',
-                    }}
-                  >
-                    {tab.label}
-                    <span style={{
-                      fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
-                      padding: '1px 7px', borderRadius: 99,
-                      background: activeTab === tab.id ? `${tab.color}20` : 'rgba(255,255,255,0.06)',
-                      color: activeTab === tab.id ? tab.color : 'var(--text-muted)',
-                    }}>
-                      {tab.count}
-                    </span>
-                  </button>
-                ))}
-              </div>
-
-              <div style={{ display: 'flex', gap: 2, padding: 3, background: 'rgba(255,255,255,0.04)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)' }}>
-                {[['grid', LayoutGrid], ['list', List]].map(([mode, Icon]) => (
-                  <button
-                    key={mode}
-                    onClick={() => setViewMode(mode)}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      width: 34, height: 34, borderRadius: 8, border: 'none', cursor: 'pointer',
-                      background: viewMode === mode ? 'rgba(147,51,234,0.2)' : 'transparent',
-                      color: viewMode === mode ? '#9333EA' : '#4b5563',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    <Icon size={16} />
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {tabItems.length === 0 ? (
-              <div style={{ padding: '56px 24px', textAlign: 'center', border: '1px dashed rgba(255,255,255,0.06)', borderRadius: 20 }}>
-                <Compass size={36} color="#374151" style={{ margin: '0 auto 12px' }} />
-                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-muted)', marginBottom: 14 }}>
-                  Nothing here yet
-                </p>
-                <button
-                  onClick={() => onNavigate('discover')}
-                  style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#9333EA', textTransform: 'uppercase', letterSpacing: '0.12em', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
-                >
-                  Browse the index →
-                </button>
-              </div>
-            ) : viewMode === 'grid' ? (
-              <div className="library-grid">
-                {tabItems.map((entry, i) => (
-                  <div key={entry.id} style={{ animation: `fadeUp 0.35s ${i * 30}ms ease both` }}>
-                    <GridCard entry={entry} onNavigate={onNavigate} onRemove={removeItem} />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="list-view" style={{ background: 'rgba(18,18,30,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 18, overflow: 'hidden' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '24px 52px 1fr auto auto', gap: 14, padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}>
-                  {['#', '', 'Title', 'Rating', ''].map((h, i) => (
-                    <span key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{h}</span>
+                      {tab.label}
+                      <span style={{
+                        fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
+                        padding: '1px 7px', borderRadius: 99,
+                        background: activeTab === tab.id ? `${tab.color}20` : 'rgba(255,255,255,0.06)',
+                        color: activeTab === tab.id ? tab.color : 'var(--text-muted)',
+                      }}>
+                        {tab.count}
+                      </span>
+                    </button>
                   ))}
                 </div>
-                {tabItems.map((entry, i) => (
-                  <div key={entry.id} style={{ animation: `fadeUp 0.35s ${i * 25}ms ease both` }}>
-                    <ListRow entry={entry} index={i} onNavigate={onNavigate} onRemove={removeItem} />
-                  </div>
-                ))}
-              </div>
-            )}
 
-            {hasMore && (
-              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 20 }}>
-                <button
-                  onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
-                  style={{
-                    fontFamily: 'var(--font-mono)', fontSize: '0.68rem', fontWeight: 700,
-                    textTransform: 'uppercase', letterSpacing: '0.12em', color: '#9333EA',
-                    background: 'rgba(147,51,234,0.08)', border: '1px solid rgba(147,51,234,0.25)',
-                    borderRadius: 20, padding: '10px 22px', cursor: 'pointer',
-                  }}
-                >
-                  Load more ({allTabItems.length - visibleCount} remaining)
-                </button>
+                <div style={{ display: 'flex', gap: 2, padding: 3, background: 'rgba(255,255,255,0.04)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)' }}>
+                  {[['grid', SquaresFour], ['list', List]].map(([mode, Icon]) => (
+                    <button
+                      key={mode}
+                      onClick={() => setViewMode(mode)}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        width: 34, height: 34, borderRadius: 8, border: 'none', cursor: 'pointer',
+                        background: viewMode === mode ? 'rgba(147,51,234,0.2)' : 'transparent',
+                        color: viewMode === mode ? '#9333EA' : '#4b5563',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <Icon size={16} weight="duotone" />
+                    </button>
+                  ))}
+                </div>
               </div>
-            )}
+
+              {tabItems.length === 0 ? (
+                <div style={{ padding: '56px 24px', textAlign: 'center', border: '1px dashed rgba(255,255,255,0.06)', borderRadius: 20 }}>
+                  <Compass size={36} color="#374151" weight="duotone" style={{ margin: '0 auto 12px' }} />
+                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-muted)', marginBottom: 14 }}>
+                    Nothing here yet
+                  </p>
+                  <button
+                    onClick={() => onNavigate('discover')}
+                    style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#9333EA', textTransform: 'uppercase', letterSpacing: '0.12em', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    Browse the index →
+                  </button>
+                </div>
+              ) : viewMode === 'grid' ? (
+                <div className="library-grid">
+                  {tabItems.map((entry, i) => (
+                    <div key={entry.id} style={{ animation: `fadeUp 0.35s ${i * 30}ms ease both` }}>
+                      <GridCard entry={entry} onNavigate={onNavigate} onRemove={removeItem} />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="list-view" style={{ background: 'rgba(18,18,30,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 18, overflow: 'hidden' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '24px 52px 1fr auto auto', gap: 14, padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}>
+                    {['#', '', 'Title', 'Rating', ''].map((h, i) => (
+                      <span key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{h}</span>
+                    ))}
+                  </div>
+                  {tabItems.map((entry, i) => (
+                    <div key={entry.id} style={{ animation: `fadeUp 0.35s ${i * 25}ms ease both` }}>
+                      <ListRow entry={entry} index={i} onNavigate={onNavigate} onRemove={removeItem} />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {hasMore && (
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: 20 }}>
+                  <button
+                    onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
+                    style={{
+                      fontFamily: 'var(--font-mono)', fontSize: '0.68rem', fontWeight: 700,
+                      textTransform: 'uppercase', letterSpacing: '0.12em', color: '#9333EA',
+                      background: 'rgba(147,51,234,0.08)', border: '1px solid rgba(147,51,234,0.25)',
+                      borderRadius: 20, padding: '10px 22px', cursor: 'pointer',
+                    }}
+                  >
+                    Load more ({allTabItems.length - visibleCount} remaining)
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {isEditing && <EditModal user={user} onSave={handleSave} onClose={() => setIsEditing(false)} />}
-    </>
+        {isEditing && <EditModal user={user} onSave={handleSave} onClose={() => setIsEditing(false)} />}
+      </>
+    </IconContext.Provider>
   );
 }

@@ -2,10 +2,10 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { preferences as prefApi, favourites as favouritesApi, library as libraryApi, recommendations as recsApi } from '../api/client';
 import { useToast } from '../hooks/useToast';
 import {
-  Swords, Compass, Laugh, Drama, Sparkles, Rocket, Palmtree, Zap, Moon, Droplet,
-  Users, Sprout, Skull, Search, Check, ChevronRight, ChevronLeft, Loader2, Layers, Tag,
-  Heart, Star, Film, Bookmark, RefreshCw
-} from 'lucide-react';
+  Sword, Compass, Smiley, MaskHappy, Sparkle, RocketLaunch, TreePalm, Lightning, Moon, Drop,
+  UsersThree, Plant, Skull, MagnifyingGlass, Check, CaretRight, CaretLeft, CircleNotch, Stack, Tag,
+  Heart, Star, FilmStrip, BookmarkSimple, ArrowsClockwise, IconContext
+} from '@phosphor-icons/react';
 
 const STEPS = ['Genres', 'Moods', 'Themes', 'Titles'];
 const TITLES_STEP = STEPS.length - 1;
@@ -13,9 +13,9 @@ const TYPE_ORDER = ['Genre', 'Mood', 'Theme'];
 const PAGE_SIZE = 12;
 
 const ICONS = {
-  Action: Swords, Adventure: Compass, Comedy: Laugh, Drama: Drama, Fantasy: Sparkles, 'Sci-Fi': Rocket,
-  Chill: Palmtree, Hype: Zap, Dark: Moon, Emotional: Droplet,
-  Friendship: Users, 'Coming of Age': Sprout, Revenge: Skull, Mystery: Search,
+  Action: Sword, Adventure: Compass, Comedy: Smiley, Drama: MaskHappy, Fantasy: Sparkle, 'Sci-Fi': RocketLaunch,
+  Chill: TreePalm, Hype: Lightning, Dark: Moon, Emotional: Drop,
+  Friendship: UsersThree, 'Coming of Age': Plant, Revenge: Skull, Mystery: MagnifyingGlass,
 };
 
 const CAT_PALETTES = {
@@ -51,7 +51,7 @@ function ActionPill({ active, color, icon: Icon, label, onClick }) {
         boxShadow: active ? `0 0 14px ${color}30` : 'none',
       }}
     >
-      <Icon size={13} fill={active ? color : 'none'} color={active ? color : 'currentColor'} />
+      <Icon size={13} weight={active ? 'fill' : 'regular'} color={active ? color : 'currentColor'} />
       <span>{label}</span>
     </button>
   );
@@ -79,7 +79,7 @@ function GlowStars({ value, onRate }) {
             <Star
               size={20}
               color={STAR_COLOR}
-              fill={filled ? STAR_COLOR : 'transparent'}
+              weight={filled ? 'fill' : 'regular'}
               style={{ filter: filled ? `drop-shadow(0 0 6px ${STAR_COLOR}99)` : 'none' }}
             />
           </button>
@@ -262,352 +262,356 @@ export default function PreferenceWizard({ onComplete }) {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', width: '100%', background: '#09090b', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', padding: '16px' }}>
-        <Loader2 style={{ width: 32, height: 32, color: '#a855f7' }} className="animate-spin" />
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#666' }}>Initializing Codex...</p>
-      </div>
+      <IconContext.Provider value={{ weight: 'duotone' }}>
+        <div style={{ minHeight: '100vh', width: '100%', background: '#09090b', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', padding: '16px' }}>
+          <CircleNotch style={{ width: 32, height: 32, color: '#a855f7' }} weight="bold" className="animate-spin" />
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#666' }}>Initializing Codex...</p>
+        </div>
+      </IconContext.Provider>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', width: '100%', background: '#09090b', color: '#fff', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', overflowX: 'hidden' }}>
-      {/* Background Glow */}
-      <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
-        <div
-          style={{
-            position: 'absolute', inset: '-15%',
-            background: isTitlesStep
-              ? `radial-gradient(ellipse at 50% 0%, ${palette.glow} 0%, transparent 60%)`
-              : 'radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.2) 0%, transparent 60%)',
-            filter: 'blur(20px)',
-            opacity: 0.75,
-            transition: 'background 0.4s ease',
-          }}
-        />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent, rgba(9,9,11,0.7), #09090b)' }} />
-      </div>
+    <IconContext.Provider value={{ weight: 'duotone' }}>
+      <div style={{ minHeight: '100vh', width: '100%', background: '#09090b', color: '#fff', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', overflowX: 'hidden' }}>
+        {/* Background Glow */}
+        <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
+          <div
+            style={{
+              position: 'absolute', inset: '-15%',
+              background: isTitlesStep
+                ? `radial-gradient(ellipse at 50% 0%, ${palette.glow} 0%, transparent 60%)`
+                : 'radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.2) 0%, transparent 60%)',
+              filter: 'blur(20px)',
+              opacity: 0.75,
+              transition: 'background 0.4s ease',
+            }}
+          />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent, rgba(9,9,11,0.7), #09090b)' }} />
+        </div>
 
-      <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: '800px', margin: '0 auto', padding: '24px', boxSizing: 'border-box' }}>
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #9333EA, #a855f7)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(147,51,234,0.4)' }}>
-              <Layers size={16} color="#fff" />
+        <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: '800px', margin: '0 auto', padding: '24px', boxSizing: 'border-box' }}>
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #9333EA, #a855f7)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(147,51,234,0.4)' }}>
+                <Stack size={16} color="#fff" weight="duotone" />
+              </div>
+              <span style={{ fontWeight: 900, fontSize: '18px', letterSpacing: '-0.5px' }}>
+                Log<span style={{ color: '#a855f7' }}>Horizon</span>
+              </span>
             </div>
-            <span style={{ fontWeight: 900, fontSize: '18px', letterSpacing: '-0.5px' }}>
-              Log<span style={{ color: '#a855f7' }}>Horizon</span>
-            </span>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#666' }}>Taste Profile</span>
           </div>
-          <span style={{ fontFamily: 'var(--font-body)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#666' }}>Taste Profile</span>
-        </div>
 
-        {/* Step Info */}
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', marginBottom: '8px' }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#a855f7', boxShadow: '0 0 8px #a855f7' }} />
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#888' }}>
-              Step {step + 1} of {STEPS.length}
-            </span>
-          </div>
-          <h1 style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.5px', margin: '4px 0' }}>
-            {isTitlesStep ? 'Build your watch history.' : 'Refine your signature.'}
-          </h1>
-          <p style={{ margin: 0, fontSize: '13px', color: '#888', maxWidth: '400px', marginLeft: 'auto', marginRight: 'auto' }}>
-            {isTitlesStep
-              ? 'Tell us what you have already seen to sharpen your recommendations.'
-              : 'Pick the genres, moods, and themes that match your taste.'}
-          </p>
-        </div>
-
-        {/* Progress Rail */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '24px' }}>
-          {STEPS.map((label, i) => (
-            <div key={label} style={{ width: '100%' }}>
-              <div style={{ height: 4, borderRadius: '999px', background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-                <div
-                  style={{
-                    height: '100%',
-                    borderRadius: '999px',
-                    transition: 'all 0.3s ease',
-                    width: i <= step ? '100%' : '0%',
-                    background: i <= step ? 'linear-gradient(90deg, #9333EA, #f59e0b)' : 'transparent',
-                  }}
-                />
-              </div>
-              <div style={{
-                marginTop: '4px',
-                fontFamily: 'var(--font-body)',
-                fontSize: '9px',
-                textTransform: 'uppercase',
-                textAlign: 'center',
-                fontWeight: i === step ? 'bold' : 'normal',
-                color: i === step ? '#fff' : '#555',
-              }}>
-                {label}
-              </div>
+          {/* Step Info */}
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', borderRadius: '999px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', marginBottom: '8px' }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#a855f7', boxShadow: '0 0 8px #a855f7' }} />
+              <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#888' }}>
+                Step {step + 1} of {STEPS.length}
+              </span>
             </div>
-          ))}
-        </div>
+            <h1 style={{ fontSize: '24px', fontWeight: 900, letterSpacing: '-0.5px', margin: '4px 0' }}>
+              {isTitlesStep ? 'Build your watch history.' : 'Refine your signature.'}
+            </h1>
+            <p style={{ margin: 0, fontSize: '13px', color: '#888', maxWidth: '400px', marginLeft: 'auto', marginRight: 'auto' }}>
+              {isTitlesStep
+                ? 'Tell us what you have already seen to sharpen your recommendations.'
+                : 'Pick the genres, moods, and themes that match your taste.'}
+            </p>
+          </div>
 
-        {/* Main Card Surface */}
-        <div style={{
-          width: '100%',
-          borderRadius: '16px',
-          border: '1px solid rgba(255,255,255,0.08)',
-          background: 'rgba(255,255,255,0.02)',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: '520px',
-        }}>
-          {/* STEPS 1-3 */}
-          {!isTitlesStep && (
-            <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <div>
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#a855f7', margin: '0 0 2px 0' }}>{currentType}</p>
-                  <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>What fits your taste?</h2>
+          {/* Progress Rail */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '24px' }}>
+            {STEPS.map((label, i) => (
+              <div key={label} style={{ width: '100%' }}>
+                <div style={{ height: 4, borderRadius: '999px', background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      height: '100%',
+                      borderRadius: '999px',
+                      transition: 'all 0.3s ease',
+                      width: i <= step ? '100%' : '0%',
+                      background: i <= step ? 'linear-gradient(90deg, #9333EA, #f59e0b)' : 'transparent',
+                    }}
+                  />
                 </div>
-                <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#666' }}>
-                  {selected.filter(id => currentOptions.some(opt => opt.id === id)).length} selected
-                </span>
+                <div style={{
+                  marginTop: '4px',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '9px',
+                  textTransform: 'uppercase',
+                  textAlign: 'center',
+                  fontWeight: i === step ? 'bold' : 'normal',
+                  color: i === step ? '#fff' : '#555',
+                }}>
+                  {label}
+                </div>
               </div>
+            ))}
+          </div>
 
-              {currentOptions.length === 0 ? (
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px' }}>
-                  <Search size={20} color="#555" style={{ marginBottom: '8px' }} />
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#666', margin: 0 }}>No options available</p>
+          {/* Main Card Surface */}
+          <div style={{
+            width: '100%',
+            borderRadius: '16px',
+            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'rgba(255,255,255,0.02)',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: '520px',
+          }}>
+            {/* STEPS 1-3 */}
+            {!isTitlesStep && (
+              <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <div>
+                    <p style={{ fontFamily: 'var(--font-body)', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#a855f7', margin: '0 0 2px 0' }}>{currentType}</p>
+                    <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>What fits your taste?</h2>
+                  </div>
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#666' }}>
+                    {selected.filter(id => currentOptions.some(opt => opt.id === id)).length} selected
+                  </span>
                 </div>
-              ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
-                  {currentOptions.map(opt => {
-                    const Icon = ICONS[opt.value] || Tag;
-                    const isSelected = selected.includes(opt.id);
-                    return (
+
+                {currentOptions.length === 0 ? (
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px' }}>
+                    <MagnifyingGlass size={20} color="#555" weight="duotone" style={{ marginBottom: '8px' }} />
+                    <p style={{ fontFamily: 'var(--font-body)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#666', margin: 0 }}>No options available</p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+                    {currentOptions.map(opt => {
+                      const Icon = ICONS[opt.value] || Tag;
+                      const isSelected = selected.includes(opt.id);
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => toggle(opt.id)}
+                          style={{
+                            padding: '12px',
+                            borderRadius: '12px',
+                            border: isSelected ? '1px solid rgba(168,85,247,0.5)' : '1px solid rgba(255,255,255,0.08)',
+                            background: isSelected ? 'rgba(168,85,247,0.1)' : 'rgba(255,255,255,0.02)',
+                            color: isSelected ? '#fff' : '#888',
+                            textAlign: 'left',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            minWidth: 0,
+                            boxShadow: isSelected ? '0 0 15px rgba(147,51,234,0.18)' : 'none',
+                          }}
+                        >
+                          <div style={{
+                            width: 32, height: 32, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                            background: isSelected ? '#9333EA' : 'rgba(255,255,255,0.05)',
+                            color: isSelected ? '#fff' : '#888'
+                          }}>
+                            <Icon size={16} weight="duotone" />
+                          </div>
+                          <span style={{ fontWeight: 600, fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{opt.value}</span>
+                          <div style={{
+                            width: 16, height: 16, borderRadius: '50%', border: isSelected ? '1px solid #a855f7' : '1px solid rgba(255,255,255,0.15)',
+                            background: isSelected ? '#a855f7' : 'transparent',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                          }}>
+                            {isSelected && <Check size={10} weight="bold" color="#fff" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* STEP 4 */}
+            {isTitlesStep && (
+              <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                {titleLoading && titleOptions.length === 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                    <CircleNotch size={28} color="#a855f7" weight="bold" className="animate-spin" />
+                    <p style={{ fontFamily: 'var(--font-body)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#666', margin: 0 }}>Fetching titles...</p>
+                  </div>
+                ) : !currentTitle ? (
+                  <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                    <FilmStrip size={28} color="#555" weight="duotone" />
+                    <p style={{ fontFamily: 'var(--font-body)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#666', margin: 0 }}>No titles found</p>
+                    <button
+                      type="button"
+                      onClick={fetchMoreTitles}
+                      style={{ marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '8px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontFamily: 'var(--font-body)', fontSize: '11px', textTransform: 'uppercase', cursor: 'pointer' }}
+                    >
+                      <ArrowsClockwise size={13} weight="bold" /> Retry
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ width: '100%', maxWidth: '340px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    {/* Poster Carousel Row */}
+                    <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '16px' }}>
                       <button
-                        key={opt.id}
                         type="button"
-                        onClick={() => toggle(opt.id)}
+                        onClick={goPrevTitle}
+                        disabled={titleIndex === 0}
                         style={{
-                          padding: '12px',
-                          borderRadius: '12px',
-                          border: isSelected ? '1px solid rgba(168,85,247,0.5)' : '1px solid rgba(255,255,255,0.08)',
-                          background: isSelected ? 'rgba(168,85,247,0.1)' : 'rgba(255,255,255,0.02)',
-                          color: isSelected ? '#fff' : '#888',
-                          textAlign: 'left',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '12px',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease',
-                          minWidth: 0,
-                          boxShadow: isSelected ? '0 0 15px rgba(147,51,234,0.18)' : 'none',
+                          width: 36, height: 36, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)',
+                          background: 'rgba(255,255,255,0.04)', color: '#ccc', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          cursor: titleIndex === 0 ? 'default' : 'pointer', transition: 'all 0.2s ease', flexShrink: 0,
+                          opacity: titleIndex === 0 ? 0.3 : 1,
                         }}
                       >
-                        <div style={{
-                          width: 32, height: 32, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                          background: isSelected ? '#9333EA' : 'rgba(255,255,255,0.05)',
-                          color: isSelected ? '#fff' : '#888'
-                        }}>
-                          <Icon size={16} />
-                        </div>
-                        <span style={{ fontWeight: 600, fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{opt.value}</span>
-                        <div style={{
-                          width: 16, height: 16, borderRadius: '50%', border: isSelected ? '1px solid #a855f7' : '1px solid rgba(255,255,255,0.15)',
-                          background: isSelected ? '#a855f7' : 'transparent',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-                        }}>
-                          {isSelected && <Check size={10} strokeWidth={3} color="#fff" />}
-                        </div>
+                        <CaretLeft size={18} weight="bold" />
                       </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
 
-          {/* STEP 4 */}
-          {isTitlesStep && (
-            <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-              {titleLoading && titleOptions.length === 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                  <Loader2 size={28} color="#a855f7" className="animate-spin" />
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#666', margin: 0 }}>Fetching titles...</p>
-                </div>
-              ) : !currentTitle ? (
-                <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                  <Film size={28} color="#555" />
-                  <p style={{ fontFamily: 'var(--font-body)', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#666', margin: 0 }}>No titles found</p>
-                  <button
-                    type="button"
-                    onClick={fetchMoreTitles}
-                    style={{ marginTop: '4px', display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '8px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontFamily: 'var(--font-body)', fontSize: '11px', textTransform: 'uppercase', cursor: 'pointer' }}
-                  >
-                    <RefreshCw size={13} /> Retry
-                  </button>
-                </div>
-              ) : (
-                <div style={{ width: '100%', maxWidth: '340px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  {/* Poster Carousel Row */}
-                  <div style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '16px' }}>
-                    <button
-                      type="button"
-                      onClick={goPrevTitle}
-                      disabled={titleIndex === 0}
-                      style={{
-                        width: 36, height: 36, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)',
-                        background: 'rgba(255,255,255,0.04)', color: '#ccc', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: titleIndex === 0 ? 'default' : 'pointer', transition: 'all 0.2s ease', flexShrink: 0,
-                        opacity: titleIndex === 0 ? 0.3 : 1,
-                      }}
-                    >
-                      <ChevronLeft size={18} />
-                    </button>
+                      <div
+                        style={{
+                          position: 'relative', height: '280px', aspectRatio: '2/3', borderRadius: '12px', overflow: 'hidden',
+                          border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0,
+                          boxShadow: `0 12px 30px rgba(0,0,0,0.8), 0 0 25px ${palette.glow}`,
+                        }}
+                      >
+                        {currentTitle.coverImage ? (
+                          <img src={currentTitle.coverImage} alt={currentTitle.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', background: 'rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#555', gap: '6px' }}>
+                            <FilmStrip size={28} weight="duotone" />
+                            <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', textTransform: 'uppercase' }}>No Poster</span>
+                          </div>
+                        )}
 
-                    <div
-                      style={{
-                        position: 'relative', height: '280px', aspectRatio: '2/3', borderRadius: '12px', overflow: 'hidden',
-                        border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0,
-                        boxShadow: `0 12px 30px rgba(0,0,0,0.8), 0 0 25px ${palette.glow}`,
-                      }}
-                    >
-                      {currentTitle.coverImage ? (
-                        <img src={currentTitle.coverImage} alt={currentTitle.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <div style={{ width: '100%', height: '100%', background: 'rgba(255,255,255,0.03)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#555', gap: '6px' }}>
-                          <Film size={28} />
-                          <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', textTransform: 'uppercase' }}>No Poster</span>
+                        <div style={{ position: 'absolute', top: '8px', left: '8px', padding: '2px 8px', borderRadius: '999px', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: palette.primary }} />
+                          <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', color: palette.primary }}>
+                            {currentTitle.category}
+                          </span>
                         </div>
-                      )}
-
-                      <div style={{ position: 'absolute', top: '8px', left: '8px', padding: '2px 8px', borderRadius: '999px', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: palette.primary }} />
-                        <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', color: palette.primary }}>
-                          {currentTitle.category}
-                        </span>
                       </div>
+
+                      <button
+                        type="button"
+                        onClick={goNextTitle}
+                        disabled={titleIndex >= titleOptions.length - 1 && titleLoading}
+                        style={{
+                          width: 36, height: 36, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)',
+                          background: 'rgba(255,255,255,0.04)', color: '#ccc', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          cursor: (titleIndex >= titleOptions.length - 1 && titleLoading) ? 'default' : 'pointer', transition: 'all 0.2s ease', flexShrink: 0,
+                          opacity: (titleIndex >= titleOptions.length - 1 && titleLoading) ? 0.3 : 1,
+                        }}
+                      >
+                        {titleLoading ? <CircleNotch size={16} weight="bold" className="animate-spin" /> : <CaretRight size={18} weight="bold" />}
+                      </button>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={goNextTitle}
-                      disabled={titleIndex >= titleOptions.length - 1 && titleLoading}
-                      style={{
-                        width: 36, height: 36, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)',
-                        background: 'rgba(255,255,255,0.04)', color: '#ccc', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: (titleIndex >= titleOptions.length - 1 && titleLoading) ? 'default' : 'pointer', transition: 'all 0.2s ease', flexShrink: 0,
-                        opacity: (titleIndex >= titleOptions.length - 1 && titleLoading) ? 0.3 : 1,
-                      }}
-                    >
-                      {titleLoading ? <Loader2 size={16} className="animate-spin" /> : <ChevronRight size={18} />}
-                    </button>
+                    {/* Title Name */}
+                    <h2 style={{ fontSize: '18px', fontWeight: 900, textAlign: 'center', color: '#fff', margin: '0 0 16px 0', padding: '0 8px' }}>
+                      {currentTitle.title}
+                    </h2>
+
+                    {/* Action Buttons */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', width: '100%', marginBottom: '12px' }}>
+                      <ActionPill
+                        active={!!currentAction.watched}
+                        color={WATCHED_COLOR}
+                        icon={Check}
+                        label="Watched"
+                        onClick={() => toggleWatched(currentTitle.id)}
+                      />
+                      <ActionPill
+                        active={!!currentAction.watchlist}
+                        color={WATCHLIST_COLOR}
+                        icon={BookmarkSimple}
+                        label="Later"
+                        onClick={() => toggleWatchlist(currentTitle.id)}
+                      />
+                      <ActionPill
+                        active={!!currentAction.favourite}
+                        color={FAV_COLOR}
+                        icon={Heart}
+                        label="Favourite"
+                        onClick={() => toggleFavourite(currentTitle.id)}
+                      />
+                    </div>
+
+                    {/* Rating */}
+                    <div style={{ width: '100%', padding: '10px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#666' }}>
+                        Rating {currentAction.rating ? `(${currentAction.rating}/5)` : ''}
+                      </span>
+                      <GlowStars
+                        value={currentAction.rating || 0}
+                        onRate={(n) => rateTitle(currentTitle.id, n)}
+                      />
+                    </div>
+
+                    {/* Counter */}
+                    <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', padding: '0 4px', fontFamily: 'var(--font-body)', fontSize: '9px', textTransform: 'uppercase', color: '#555' }}>
+                      <span>{titleIndex + 1} of {titleOptions.length}</span>
+                      <span>{Object.values(titleActions).filter(a => a.watched || a.favourite || a.watchlist).length} logged</span>
+                    </div>
                   </div>
+                )}
+              </div>
+            )}
 
-                  {/* Title Name */}
-                  <h2 style={{ fontSize: '18px', fontWeight: 900, textAlign: 'center', color: '#fff', margin: '0 0 16px 0', padding: '0 8px' }}>
-                    {currentTitle.title}
-                  </h2>
-
-                  {/* Action Buttons */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', width: '100%', marginBottom: '12px' }}>
-                    <ActionPill
-                      active={!!currentAction.watched}
-                      color={WATCHED_COLOR}
-                      icon={Check}
-                      label="Watched"
-                      onClick={() => toggleWatched(currentTitle.id)}
-                    />
-                    <ActionPill
-                      active={!!currentAction.watchlist}
-                      color={WATCHLIST_COLOR}
-                      icon={Bookmark}
-                      label="Later"
-                      onClick={() => toggleWatchlist(currentTitle.id)}
-                    />
-                    <ActionPill
-                      active={!!currentAction.favourite}
-                      color={FAV_COLOR}
-                      icon={Heart}
-                      label="Favourite"
-                      onClick={() => toggleFavourite(currentTitle.id)}
-                    />
-                  </div>
-
-                  {/* Rating */}
-                  <div style={{ width: '100%', padding: '10px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '8px', textTransform: 'uppercase', letterSpacing: '0.15em', color: '#666' }}>
-                      Rating {currentAction.rating ? `(${currentAction.rating}/5)` : ''}
-                    </span>
-                    <GlowStars
-                      value={currentAction.rating || 0}
-                      onRate={(n) => rateTitle(currentTitle.id, n)}
-                    />
-                  </div>
-
-                  {/* Counter */}
-                  <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', padding: '0 4px', fontFamily: 'var(--font-body)', fontSize: '9px', textTransform: 'uppercase', color: '#555' }}>
-                    <span>{titleIndex + 1} of {titleOptions.length}</span>
-                    <span>{Object.values(titleActions).filter(a => a.watched || a.favourite || a.watchlist).length} logged</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Footer Navigation */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '16px 24px',
-            borderTop: '1px solid rgba(255,255,255,0.06)',
-            background: 'rgba(255,255,255,0.01)',
-          }}>
-            <button
-              type="button"
-              onClick={handleBack}
-              disabled={step === 0 || saving}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '6px', border: 'none', background: 'none',
-                color: step === 0 ? '#444' : '#888', cursor: step === 0 ? 'default' : 'pointer',
-                fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
-                transition: 'color 0.2s ease',
-              }}
-            >
-              <ChevronLeft size={15} /> Back
-            </button>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              {!isTitlesStep && (
-                <button
-                  type="button"
-                  onClick={handleFinish}
-                  disabled={saving}
-                  style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', border: 'none', background: 'none', color: '#666', cursor: 'pointer', transition: 'color 0.2s ease' }}
-                >
-                  Skip
-                </button>
-              )}
+            {/* Footer Navigation */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '16px 24px',
+              borderTop: '1px solid rgba(255,255,255,0.06)',
+              background: 'rgba(255,255,255,0.01)',
+            }}>
               <button
                 type="button"
-                onClick={isTitlesStep ? handleFinish : handleNext}
-                disabled={saving}
+                onClick={handleBack}
+                disabled={step === 0 || saving}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: '8px',
-                  background: '#9333EA', color: '#fff', border: 'none', fontSize: '11px', fontWeight: 'bold',
-                  textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer', transition: 'all 0.2s ease',
-                  opacity: saving ? 0.6 : 1,
+                  display: 'flex', alignItems: 'center', gap: '6px', border: 'none', background: 'none',
+                  color: step === 0 ? '#444' : '#888', cursor: step === 0 ? 'default' : 'pointer',
+                  fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em',
+                  transition: 'color 0.2s ease',
                 }}
               >
-                {saving ? <Loader2 size={13} className="animate-spin" /> : isTitlesStep ? <Check size={13} /> : null}
-                {isTitlesStep ? 'Finish' : 'Next'}
-                {!isTitlesStep && <ChevronRight size={13} />}
+                <CaretLeft size={15} weight="bold" /> Back
               </button>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {!isTitlesStep && (
+                  <button
+                    type="button"
+                    onClick={handleFinish}
+                    disabled={saving}
+                    style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', border: 'none', background: 'none', color: '#666', cursor: 'pointer', transition: 'color 0.2s ease' }}
+                  >
+                    Skip
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={isTitlesStep ? handleFinish : handleNext}
+                  disabled={saving}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', borderRadius: '8px',
+                    background: '#9333EA', color: '#fff', border: 'none', fontSize: '11px', fontWeight: 'bold',
+                    textTransform: 'uppercase', letterSpacing: '0.05em', cursor: 'pointer', transition: 'all 0.2s ease',
+                    opacity: saving ? 0.6 : 1,
+                  }}
+                >
+                  {saving ? <CircleNotch size={13} weight="bold" className="animate-spin" /> : isTitlesStep ? <Check size={13} weight="bold" /> : null}
+                  {isTitlesStep ? 'Finish' : 'Next'}
+                  {!isTitlesStep && <CaretRight size={13} weight="bold" />}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </IconContext.Provider>
   );
 }

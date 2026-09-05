@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import AuthModal from '../components/AuthModal';
 import { content as contentApi } from '../api/client';
-import { ShieldCheck, Layers, ArrowUpRight } from 'lucide-react';
+import { Stack, ArrowUpRight } from '@phosphor-icons/react';
 
 const CATEGORY_COLORS = {
   Anime: '#f472b6',
@@ -205,7 +205,7 @@ export default function LandingPage({ onNavigate }) {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 30, height: 30, borderRadius: 8, background: 'linear-gradient(135deg, var(--electric-purple), var(--accent-violet))', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(147,51,234,0.4)', flexShrink: 0 }}>
-              <Layers size={18} color="#fff" />
+              <Stack size={18} color="#fff" weight="duotone" />
             </div>
             <span className="lh-brand-text" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1rem', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>
               LOG<span style={{ color: 'var(--electric-purple)' }}>HORIZON</span>
@@ -308,7 +308,7 @@ export default function LandingPage({ onNavigate }) {
 
           <div className="lh-hero-actions">
             <button className="btn-primary" onClick={() => setAuthModal('register')}>
-              Get Started <ArrowUpRight size={18} />
+              Get Started <ArrowUpRight size={18} weight="bold" />
             </button>
             <button className="btn-ghost" onClick={() => setAuthModal('login')}>
               Explore Index
