@@ -72,23 +72,76 @@ async function discoverContent(req, res) {
 
 /**
  * GET /api/admin/content
- * List all content with their tags.
+ * List content with search, category filtering, and pagination.
  */
 async function listContent(req, res) {
     try {
-        const content = await prisma.content.findMany({
-            orderBy: { createdAt: "desc" },
-            include: {
-                tags: {
-                    include: { tag: true },
+        const { search, category, page = 1, limit = 25 } = req.query;
+        const pageNum = Math.max(1, parseInt(page, 10) || 1);
+        const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 25));
+        const skip = (pageNum - 1) * limitNum;
+
+        const where = {};
+        if (category && category !== "ALL") {
+            where.category = category;
+        }
+        if (search && search.trim().length > 0) {
+            const query = search.trim();
+            where.OR = [
+                { title: { contains: query, mode: "insensitive" } },
+                { description: { contains: query, mode: "insensitive" } },
+            ];
+        }
+
+        const [content, total] = await Promise.all([
+            prisma.content.findMany({
+                where,
+                skip,
+                take: limitNum,
+                orderBy: { createdAt: "desc" },
+                include: {
+                    tags: {
+                        include: { tag: true },
+                    },
                 },
-            },
-        });
+            }),
+            prisma.content.count({ where }),
+        ]);
 
         const formatted = content.map(formatContent);
-        return res.status(200).json({ ok: true, content: formatted });
+        return res.status(200).json({
+            ok: true,
+            content: formatted,
+            total,
+            page: pageNum,
+            limit: limitNum,
+            totalPages: Math.ceil(total / limitNum) || 1,
+        });
     } catch (err) {
         console.error("listContent error:", err);
+        return res.status(500).json({ ok: false, message: "internal server error" });
+    }
+}
+
+/**
+ * GET /api/admin/stats
+ * Get fast aggregated counts for admin dashboard without loading full tables.
+ */
+async function getAdminStats(req, res) {
+    try {
+        const [totalContent, activeTags, syncedContent, discordLinks, redditLinks] = await Promise.all([
+            prisma.content.count(),
+            prisma.tag.count(),
+            prisma.content.count({ where: { externalId: { not: null } } }),
+            prisma.content.count({ where: { discordLink: { not: null } } }),
+            prisma.content.count({ where: { redditLink: { not: null } } }),
+        ]);
+        return res.status(200).json({
+            ok: true,
+            stats: { totalContent, activeTags, syncedContent, discordLinks, redditLinks }
+        });
+    } catch (err) {
+        console.error("getAdminStats error:", err);
         return res.status(500).json({ ok: false, message: "internal server error" });
     }
 }
@@ -201,9 +254,12 @@ async function updateContent(req, res) {
         if (externalId !== undefined) dataUpdate.externalId = externalId?.trim() || null;
         if (source !== undefined) dataUpdate.source = source?.trim() || null;
         if (coverImage !== undefined) dataUpdate.coverImage = coverImage?.trim() || null;
+        if (bannerImage !== undefined) dataUpdate.bannerImage = bannerImage?.trim() || null;
         if (rating !== undefined) dataUpdate.rating = rating != null ? Number(rating) : null;
         if (status !== undefined) dataUpdate.status = status?.trim() || null;
         if (externalUrl !== undefined) dataUpdate.externalUrl = externalUrl?.trim() || null;
+        if (totalEpisodes !== undefined) dataUpdate.totalEpisodes = totalEpisodes != null ? Number(totalEpisodes) : null;
+        if (totalChapters !== undefined) dataUpdate.totalChapters = totalChapters != null ? Number(totalChapters) : null;
         if (isSuggested !== undefined) dataUpdate.isSuggested = !!isSuggested;
 
         // Handle tags replacement in a transaction
@@ -447,6 +503,32 @@ async function updateUserRole(req, res) {
     }
 }
 
+/**
+ * DELETE /api/admin/users/:id
+ */
+async function deleteUser(req, res) {
+    try {
+        const id = Number(req.params.id);
+        if (!Number.isInteger(id) || id <= 0) {
+            return res.status(400).json({ ok: false, message: "invalid id" });
+        }
+
+        if (req.user && req.user.id === id) {
+            return res.status(400).json({ ok: false, message: "cannot delete your own admin account from here" });
+        }
+
+        const existing = await prisma.user.findUnique({ where: { id } });
+        if (!existing) return res.status(404).json({ ok: false, message: "user not found" });
+
+        await prisma.user.delete({ where: { id } });
+
+        return res.status(200).json({ ok: true, message: `User @${existing.username} deleted successfully` });
+    } catch (err) {
+        console.error("deleteUser error:", err);
+        return res.status(500).json({ ok: false, message: "internal server error" });
+    }
+}
+
 // ─────────────────────────────────────────
 // HELPERS
 // ─────────────────────────────────────────
@@ -494,6 +576,7 @@ module.exports = {
     ingestContent,
     discoverContent,
     listContent,
+    getAdminStats,
     getContent,
     createContent,
     updateContent,
@@ -505,4 +588,5 @@ module.exports = {
     deleteTag,
     listUsers,
     updateUserRole,
+    deleteUser,
 };

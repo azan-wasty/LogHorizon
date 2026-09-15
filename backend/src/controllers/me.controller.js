@@ -83,9 +83,6 @@ async function updateMe(req, res) {
   }
 }
 
-module.exports = { getMe, updateMe, togglePinnedAchievement };
-
-
 async function togglePinnedAchievement(req, res) {
   try {
     const userId = req.user?.id;
@@ -106,3 +103,19 @@ async function togglePinnedAchievement(req, res) {
     return res.status(500).json({ ok: false, message: "internal server error" });
   }
 }
+
+async function deleteMe(req, res) {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ ok: false, message: "unauthorized" });
+
+    await prisma.user.delete({ where: { id: Number(userId) } });
+
+    return res.status(200).json({ ok: true, message: "account successfully deleted" });
+  } catch (err) {
+    console.error("deleteMe error:", err);
+    return res.status(500).json({ ok: false, message: "internal server error" });
+  }
+}
+
+module.exports = { getMe, updateMe, togglePinnedAchievement, deleteMe };

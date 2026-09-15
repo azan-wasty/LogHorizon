@@ -12,6 +12,7 @@ import {
     Play, BookmarkSimple, Check, ArrowUpRight, Heart,
     ChatCircle, CaretDown, Fingerprint, Target,
 } from '@phosphor-icons/react';
+import FeedShareModal from '../components/FeedShareModal';
 
 // ── Category styles ────────────────────────────────
 const CAT = {
@@ -489,6 +490,7 @@ export default function DashboardPage({ onNavigate }) {
     const queryClient = useQueryClient();
 
     const [hasPrefs, setHasPrefs] = useState(true);
+    const [shareModal, setShareModal] = useState(null);
 
     const {
         data: recsData,
@@ -745,7 +747,18 @@ export default function DashboardPage({ onNavigate }) {
                                                             e.stopPropagation();
                                                             const nextProg = total > 0 ? Math.min(total, progress + 1) : progress + 1;
                                                             const nextStatus = total > 0 && nextProg >= total ? 'COMPLETED' : 'CURRENT';
-                                                            updateItem(it.id, nextStatus, entry.rating, nextProg);
+                                                            const doUpdate = (postToFeed) => updateItem(it.id, nextStatus, entry.rating, nextProg, postToFeed);
+                                                            const remembered = localStorage.getItem('feedShareChoice');
+                                                            if (remembered !== null) { doUpdate(remembered === 'true'); return; }
+                                                            setShareModal({
+                                                              title: it.title,
+                                                              actionDesc: nextStatus === 'COMPLETED' ? 'Completed' : 'Progress Update',
+                                                              onConfirm: (postToFeed, remember) => {
+                                                                if (remember) localStorage.setItem('feedShareChoice', String(postToFeed));
+                                                                setShareModal(null);
+                                                                doUpdate(postToFeed);
+                                                              },
+                                                            });
                                                         }}
                                                         title={`Mark ${isManga ? 'Chapter' : 'Episode'} ${progress + 1}`}
                                                         style={{

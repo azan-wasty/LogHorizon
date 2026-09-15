@@ -44,7 +44,7 @@ async function addFavourite(req, res) {
         const userId = req.user?.id;
         if (!userId) return res.status(401).json({ ok: false, message: "unauthorized" });
 
-        const { contentId } = req.body || {};
+        const { contentId, postToFeed } = req.body || {};
         if (!contentId) return res.status(400).json({ ok: false, message: "contentId is required" });
 
         // Check if content exists
@@ -73,7 +73,9 @@ async function addFavourite(req, res) {
             },
         });
 
-        await activityService.log(userId, "FAVOURITED", contentId);
+        if (postToFeed !== false && postToFeed !== 'false') {
+            await activityService.log(userId, "FAVOURITED", contentId);
+        }
 
         // Check DEDICATED_FAN achievement (5 favourites)
         const count = await prisma.favourite.count({ where: { userId } });

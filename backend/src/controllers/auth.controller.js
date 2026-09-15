@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const prisma = require("../prismaClient");
+const activityService = require("../services/ActivityService");
 
 function isValidEmail(email) {
     return typeof email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -42,6 +43,15 @@ async function register(req, res) {
         const created = await prisma.user.create({
             data: { username: normalizedUsername, email: normalizedEmail, passwordHash },
         });
+
+        // Create feed post announcing the new member
+        await activityService.log(
+            created.id,
+            "JOINED",
+            null,
+            null,
+            "Joined the LogHorizon universe! Welcome aboard 🚀"
+        );
 
         return res.status(201).json({ ok: true, message: "registered", user: safeUser(created) });
     } catch (err) {

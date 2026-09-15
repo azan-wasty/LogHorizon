@@ -245,9 +245,9 @@ export default function PreferenceWizard({ onComplete }) {
       if (entries.length > 0) {
         await Promise.allSettled(entries.map(([contentId, a]) => {
           const tasks = [];
-          if (a.watched) tasks.push(libraryApi.update({ contentId: Number(contentId), status: 'COMPLETED', rating: a.rating || null }));
-          else if (a.watchlist) tasks.push(libraryApi.update({ contentId: Number(contentId), status: 'PLANNING' }));
-          if (a.favourite) tasks.push(favouritesApi.add(Number(contentId)));
+          if (a.watched) tasks.push(libraryApi.update({ contentId: Number(contentId), status: 'COMPLETED', rating: a.rating || null, postToFeed: false }));
+          else if (a.watchlist) tasks.push(libraryApi.update({ contentId: Number(contentId), status: 'PLANNING', postToFeed: false }));
+          if (a.favourite) tasks.push(favouritesApi.add(Number(contentId), { postToFeed: false }));
           return Promise.all(tasks);
         }));
       }

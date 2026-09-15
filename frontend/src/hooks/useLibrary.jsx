@@ -52,10 +52,11 @@ export function LibraryProvider({ children }) {
   // the background. If the request fails, roll the local state back to what
   // it was before the click and surface a toast. This is what makes onboarding
   // feel instant while everywhere else was waiting on a network round-trip.
-  const updateItem = async (contentId, status, rating = null, progress = undefined) => {
+  const updateItem = async (contentId, status, rating = null, progress = undefined, postToFeed = undefined) => {
     const payload = { contentId, status };
     if (rating !== null && rating !== undefined) payload.rating = rating;
     if (progress !== undefined && progress !== null) payload.progress = progress;
+    if (postToFeed !== undefined) payload.postToFeed = postToFeed;
 
     // Snapshot what we're overwriting so we can restore it on failure.
     let previousEntry = null;

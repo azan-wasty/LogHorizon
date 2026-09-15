@@ -35,7 +35,7 @@ async function getMyLibrary(req, res) {
 async function updateLibrary(req, res) {
     try {
         const userId = req.user.id;
-        const { contentId, status, rating, progress } = req.body;
+        const { contentId, status, rating, progress, postToFeed } = req.body;
 
         if (!contentId || !status) {
             return res.status(400).json({ ok: false, message: "contentId and status required" });
@@ -90,14 +90,17 @@ async function updateLibrary(req, res) {
             include: { content: true }
         });
 
-        // Log activity only on real transitions, not on every +1 progress tick.
-        if (!existingEntry || existingEntry.status !== status) {
-            const activityType = ACTIVITY_TYPE_BY_STATUS[status];
-            if (activityType) await activityService.log(userId, activityType, cid);
-        }
-        const newRating = updateData.rating;
-        if (newRating !== null && newRating !== undefined && (!existingEntry || existingEntry.rating !== newRating)) {
-            await activityService.log(userId, "RATED", cid, newRating);
+        // Log activity only on real transitions if postToFeed is permitted (not explicitly false)
+        const shouldPostToFeed = postToFeed !== false && postToFeed !== 'false';
+        if (shouldPostToFeed) {
+            if (!existingEntry || existingEntry.status !== status) {
+                const activityType = ACTIVITY_TYPE_BY_STATUS[status];
+                if (activityType) await activityService.log(userId, activityType, cid);
+            }
+            const newRating = updateData.rating;
+            if (newRating !== null && newRating !== undefined && (!existingEntry || existingEntry.rating !== newRating)) {
+                await activityService.log(userId, "RATED", cid, newRating);
+            }
         }
 
         // Check and assign any newly unlocked achievements

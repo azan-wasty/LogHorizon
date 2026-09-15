@@ -22,6 +22,25 @@ async function getFeed(req, res) {
 }
 
 /**
+ * GET /api/activity/trending?timeframe=7d&limit=20&offset=0
+ * Auth required. Returns trending activities ranked by interactions.
+ */
+async function getTrendingFeed(req, res) {
+    try {
+        const userId = req.user.id;
+        const timeframe = (req.query.timeframe || "7d").toLowerCase();
+        const limit = Math.min(parseInt(req.query.limit, 10) || 20, 50);
+        const offset = parseInt(req.query.offset, 10) || 0;
+
+        const result = await activityService.getTrendingFeed(userId, { timeframe, limit, offset });
+        return res.json({ ok: true, ...result });
+    } catch (err) {
+        console.error("getTrendingFeed error:", err);
+        return res.status(500).json({ ok: false, message: "internal server error" });
+    }
+}
+
+/**
  * POST /api/activity/:id/react
  * Auth required. Body: { emoji }
  */
@@ -114,6 +133,7 @@ async function deleteActivityComment(req, res) {
 
 module.exports = {
     getFeed,
+    getTrendingFeed,
     reactToActivity,
     getActivityComments,
     addActivityComment,

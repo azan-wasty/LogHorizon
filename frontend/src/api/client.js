@@ -43,6 +43,7 @@ export const auth = {
 export const me = {
   get: () => request('/me'),
   update: (body) => request('/me', { method: 'PUT', body: JSON.stringify(body) }),
+  deleteAccount: () => request('/me', { method: 'DELETE' }),
   uploadAvatar: (file) => {
     const formData = new FormData();
     formData.append('avatar', file);
@@ -95,7 +96,15 @@ export const tags = {
 
 // ── Admin ─────────────────────────────────────────
 export const admin = {
-  listContent: () => request('/admin/content'),
+  stats: () => request('/admin/stats'),
+  listContent: (params = {}) => {
+    const clean = {};
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== '') clean[k] = v;
+    });
+    const qs = new URLSearchParams(clean).toString();
+    return request(`/admin/content${qs ? `?${qs}` : ''}`);
+  },
   getContent: (id) => request(`/admin/content/${id}`),
   createContent: (body) => request('/admin/content', { method: 'POST', body: JSON.stringify(body) }),
   ingestContent: (body) => request('/admin/content/ingest', { method: 'POST', body: JSON.stringify(body) }),
@@ -108,6 +117,7 @@ export const admin = {
   deleteTag: (id) => request(`/admin/tags/${id}`, { method: 'DELETE' }),
   listUsers: () => request('/admin/users'),
   updateUserRole: (id, role) => request(`/admin/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) }),
+  deleteUser: (id) => request(`/admin/users/${id}`, { method: 'DELETE' }),
   listDiscordRecommendations: (params = {}) => {
     const qs = new URLSearchParams(params).toString();
     return request(`/admin/discord-recommendations${qs ? `?${qs}` : ''}`);
@@ -164,7 +174,7 @@ export const events = {
 // ── Favourites ───────────────────────────────────
 export const favourites = {
   get: () => request('/favourites'),
-  add: (contentId) => request('/favourites', { method: 'POST', body: JSON.stringify({ contentId }) }),
+  add: (contentId, extra = {}) => request('/favourites', { method: 'POST', body: JSON.stringify({ contentId, ...extra }) }),
   remove: (contentId) => request(`/favourites/${contentId}`, { method: 'DELETE' }),
 };
 
@@ -183,6 +193,14 @@ export const activity = {
     });
     const qs = new URLSearchParams(clean).toString();
     return request(`/activity/feed${qs ? `?${qs}` : ''}`);
+  },
+  trending: (params = {}) => {
+    const clean = {};
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) clean[key] = value;
+    });
+    const qs = new URLSearchParams(clean).toString();
+    return request(`/activity/trending${qs ? `?${qs}` : ''}`);
   },
   react: (activityId, emoji) => request(`/activity/${activityId}/react`, {
     method: 'POST',

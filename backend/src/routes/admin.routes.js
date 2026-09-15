@@ -5,6 +5,7 @@ const {
     ingestContent,
     discoverContent,
     listContent,
+    getAdminStats,
     getContent,
     createContent,
     updateContent,
@@ -16,6 +17,7 @@ const {
     deleteTag,
     listUsers,
     updateUserRole,
+    deleteUser,
 } = require("../controllers/admin.controller");
 const {
     listDiscordRecommendations,
@@ -28,6 +30,7 @@ const router = express.Router();
 router.use(requireAuth, requireAdmin);
 
 // ── Content ──────────────────────────────
+router.get("/stats", getAdminStats);
 router.post("/content/ingest", ingestContent);
 router.post("/content/discover", discoverContent);
 router.get("/content", listContent);
@@ -46,6 +49,7 @@ router.delete("/tags/:id", deleteTag);
 // ── Users ────────────────────────────────
 router.get("/users", listUsers);
 router.put("/users/:id/role", updateUserRole);
+router.delete("/users/:id", deleteUser);
 
 // ── Discord Recommendations ──────────────
 router.get("/discord-recommendations", listDiscordRecommendations);

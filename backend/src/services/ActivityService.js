@@ -356,9 +356,89 @@ async function deleteComment(commentId, userId, isAdmin = false) {
     return { deleted: true, activityId: comment.activityId };
 }
 
+/**
+ * Get trending feed ranked by interactions (reactions and comments) within a timeframe
+ */
+async function getTrendingFeed(userId, { timeframe = '7d', limit = 20, offset = 0 } = {}) {
+    await ensureSampleActivities();
+
+    let cutoffDate = new Date();
+    if (timeframe === '24h') {
+        cutoffDate.setHours(cutoffDate.getHours() - 24);
+    } else if (timeframe === '30d') {
+        cutoffDate.setDate(cutoffDate.getDate() - 30);
+    } else {
+        cutoffDate.setDate(cutoffDate.getDate() - 7);
+    }
+
+    let whereClause = { createdAt: { gte: cutoffDate } };
+    const countInWindow = await prisma.activity.count({ where: whereClause });
+    // Fall back to all-time if not enough activity in the specific window
+    if (countInWindow < 5) {
+        whereClause = {};
+    }
+
+    const activities = await prisma.activity.findMany({
+        where: whereClause,
+        take: 100,
+        include: {
+            user: { select: USER_SELECT },
+            content: { select: CONTENT_SELECT },
+            reactions: {
+                include: { user: { select: { id: true, username: true } } }
+            },
+            comments: {
+                take: 3,
+                orderBy: { createdAt: "desc" },
+                include: { user: { select: USER_SELECT } }
+            },
+            _count: {
+                select: { comments: true, reactions: true }
+            }
+        },
+    });
+
+    const scored = activities.map(item => {
+        const reactionsCount = item._count?.reactions || item.reactions?.length || 0;
+        const commentsCount = item._count?.comments || item.comments?.length || 0;
+        const score = (reactionsCount * 2) + (commentsCount * 3);
+        return { item, score };
+    });
+
+    scored.sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return new Date(b.item.createdAt).getTime() - new Date(a.item.createdAt).getTime();
+    });
+
+    const paginated = scored.slice(offset, offset + limit);
+
+    const formattedActivities = await Promise.all(paginated.map(async ({ item, score }, index) => {
+        if (item.type === 'REVIEWED' && !item.comment && item.contentId) {
+            const rev = await prisma.review.findUnique({
+                where: { userId_contentId: { userId: item.userId, contentId: item.contentId } }
+            });
+            if (rev && rev.comment) {
+                item.comment = rev.comment;
+            }
+        }
+        const formatted = formatActivity(item, userId);
+        formatted.trendingScore = score;
+        formatted.trendingRank = offset + index + 1;
+        return formatted;
+    }));
+
+    return {
+        activities: formattedActivities,
+        total: scored.length,
+        hasMore: offset + paginated.length < scored.length,
+        timeframe,
+    };
+}
+
 module.exports = {
     log,
     getFeed,
+    getTrendingFeed,
     toggleReaction,
     getComments,
     addComment,

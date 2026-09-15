@@ -8,7 +8,8 @@ import {
   ChatCircle, UsersThree, User, Flame,
   PaperPlaneTilt, Trash, CaretDown, CaretRight, CircleNotch,
   Database, ShieldCheck, FilmStrip, BookOpen, Television, Lightning,
-  ArrowsClockwise, Broadcast, Quotes, ArrowSquareOut, X, Trophy
+  ArrowsClockwise, Broadcast, Quotes, ArrowSquareOut, X, Trophy,
+  RocketLaunch, Rows, SquaresFour, Clock
 } from '@phosphor-icons/react';
 
 const REACTION_EMOJIS = ['🔥', '❤️', '🎉', '👏', '👀', '🚀'];
@@ -27,6 +28,7 @@ const ACTIVITY_CFG = {
   RATED: { verb: 'rated', icon: Star, color: '#fbbf24', bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.25)' },
   REVIEWED: { verb: 'reviewed', icon: ChatCircle, color: '#9333EA', bg: 'rgba(147,51,234,0.12)', border: 'rgba(147,51,234,0.25)' },
   DROPPED: { verb: 'dropped', icon: CaretRight, color: '#6b7280', bg: 'rgba(107,114,128,0.12)', border: 'rgba(107,114,128,0.25)' },
+  JOINED: { verb: 'joined LogHorizon', icon: RocketLaunch, color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.25)' },
 };
 
 const CAT_CFG = {
@@ -221,8 +223,64 @@ function CommentSection({ activityId, initialCount, currentUser, onNavigate }) {
   );
 }
 
+// ── JOINED Welcome Card ────────────────────────────────
+function JoinedCard({ item, compact, onOpenProfile }) {
+  return (
+    <div style={{
+      borderRadius: compact ? 14 : 20,
+      background: 'linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(147,51,234,0.08) 100%)',
+      border: '1px solid rgba(245,158,11,0.3)',
+      padding: compact ? '12px 16px' : '20px 24px',
+      display: 'flex', alignItems: 'center', gap: compact ? 10 : 16,
+      boxShadow: compact ? 'none' : '0 4px 24px rgba(245,158,11,0.08)',
+      transition: 'border-color 0.25s',
+    }}
+      onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(245,158,11,0.5)'}
+      onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(245,158,11,0.3)'}
+    >
+      <div
+        onClick={() => onOpenProfile?.(item.user)}
+        style={{
+          width: compact ? 32 : 46, height: compact ? 32 : 46, borderRadius: '50%', flexShrink: 0,
+          background: 'linear-gradient(135deg, rgba(245,158,11,0.35), rgba(147,51,234,0.3))',
+          border: '2px solid rgba(245,158,11,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', cursor: 'pointer',
+        }}
+      >
+        {item.user?.avatarUrl
+          ? <img src={item.user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          : <span style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontSize: compact ? '0.8rem' : '1rem', color: '#fbbf24' }}>{item.user?.username?.[0]?.toUpperCase() || '?'}</span>
+        }
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <span
+            onClick={() => onOpenProfile?.(item.user)}
+            style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: compact ? '0.82rem' : '0.95rem', color: '#fff', cursor: 'pointer' }}
+          >@{item.user?.username}</span>
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: compact ? '0.76rem' : '0.85rem', color: '#d1d5db' }}>joined the LogHorizon universe 🚀</span>
+          {!compact && <span style={{ padding: '2px 8px', borderRadius: 10, background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#fbbf24', fontWeight: 700 }}>NEW MEMBER</span>}
+        </div>
+        {item.comment && !compact && (
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: '0.8rem', color: '#9ca3af', fontStyle: 'italic', marginTop: 4 }}>"{item.comment}"</p>
+        )}
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.58rem', color: '#6b7280', marginTop: 4, display: 'block' }}>{timeAgo(item.createdAt)}</span>
+      </div>
+      {!compact && (
+        <div style={{
+          width: 40, height: 40, borderRadius: 12,
+          background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.25)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+        }}>
+          <RocketLaunch size={20} color="#f59e0b" weight="duotone" />
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Single Activity Feed Card ──────────────────────────
-function ActivityCard({ item, onNavigate, currentUser, onReactionUpdate, onOpenProfile }) {
+function ActivityCard({ item, onNavigate, currentUser, onReactionUpdate, onOpenProfile, compact }) {
   const cfg = ACTIVITY_CFG[item.type] || { verb: item.type?.toLowerCase(), icon: Pulse, color: '#9333EA', bg: 'rgba(147,51,234,0.12)', border: 'rgba(147,51,234,0.25)' };
   const catCfg = item.content?.category ? (CAT_CFG[item.content.category] || { color: '#9333EA', dim: 'rgba(147,51,234,0.12)', border: 'rgba(147,51,234,0.25)', icon: FilmStrip }) : null;
   const Icon = cfg.icon;
@@ -251,31 +309,31 @@ function ActivityCard({ item, onNavigate, currentUser, onReactionUpdate, onOpenP
 
   return (
     <div style={{
-      borderRadius: 20,
+      borderRadius: compact ? 14 : 20,
       background: 'rgba(18,18,30,0.85)',
       border: '1px solid rgba(255,255,255,0.07)',
-      padding: '22px 24px',
+      padding: compact ? '10px 14px' : '22px 24px',
       display: 'flex',
       flexDirection: 'column',
-      gap: 16,
+      gap: compact ? 8 : 16,
       transition: 'border-color 0.25s, transform 0.25s, box-shadow 0.25s',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+      boxShadow: compact ? 'none' : '0 8px 32px rgba(0,0,0,0.4)',
     }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(147,51,234,0.35)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(147,51,234,0.35)'; if (!compact) e.currentTarget.style.transform = 'translateY(-2px)'; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.transform = 'none'; }}
     >
       {/* Top row: User info & Action Verb & Timestamp */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: compact ? 8 : 12, minWidth: 0 }}>
           <div
             onClick={() => onOpenProfile?.(item.user)}
             style={{
-              width: 42, height: 42, borderRadius: '50%',
+              width: compact ? 28 : 42, height: compact ? 28 : 42, borderRadius: '50%',
               background: 'linear-gradient(135deg, rgba(147,51,234,0.4), rgba(245,158,11,0.25))',
               border: '2px solid rgba(147,51,234,0.5)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               overflow: 'hidden', flexShrink: 0, cursor: 'pointer',
-              boxShadow: '0 0 16px rgba(147,51,234,0.25)',
+              boxShadow: compact ? 'none' : '0 0 16px rgba(147,51,234,0.25)',
             }}
           >
             {item.user?.avatarUrl ? (
@@ -361,8 +419,8 @@ function ActivityCard({ item, onNavigate, currentUser, onReactionUpdate, onOpenP
         </div>
       )}
 
-      {/* Media Thumbnail Card */}
-      {item.content && (
+      {/* Media Thumbnail Card — hidden in compact mode */}
+      {item.content && !compact && (
         <div
           onClick={() => onNavigate(`content/${item.content.id}`)}
           style={{
@@ -534,8 +592,10 @@ export default function FeedPage({ onNavigate }) {
   const { user, loading: authLoading } = useAuth();
   const toast = useToast();
 
-  const [scope, setScope] = useState('all'); // 'all' | 'friends' | 'me'
-  const [typeFilter, setTypeFilter] = useState('ALL'); // 'ALL' | 'WATCHING' | 'COMPLETED' | 'PLANNING' | 'FAVOURITED' | 'RATED' | 'REVIEWED'
+  const [scope, setScope] = useState('all'); // 'all' | 'trending' | 'friends' | 'me'
+  const [typeFilter, setTypeFilter] = useState('ALL');
+  const [trendingTimeframe, setTrendingTimeframe] = useState('7d');
+  const [compact, setCompact] = useState(() => localStorage.getItem('feedCompact') === 'true');
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -547,7 +607,22 @@ export default function FeedPage({ onNavigate }) {
   const PAGE_SIZE = 15;
 
   const fetchFeed = useCallback(async (offset = 0, isAppend = false, { silent = false, force = false } = {}) => {
-    const cacheKey = `${scope}::${typeFilter}`;
+    // Trending has its own fetch path
+    if (scope === 'trending') {
+      if (!silent) { if (offset === 0) setLoading(true); else setLoadingMore(true); }
+      try {
+        const res = await activityApi.trending({ timeframe: trendingTimeframe, limit: PAGE_SIZE, offset });
+        if (res.ok) {
+          setActivities(prev => isAppend ? [...prev, ...res.activities] : res.activities);
+          setHasMore(res.hasMore || false);
+          setTotal(res.total || 0);
+        }
+      } catch { if (!silent) toast('Failed to load trending feed', 'error'); }
+      finally { if (!silent) { setLoading(false); setLoadingMore(false); } }
+      return;
+    }
+
+    const cacheKey = `${scope}::${typeFilter}`; 
 
     // Serve cached results instantly for a fresh (offset 0) load, then
     // silently revalidate in the background if the cache has gone stale.
@@ -595,13 +670,21 @@ export default function FeedPage({ onNavigate }) {
         setLoadingMore(false);
       }
     }
-  }, [scope, typeFilter, toast]);
+  }, [scope, typeFilter, trendingTimeframe, toast]);
 
   useEffect(() => {
     if (!authLoading) {
       fetchFeed(0, false);
     }
   }, [fetchFeed, authLoading]);
+
+  const toggleCompact = () => {
+    setCompact(prev => {
+      const next = !prev;
+      localStorage.setItem('feedCompact', String(next));
+      return next;
+    });
+  };
 
   // ── Auto-load more when the sentinel at the bottom scrolls into view ──
   const sentinelRef = useRef(null);
@@ -653,8 +736,15 @@ export default function FeedPage({ onNavigate }) {
 
   const FILTER_SCOPES = [
     { id: 'all', label: 'Global Stream', icon: Broadcast, desc: 'All members' },
+    { id: 'trending', label: 'Trending', icon: Flame, desc: 'Most reacted' },
     { id: 'friends', label: 'Friends Stream', icon: UsersThree, desc: 'People you follow' },
     { id: 'me', label: 'My Logs', icon: User, desc: 'Your transmissions' },
+  ];
+
+  const TIMEFRAME_CHIPS = [
+    { id: '24h', label: '24 Hours' },
+    { id: '7d', label: '7 Days' },
+    { id: '30d', label: '30 Days' },
   ];
 
   const TYPE_CHIPS = [
@@ -727,50 +817,68 @@ export default function FeedPage({ onNavigate }) {
             </p>
           </div>
 
-          <button
-            onClick={() => fetchFeed(0, false, { force: true })}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 6,
-              padding: '9px 14px', borderRadius: 12,
-              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-              fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#9ca3af',
-              cursor: 'pointer', transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'rgba(147,51,234,0.4)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#9ca3af'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
-          >
-            <ArrowsClockwise size={13} weight="bold" style={loading ? { animation: 'spin 0.8s linear infinite' } : {}} />
-            <span>Sync</span>
-          </button>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button
+              onClick={toggleCompact}
+              title={compact ? 'Switch to Comfortable view' : 'Switch to Compact view'}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '9px 14px', borderRadius: 12,
+                background: compact ? 'rgba(147,51,234,0.15)' : 'rgba(255,255,255,0.04)',
+                border: compact ? '1px solid rgba(147,51,234,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                fontFamily: 'var(--font-mono)', fontSize: '0.65rem',
+                color: compact ? '#a78bfa' : '#9ca3af', cursor: 'pointer', transition: 'all 0.2s',
+              }}
+            >
+              {compact ? <SquaresFour size={13} weight="duotone" /> : <Rows size={13} weight="duotone" />}
+              <span>{compact ? 'Compact' : 'Comfort'}</span>
+            </button>
+            <button
+              onClick={() => fetchFeed(0, false, { force: true })}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '9px 14px', borderRadius: 12,
+                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#9ca3af',
+                cursor: 'pointer', transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'rgba(147,51,234,0.4)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#9ca3af'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
+            >
+              <ArrowsClockwise size={13} weight="bold" style={loading ? { animation: 'spin 0.8s linear infinite' } : {}} />
+              <span>Sync</span>
+            </button>
+          </div>
         </header>
 
         {/* ── Scope Tabs ─────────────────────────────── */}
         <div className="scope-tabs" style={{
-          display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8,
+          display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8,
           padding: 6, background: 'rgba(255,255,255,0.03)',
           border: '1px solid rgba(255,255,255,0.06)', borderRadius: 16,
         }}>
           {FILTER_SCOPES.map(tab => {
             const active = scope === tab.id;
+            const isTrending = tab.id === 'trending';
             const TabIcon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setScope(tab.id)}
                 style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  padding: '12px 14px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                  background: active ? 'rgba(147,51,234,0.2)' : 'transparent',
-                  borderBottom: active ? '2px solid #9333EA' : '2px solid transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  padding: '11px 8px', borderRadius: 12, border: 'none', cursor: 'pointer',
+                  background: active ? (isTrending ? 'rgba(239,68,68,0.15)' : 'rgba(147,51,234,0.2)') : 'transparent',
+                  borderBottom: active ? (isTrending ? '2px solid #ef4444' : '2px solid #9333EA') : '2px solid transparent',
                   transition: 'all 0.2s',
                 }}
               >
-                <TabIcon size={16} color={active ? '#a78bfa' : '#6b7280'} />
+                <TabIcon size={14} color={active ? (isTrending ? '#f87171' : '#a78bfa') : '#6b7280'} weight={active ? 'fill' : 'regular'} />
                 <div style={{ textAlign: 'left' }}>
-                  <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.8rem', color: active ? '#fff' : '#9ca3af', lineHeight: 1 }}>
+                  <p style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '0.74rem', color: active ? '#fff' : '#9ca3af', lineHeight: 1 }}>
                     {tab.label}
                   </p>
-                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.55rem', color: active ? '#a78bfa' : '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 2 }}>
+                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.5rem', color: active ? (isTrending ? '#f87171' : '#a78bfa') : '#4b5563', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 2 }}>
                     {tab.desc}
                   </p>
                 </div>
@@ -778,6 +886,33 @@ export default function FeedPage({ onNavigate }) {
             );
           })}
         </div>
+
+        {/* ── Trending Timeframe Chips ─────────────────── */}
+        {scope === 'trending' && (
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <Flame size={14} color="#f87171" weight="fill" />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Timeframe:</span>
+            {TIMEFRAME_CHIPS.map(chip => {
+              const active = trendingTimeframe === chip.id;
+              return (
+                <button
+                  key={chip.id}
+                  onClick={() => setTrendingTimeframe(chip.id)}
+                  style={{
+                    padding: '5px 14px', borderRadius: 20, cursor: 'pointer',
+                    border: active ? '1px solid rgba(239,68,68,0.5)' : '1px solid rgba(255,255,255,0.08)',
+                    background: active ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.03)',
+                    color: active ? '#f87171' : '#6b7280',
+                    fontFamily: 'var(--font-mono)', fontSize: '0.65rem', fontWeight: 700,
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {chip.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* ── Event Type Filter Chips ───────────────── */}
         <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4 }}>
@@ -843,16 +978,21 @@ export default function FeedPage({ onNavigate }) {
             )}
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: compact ? 6 : 16 }}>
             {activities.map((item, i) => (
               <div key={item.id} style={{ animation: `fadeUp 0.35s ${Math.min(i * 30, 300)}ms ease both` }}>
-                <ActivityCard
-                  item={item}
-                  onNavigate={onNavigate}
-                  currentUser={user}
-                  onReactionUpdate={handleReactionUpdate}
-                  onOpenProfile={openProfile}
-                />
+                {item.type === 'JOINED' ? (
+                  <JoinedCard item={item} compact={compact} onOpenProfile={openProfile} />
+                ) : (
+                  <ActivityCard
+                    item={item}
+                    onNavigate={onNavigate}
+                    currentUser={user}
+                    onReactionUpdate={handleReactionUpdate}
+                    onOpenProfile={openProfile}
+                    compact={compact}
+                  />
+                )}
               </div>
             ))}
           </div>

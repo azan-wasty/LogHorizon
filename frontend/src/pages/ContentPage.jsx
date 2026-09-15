@@ -10,6 +10,7 @@ import {
   BookOpen, Television, FilmStrip, Plus, Minus, CheckCircle,
   Checks
 } from '@phosphor-icons/react';
+import FeedShareModal from '../components/FeedShareModal';
 
 const CAT_PALETTES = {
   Anime: {
@@ -495,6 +496,9 @@ export default function ContentPage({ id, goBack }) {
   const { updateItem, removeItem, isInLibrary } = useLibrary();
   const toast = useToast();
 
+  // Feed share modal state
+  const [shareModal, setShareModal] = useState(null); // { title, actionDesc, onConfirm }
+
   useEffect(() => {
     contentApi.get(id)
       .then(res => {
@@ -554,8 +558,24 @@ export default function ContentPage({ id, goBack }) {
   const entry = isInLibrary(item.id);
 
   const handleAction = async (status) => {
-    if (entry?.status === status) await removeItem(item.id);
-    else await updateItem(item.id, status, entry?.rating || null, entry?.progress || 0);
+    const doUpdate = async (postToFeed) => {
+      if (entry?.status === status) await removeItem(item.id);
+      else await updateItem(item.id, status, entry?.rating || null, entry?.progress || 0, postToFeed);
+    };
+
+    const remembered = localStorage.getItem('feedShareChoice');
+    if (remembered !== null) {
+      return doUpdate(remembered === 'true');
+    }
+    setShareModal({
+      title: item.title,
+      actionDesc: status === 'COMPLETED' ? 'Completed' : status === 'WATCHING' ? 'Started Watching' : 'Library Update',
+      onConfirm: async (postToFeed, remember) => {
+        if (remember) localStorage.setItem('feedShareChoice', String(postToFeed));
+        setShareModal(null);
+        await doUpdate(postToFeed);
+      },
+    });
   };
 
   const handleProgressUpdate = async (newProgress, forcedStatus = null) => {
@@ -569,7 +589,18 @@ export default function ContentPage({ id, goBack }) {
     } else if (!entry || status === 'PLANNING') {
       status = 'CURRENT';
     }
-    await updateItem(item.id, status, entry?.rating || null, newProgress);
+    const doUpdate = async (postToFeed) => updateItem(item.id, status, entry?.rating || null, newProgress, postToFeed);
+    const remembered = localStorage.getItem('feedShareChoice');
+    if (remembered !== null) return doUpdate(remembered === 'true');
+    setShareModal({
+      title: item.title,
+      actionDesc: status === 'COMPLETED' ? 'Completed' : 'Progress Update',
+      onConfirm: async (postToFeed, remember) => {
+        if (remember) localStorage.setItem('feedShareChoice', String(postToFeed));
+        setShareModal(null);
+        await doUpdate(postToFeed);
+      },
+    });
   };
 
   // OPTIMISTIC FAVOURITE TOGGLE
@@ -601,7 +632,18 @@ export default function ContentPage({ id, goBack }) {
 
   const handleRate = async (newRating) => {
     const status = entry?.status || 'COMPLETED';
-    await updateItem(item.id, status, newRating);
+    const doUpdate = async (postToFeed) => updateItem(item.id, status, newRating, undefined, postToFeed);
+    const remembered = localStorage.getItem('feedShareChoice');
+    if (remembered !== null) return doUpdate(remembered === 'true');
+    setShareModal({
+      title: item.title,
+      actionDesc: `Rated ${newRating}/10`,
+      onConfirm: async (postToFeed, remember) => {
+        if (remember) localStorage.setItem('feedShareChoice', String(postToFeed));
+        setShareModal(null);
+        await doUpdate(postToFeed);
+      },
+    });
   };
 
   // OPTIMISTIC DISCORD SUBMISSION
@@ -736,6 +778,16 @@ export default function ContentPage({ id, goBack }) {
 
   return (
     <div style={{ minHeight: '100vh', position: 'relative' }}>
+      {/* Feed Share Modal */}
+      {shareModal && (
+        <FeedShareModal
+          isOpen={true}
+          title={shareModal.title}
+          actionDesc={shareModal.actionDesc}
+          onConfirm={shareModal.onConfirm}
+          onCancel={() => { shareModal.onConfirm(false, false); }}
+        />
+      )}
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
