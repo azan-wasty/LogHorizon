@@ -10,7 +10,7 @@ import {
     CaretRight, CircleNotch, TrendUp, Database,
     Hash, SlidersHorizontal, ChartBar, Broadcast,
     Play, BookmarkSimple, Check, ArrowUpRight, Heart,
-    ChatCircle, CaretDown, Fingerprint, Target,
+    ChatCircle, CaretDown, Fingerprint, Target, Activity,
 } from '@phosphor-icons/react';
 import FeedShareModal from '../components/FeedShareModal';
 
@@ -751,13 +751,13 @@ export default function DashboardPage({ onNavigate }) {
                                                             const remembered = localStorage.getItem('feedShareChoice');
                                                             if (remembered !== null) { doUpdate(remembered === 'true'); return; }
                                                             setShareModal({
-                                                              title: it.title,
-                                                              actionDesc: nextStatus === 'COMPLETED' ? 'Completed' : 'Progress Update',
-                                                              onConfirm: (postToFeed, remember) => {
-                                                                if (remember) localStorage.setItem('feedShareChoice', String(postToFeed));
-                                                                setShareModal(null);
-                                                                doUpdate(postToFeed);
-                                                              },
+                                                                title: it.title,
+                                                                actionDesc: nextStatus === 'COMPLETED' ? 'Completed' : 'Progress Update',
+                                                                onConfirm: (postToFeed, remember) => {
+                                                                    if (remember) localStorage.setItem('feedShareChoice', String(postToFeed));
+                                                                    setShareModal(null);
+                                                                    doUpdate(postToFeed);
+                                                                },
                                                             });
                                                         }}
                                                         title={`Mark ${isManga ? 'Chapter' : 'Episode'} ${progress + 1}`}
