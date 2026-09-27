@@ -11,7 +11,7 @@ import {
     Hash, SlidersHorizontal, ChartBar, Broadcast,
     Play, BookmarkSimple, Check, ArrowUpRight, Heart,
     ChatCircle, CaretDown, Fingerprint, Target,
-    Activity,
+    Pulse,               // <-- replace Activity with a real export
 } from '@phosphor-icons/react';
 import FeedShareModal from '../components/FeedShareModal';
 
@@ -35,6 +35,8 @@ const ACTIVITY_CFG = {
     DROPPED: { verb: 'dropped', icon: CaretRight, color: '#6b7280' },
 };
 
+
+
 function timeAgo(dateStr) {
     const diffMs = Date.now() - new Date(dateStr).getTime();
     const mins = Math.floor(diffMs / 60000);
@@ -48,7 +50,7 @@ function timeAgo(dateStr) {
 }
 
 function ActivityRow({ item, onNavigate, i }) {
-    const cfg = ACTIVITY_CFG[item.type] || { verb: item.type?.toLowerCase(), icon: Activity, color: '#9333EA' };
+    const cfg = ACTIVITY_CFG[item.type] || { verb: item.type?.toLowerCase(), icon: Pulse, color: '#9333EA' };
     const Icon = cfg.icon;
     return (
         <div
