@@ -10,7 +10,8 @@ import {
     CaretRight, CircleNotch, TrendUp, Database,
     Hash, SlidersHorizontal, ChartBar, Broadcast,
     Play, BookmarkSimple, Check, ArrowUpRight, Heart,
-    ChatCircle, CaretDown, Fingerprint, Target, Activity,
+    ChatCircle, CaretDown, Fingerprint, Target,
+    Activity,
 } from '@phosphor-icons/react';
 import FeedShareModal from '../components/FeedShareModal';
 
